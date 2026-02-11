@@ -1,1 +1,4 @@
 npx --no -- commitlint --edit "$1"
+# This hook checks commit messages against the conventional commit standard using Commitlint.
+# If the message does not follow the rules, the commit will be rejected.
+
