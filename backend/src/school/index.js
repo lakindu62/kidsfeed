@@ -1,3 +1,3 @@
-import { studentGetRouter } from "./presentation/controllers/student.get.controller.js";
+import { studentGetRouter } from './presentation/controllers/student.get.controller.js';
 
 export { studentGetRouter };
