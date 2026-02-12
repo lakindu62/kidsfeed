@@ -1,10 +1,22 @@
 import express from "express";
 import mongoose from "mongoose";
 import { studentGetRouter } from "./school/index.js";
+import {
+  mealSessionRouter,
+  mealAttendanceRouter,
+  mealScanRouter,
+} from "./meal-distribution/index.js";
 
 const app = express();
 app.use(express.json());
+
+// School component routes
 app.use("/api/students", studentGetRouter);
+
+// Meal distribution component routes
+app.use("/api/meal-sessions", mealSessionRouter);
+app.use("/api/meal-attendance", mealAttendanceRouter);
+app.use("/api/meal-scan", mealScanRouter);
 
 // Replace <db_password> with your actual password
 const MONGODB_URI =
