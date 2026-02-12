@@ -18,13 +18,12 @@ app.use("/api/meal-sessions", mealSessionRouter);
 app.use("/api/meal-attendance", mealAttendanceRouter);
 app.use("/api/meal-scan", mealScanRouter);
 
-// Replace <db_password> with your actual password
 const MONGODB_URI =
-  "mongodb+srv://kidsfeed_db_user:FzdVWWzt2SgTs6wz@y3s1-af-kidsfeed.wwmnexn.mongodb.net/kidsfeed?retryWrites=true&w=majority&appName=portfolio";
+  'mongodb+srv://kidsfeed_db_user:FzdVWWzt2SgTs6wz@y3s1-af-kidsfeed.wwmnexn.mongodb.net/kidsfeed?retryWrites=true&w=majority&appName=portfolio';
 
 mongoose
   .connect(MONGODB_URI)
   .then(() => {
-    app.listen(3000, () => console.log("Server running on port 3000"));
+    app.listen(3000, () => console.log('Server running on port 3000'));
   })
-  .catch((err) => console.error("DB connection failed:", err));
+  .catch((err) => console.error('DB connection failed:', err));

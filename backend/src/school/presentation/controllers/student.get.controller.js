@@ -1,10 +1,10 @@
-import express from "express";
-import { getStudentProfile } from "../../application/services/student.service.js";
-import { validateStudentIdParam } from "../validators/student-query.validator.js";
+import express from 'express';
+import { getStudentProfile } from '../../application/services/student.service.js';
+import { validateStudentIdParam } from '../validators/student-query.validator.js';
 
 const router = express.Router();
 
-router.get("/:studentId", validateStudentIdParam, async (req, res) => {
+router.get('/:studentId', validateStudentIdParam, async (req, res) => {
   try {
     const student = await getStudentProfile(req.params.studentId);
     return res.status(200).json(student);
