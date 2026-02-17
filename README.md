@@ -7,7 +7,7 @@ A school meal management system for tracking student meal distribution and atten
 This is a monorepo containing:
 
 - `backend/` - Node.js/Express server with MongoDB
-- `frontend/` - React/Vite application
+- `frontend/` - React/Vite application with Tailwind CSS
 
 ## Getting Started
 
