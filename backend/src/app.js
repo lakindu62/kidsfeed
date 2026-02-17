@@ -1,22 +1,22 @@
-import express from "express";
-import mongoose from "mongoose";
-import { studentGetRouter } from "./school/index.js";
+import express from 'express';
+import mongoose from 'mongoose';
+import { studentGetRouter } from './school/index.js';
 import {
   mealSessionRouter,
   mealAttendanceRouter,
   mealScanRouter,
-} from "./meal-distribution/index.js";
+} from './meal-distribution/index.js';
 
 const app = express();
 app.use(express.json());
 
 // School component routes
-app.use("/api/students", studentGetRouter);
+app.use('/api/students', studentGetRouter);
 
 // Meal distribution component routes
-app.use("/api/meal-sessions", mealSessionRouter);
-app.use("/api/meal-attendance", mealAttendanceRouter);
-app.use("/api/meal-scan", mealScanRouter);
+app.use('/api/meal-sessions', mealSessionRouter);
+app.use('/api/meal-attendance', mealAttendanceRouter);
+app.use('/api/meal-scan', mealScanRouter);
 
 const MONGODB_URI =
   'mongodb+srv://kidsfeed_db_user:FzdVWWzt2SgTs6wz@y3s1-af-kidsfeed.wwmnexn.mongodb.net/kidsfeed?retryWrites=true&w=majority&appName=portfolio';

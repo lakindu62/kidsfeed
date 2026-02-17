@@ -4,4 +4,3 @@ export class ScanQrDto {
     this.qrToken = qrToken;
   }
 }
-

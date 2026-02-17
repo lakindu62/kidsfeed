@@ -1,8 +1,7 @@
-import express from "express";
+import express from 'express';
 
 export const mealScanRouter = express.Router();
 
-mealScanRouter.post("/", async (req, res) => {
-  res.status(201).json({ message: "Scan QR - to be implemented" });
+mealScanRouter.post('/', async (req, res) => {
+  res.status(201).json({ message: 'Scan QR - to be implemented' });
 });
-

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const mealSessionSchema = new mongoose.Schema(
   {
@@ -10,7 +10,7 @@ const mealSessionSchema = new mongoose.Schema(
     plannedHeadcount: { type: Number, default: 0 },
     actualServedCount: { type: Number, default: 0 },
     wastageCount: { type: Number, default: 0 },
-    status: { type: String, default: "PLANNED" },
+    status: { type: String, default: 'PLANNED' },
     menuId: { type: String },
   },
   {
@@ -18,5 +18,4 @@ const mealSessionSchema = new mongoose.Schema(
   }
 );
 
-export const MealSession = mongoose.model("MealSession", mealSessionSchema);
-
+export const MealSession = mongoose.model('MealSession', mealSessionSchema);
