@@ -321,4 +321,4 @@ recipeSchema.pre('save', function (next) {
  *
  * @type {mongoose.Model}
  */
-module.exports = mongoose.model('Recipe', recipeSchema);
+export default mongoose.model('Recipe', recipeSchema);

@@ -217,4 +217,4 @@ class RecipeMapper {
   }
 }
 
-module.exports = RecipeMapper;
+export default RecipeMapper;
