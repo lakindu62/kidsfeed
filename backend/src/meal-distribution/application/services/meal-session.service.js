@@ -1,16 +1,11 @@
 export class MealSessionService {
-  async createMealSession(/* createMealSessionDto */) {
-  }
+  async createMealSession(/* createMealSessionDto */) {}
 
-  async getMealSessionById(/* mealSessionId */) {
-  }
+  async getMealSessionById(/* mealSessionId */) {}
 
-  async listMealSessions(/* filters */) {
-  }
+  async listMealSessions(/* filters */) {}
 
-  async updateMealSession(/* mealSessionId, updateMealSessionDto */) {
-  }
+  async updateMealSession(/* mealSessionId, updateMealSessionDto */) {}
 
-  async deleteMealSession(/* mealSessionId */) {
-  }
+  async deleteMealSession(/* mealSessionId */) {}
 }

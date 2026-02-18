@@ -1,16 +1,11 @@
 export class MealAttendanceService {
-  async markAttendance(/* markAttendanceDto */) {
-  }
+  async markAttendance(/* markAttendanceDto */) {}
 
-  async getAttendanceById(/* attendanceId */) {
-  }
+  async getAttendanceById(/* attendanceId */) {}
 
-  async listAttendance(/* filters */) {
-  }
+  async listAttendance(/* filters */) {}
 
-  async updateAttendance(/* attendanceId, updateAttendanceDto */) {
-  }
+  async updateAttendance(/* attendanceId, updateAttendanceDto */) {}
 
-  async deleteAttendance(/* attendanceId */) {
-  }
+  async deleteAttendance(/* attendanceId */) {}
 }

@@ -1,7 +1,5 @@
 export class NoShowAlertService {
-  async evaluateNoShowPatterns(/* { studentId, schoolId, from, to } */) {
-  }
+  async evaluateNoShowPatterns(/* { studentId, schoolId, from, to } */) {}
 
-  async triggerParentNotification(/* { studentId, schoolId, contactInfo } */) {
-  }
+  async triggerParentNotification(/* { studentId, schoolId, contactInfo } */) {}
 }

@@ -1,4 +1,4 @@
-import { MealAttendance } from "../schemas/meal-attendance.schema.js";
+import { MealAttendance } from '../schemas/meal-attendance.schema.js';
 
 export class MealAttendanceRepository {
   async create(data) {
@@ -21,4 +21,3 @@ export class MealAttendanceRepository {
     return MealAttendance.findByIdAndDelete(id);
   }
 }
-

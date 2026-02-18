@@ -3,10 +3,9 @@ export function validateMarkAttendance(req, res, next) {
 
   if (!studentId || !mealSessionId) {
     return res.status(400).json({
-      message: "studentId and mealSessionId are required",
+      message: 'studentId and mealSessionId are required',
     });
   }
 
   next();
 }
-

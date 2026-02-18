@@ -3,10 +3,9 @@ export function validateScanQr(req, res, next) {
 
   if (!mealSessionId || !qrToken) {
     return res.status(400).json({
-      message: "mealSessionId and qrToken are required",
+      message: 'mealSessionId and qrToken are required',
     });
   }
 
   next();
 }
-
