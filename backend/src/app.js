@@ -6,6 +6,7 @@ import {
   mealAttendanceRouter,
   mealScanRouter,
 } from './meal-distribution/index.js';
+import { inventoryRouter } from './inventory/index.js';
 
 const app = express();
 app.use(express.json());
@@ -17,6 +18,9 @@ app.use('/api/students', studentGetRouter);
 app.use('/api/meal-sessions', mealSessionRouter);
 app.use('/api/meal-attendance', mealAttendanceRouter);
 app.use('/api/meal-scan', mealScanRouter);
+
+// Inventory component routes
+app.use('/api/inventory', inventoryRouter);
 
 const MONGODB_URI =
   'mongodb+srv://kidsfeed_db_user:FzdVWWzt2SgTs6wz@y3s1-af-kidsfeed.wwmnexn.mongodb.net/kidsfeed?retryWrites=true&w=majority&appName=portfolio';
