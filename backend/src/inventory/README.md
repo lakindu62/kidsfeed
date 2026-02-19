@@ -2,28 +2,34 @@
 
 ## Overview
 
-The Inventory Management module provides comprehensive CRUD operations for managing inventory items in the KidsFeed system. This module follows Domain-Driven Design (DDD) principles with clear separation of concerns across multiple layers.
+The Inventory Management module provides comprehensive CRUD operations for managing inventory items in the KidsFeed system. This module follows a layered architecture with clear separation of concerns across application, infrastructure, and presentation layers.
 
 ## Architecture
 
-This module is structured using DDD principles with the following layers:
+This module is structured using a layered architecture approach consistent with other modules in the system:
 
 ```
 inventory/
+├── bootstrap.js                      # Module initialization
 ├── index.js                          # Module exports
 ├── application/                      # Business logic layer
 │   ├── constants/
 │   │   └── inventory-constants.js   # Enums and constants
+│   ├── dtos/                         # Data Transfer Objects
+│   │   ├── requests/                # Request DTOs
+│   │   └── responses/               # Response DTOs
 │   └── services/
 │       └── inventory-item.service.js # Business logic services
-├── infrastructure/                   # Data access layer
+├── infrastructure/                   # Data access & external services layer
 │   ├── repositories/
 │   │   └── inventory-item.repository.js # Data access operations
-│   └── schemas/
-│       └── inventory-item.schema.js      # Mongoose schema
+│   ├── schemas/
+│   │   └── inventory-item.schema.js      # Mongoose schema
+│   └── services/                     # Infrastructure services
 └── presentation/                     # API layer
     ├── controllers/
     │   └── inventory-item.controller.js  # Express route handlers
+    ├── middleware/                   # Request middleware
     └── validators/
         ├── create-inventory-item.validator.js  # POST validation
         ├── update-inventory-item.validator.js  # PUT validation
@@ -465,12 +471,13 @@ curl http://localhost:3000/api/inventory/low-stock
 
 When adding new features or modifying existing code:
 
-1. Follow the existing DDD structure
-2. Add JSDoc comments to all functions
-3. Implement proper validation
-4. Include error handling
-5. Update this documentation
-6. Write unit tests (if test framework is available)
+1. Follow the existing layered architecture structure
+2. Use DTOs for request/response data transformation when applicable
+3. Add JSDoc comments to all functions
+4. Implement proper validation
+5. Include error handling
+6. Update this documentation
+7. Write unit tests (if test framework is available)
 
 ## Support
 
