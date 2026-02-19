@@ -1,11 +1,5 @@
 export class MarkAttendanceDto {
-  constructor({
-    studentId,
-    mealSessionId,
-    status,
-    servedAt,
-    notes,
-  }) {
+  constructor({ studentId, mealSessionId, status, servedAt, notes }) {
     this.studentId = studentId;
     this.mealSessionId = mealSessionId;
     this.status = status;
@@ -13,4 +7,3 @@ export class MarkAttendanceDto {
     this.notes = notes;
   }
 }
-

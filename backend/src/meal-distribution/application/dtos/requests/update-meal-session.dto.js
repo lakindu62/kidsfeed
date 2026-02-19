@@ -1,12 +1,5 @@
 export class UpdateMealSessionDto {
-  constructor({
-    date,
-    mealType,
-    grade,
-    className,
-    plannedHeadcount,
-    status,
-  }) {
+  constructor({ date, mealType, grade, className, plannedHeadcount, status }) {
     this.date = date;
     this.mealType = mealType;
     this.grade = grade;
@@ -15,4 +8,3 @@ export class UpdateMealSessionDto {
     this.status = status;
   }
 }
-

@@ -1,4 +1,4 @@
-import { MealSession } from "../schemas/meal-session.schema.js";
+import { MealSession } from '../schemas/meal-session.schema.js';
 
 export class MealSessionRepository {
   async create(data) {
@@ -21,4 +21,3 @@ export class MealSessionRepository {
     return MealSession.findByIdAndDelete(id);
   }
 }
-

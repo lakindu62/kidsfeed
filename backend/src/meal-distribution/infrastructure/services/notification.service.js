@@ -1,4 +1,3 @@
 export class NotificationService {
-  async sendParentNoShowAlert(/* { to, studentName, noShowCount, periodFrom, periodTo } */) {
-  }
+  async sendParentNoShowAlert(/* { to, studentName, noShowCount, periodFrom, periodTo } */) {}
 }

@@ -1,5 +1,7 @@
 export function toMealSessionResponse(mealSessionDoc) {
-  if (!mealSessionDoc) return null;
+  if (!mealSessionDoc) {
+    return null;
+  }
 
   return {
     id: mealSessionDoc._id?.toString?.() ?? null,
@@ -14,4 +16,3 @@ export function toMealSessionResponse(mealSessionDoc) {
     status: mealSessionDoc.status,
   };
 }
-

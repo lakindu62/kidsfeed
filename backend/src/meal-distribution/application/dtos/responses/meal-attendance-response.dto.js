@@ -1,5 +1,7 @@
 export function toMealAttendanceResponse(attendanceDoc) {
-  if (!attendanceDoc) return null;
+  if (!attendanceDoc) {
+    return null;
+  }
 
   return {
     id: attendanceDoc._id?.toString?.() ?? null,
@@ -10,4 +12,3 @@ export function toMealAttendanceResponse(attendanceDoc) {
     notes: attendanceDoc.notes,
   };
 }
-

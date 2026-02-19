@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const noShowAlertSchema = new mongoose.Schema(
   {
@@ -14,5 +14,4 @@ const noShowAlertSchema = new mongoose.Schema(
   }
 );
 
-export const NoShowAlert = mongoose.model("NoShowAlert", noShowAlertSchema);
-
+export const NoShowAlert = mongoose.model('NoShowAlert', noShowAlertSchema);
