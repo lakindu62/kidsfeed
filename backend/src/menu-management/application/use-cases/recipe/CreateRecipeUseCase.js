@@ -100,9 +100,6 @@ class CreateRecipeUseCase {
    *   dietaryFlags: { vegetarian: true },
    *   allergens: ['eggs', 'dairy', 'gluten']
    * });
-   *
-   * @todo Fix syntax error: 'this/this.nutritionService' should be 'this.nutritionService'
-   * @todo Fix typo: 'ingredients.ingredients' should be 'recipe.ingredients'
    */
   async execute(recipeData) {
     // Construct the Recipe domain entity from the input data
@@ -130,9 +127,7 @@ class CreateRecipeUseCase {
     recipe.validate();
 
     // Optionally calculate nutritional information if the service is available
-    // BUG: Syntax error - 'this/this.nutritionService' should be 'this.nutritionService'
-    // BUG: Reference error - 'ingredients.ingredients' should be 'recipe.ingredients'
-    if (this / this.nutritionService && ingredients.ingredients.length > 0) {
+    if (this.nutritionService && recipe.ingredients.length > 0) {
       try {
         // Call the external nutrition service to calculate nutritional data
         const nutritionData = await this.nutritionService.calculate(

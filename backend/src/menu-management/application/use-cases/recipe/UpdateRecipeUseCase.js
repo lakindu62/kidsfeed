@@ -44,7 +44,7 @@ class UpdateRecipeUseCase {
    *
    * @constructor
    * @param {IRecipeRepository} recipeRepository - Repository for persisting recipe updates
-   * @param {Object|null} [nutrionService=null] - Optional service for recalculating nutritional info
+   * @param {Object|null} [nutritionService=null] - Optional service for recalculating nutritional info
    *
    * @example
    * // With nutrition service
@@ -52,10 +52,8 @@ class UpdateRecipeUseCase {
    *
    * // Without nutrition service (nutrition won't be recalculated)
    * const useCase = new UpdateRecipeUseCase(mongoRepo);
-   *
-   * @todo Fix typo: 'nutrionService' parameter should be 'nutritionService'
    */
-  constructor(recipeRepository, nutrionService = null) {
+  constructor(recipeRepository, nutritionService = null) {
     /**
      * Repository instance for persisting recipe updates
      * @type {IRecipeRepository}
@@ -68,9 +66,8 @@ class UpdateRecipeUseCase {
      * When null, nutritional information will not be recalculated on updates
      * @type {Object|null}
      * @private
-     * @todo Fix typo: 'nutrionService' property should be 'nutritionService'
      */
-    this.nutrionService = nutrionService;
+    this.nutritionService = nutritionService;
   }
 
   /**
@@ -178,14 +175,13 @@ class UpdateRecipeUseCase {
 
     // Step 5: Optionally recalculate nutritional information if ingredients were modified
     if (
-      this.nutrionService &&
+      this.nutritionService &&
       updateData.ingredients &&
       updateData.ingredients.length > 0
     ) {
       try {
         // Call the external nutrition service to recalculate nutritional data
-        // BUG: Typo - 'this.nutrionService' should be 'this.nutritionService'
-        const nutritionData = await this.nutrionService.calculate(
+        const nutritionData = await this.nutritionService.calculate(
           updatedRecipe.ingredients
         );
 

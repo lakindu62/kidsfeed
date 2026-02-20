@@ -122,16 +122,13 @@ class MockRecipeRepository extends IRecipeRepository {
    * );
    * console.log(result.recipes.length); // Up to 5 recipes
    * console.log(result.totalPages);      // Total pages available
-   *
-   * @todo Fix typo: 'isActice' should be 'isActive' (appears throughout the class)
    */
   async findAll(filters = {}, pagination = {}) {
     // Destructure pagination parameters with default values
     const { page = 1, limit = 10 } = pagination;
 
     // Start with all active recipes (filter out inactive ones)
-    // BUG: Typo - 'isActice' should be 'isActive'
-    let filtered = this.recipes.filter((r) => r.isActice !== false);
+    let filtered = this.recipes.filter((r) => r.isActive !== false);
 
     // Apply dietary flag filters if provided
     if (filters.vegetarian) {
@@ -203,8 +200,6 @@ class MockRecipeRepository extends IRecipeRepository {
    * @example
    * const deactivated = await mockRepo.delete('1');
    * console.log(deactivated.isActive); // false
-   *
-   * @todo Fix typo: 'isActice' should be 'isActive'
    */
   async delete(id) {
     // Find the index of the recipe to delete in the array
@@ -216,8 +211,7 @@ class MockRecipeRepository extends IRecipeRepository {
     }
 
     // Mark the recipe as inactive (soft delete)
-    // BUG: Typo - 'isActice' should be 'isActive'
-    this.recipes[index].isActice = false;
+    this.recipes[index].isActive = false;
 
     return this.recipes[index];
   }
@@ -235,14 +229,11 @@ class MockRecipeRepository extends IRecipeRepository {
    * @example
    * // Returns all active recipes with 'chicken' in any ingredient name
    * const recipes = await mockRepo.searchByIngredient('chicken');
-   *
-   * @todo Fix typo: 'isActice' should be 'isActive'
    */
   async searchByIngredient(ingredientName) {
     return this.recipes.filter(
       (r) =>
-        // BUG: Typo - 'isActice' should be 'isActive'
-        r.isActice !== false &&
+        r.isActive !== false &&
         // Check if any ingredient name includes the search term (case-insensitive)
         r.ingredients?.some((ing) =>
           ing.name.toLowerCase().includes(ingredientName.toLowerCase())
@@ -272,14 +263,11 @@ class MockRecipeRepository extends IRecipeRepository {
    *   halal: true,
    *   vegan: true
    * });
-   *
-   * @todo Fix typo: 'isActice' should be 'isActive'
    */
   async findByDietaryFlags(flags) {
     return this.recipes.filter((r) => {
-      // BUG: Typo - 'isActice' should be 'isActive'
       // Exclude inactive recipes from the results
-      if (r.isActice === false) {
+      if (r.isActive === false) {
         return false;
       }
 
