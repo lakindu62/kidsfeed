@@ -229,8 +229,6 @@ class USDANutritionService {
           api_key: this.apiKey,
           query: name,
           pageSize: 1, // Only need the top match
-          // Restrict to high-quality, comprehensive data sources
-          dataType: ['Survey (FNDDS)', 'Foundation', 'SR Legacy'],
         },
       });
 
