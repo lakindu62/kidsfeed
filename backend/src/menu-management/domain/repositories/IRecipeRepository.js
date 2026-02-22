@@ -160,4 +160,4 @@ class IRecipeRepository {
   }
 }
 
-module.exports = IRecipeRepository;
+export default IRecipeRepository;

@@ -42,4 +42,4 @@ class RecipeNotFoundException extends Error {
   }
 }
 
-module.exports = RecipeNotFoundException;
+export default RecipeNotFoundException;
