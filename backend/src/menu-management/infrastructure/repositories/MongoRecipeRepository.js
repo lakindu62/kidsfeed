@@ -360,4 +360,4 @@ class MongoRecipeRepository extends IRecipeRepository {
   }
 }
 
-module.exports = MongoRecipeRepository;
+export default MongoRecipeRepository;

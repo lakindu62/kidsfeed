@@ -37,4 +37,4 @@ class InvalidRecipeException extends Error {
   }
 }
 
-module.exports = InvalidRecipeException;
+export default InvalidRecipeException;

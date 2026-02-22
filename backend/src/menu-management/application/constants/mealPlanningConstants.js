@@ -126,7 +126,7 @@ const MEAL_PLAN_STATUS = {
 };
 
 // Export all constants for use throughout the application
-module.exports = {
+export default {
   DIETARY_FLAGS,
   ALLERGENS,
   MEAL_TYPES,
