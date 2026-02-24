@@ -47,7 +47,7 @@
  * const nutritionService = new NutritionService(nutritionixService);
  * // Same interface, different implementation
  */
-import NutritionalInfo from '../../domain/value-objects/NutritionalInfo';
+import NutritionalInfo from '../../domain/value-objects/NutritionalInfo.js';
 
 class NutritionService {
   /**

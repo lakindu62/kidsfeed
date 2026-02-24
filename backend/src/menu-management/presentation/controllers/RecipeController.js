@@ -56,9 +56,9 @@
  * router.get('/recipes/search/ingredient', recipeController.searchByIngredient.bind(recipeController));
  * router.get('/recipes/search/dietary', recipeController.searchByDietaryFlags.bind(recipeController));
  */
-import CreateRecipeRequest from '../../application/dtos/requests/CreateRecipeRequest';
-import UpdateRecipeRequest from '../../application/dtos/requests/UpdateRecipeRequest';
-import RecipeResponse from '../../application/dtos/requests/RecipeResponse';
+import CreateRecipeRequest from '../../application/dtos/requests/CreateRecipeRequest.js';
+import UpdateRecipeRequest from '../../application/dtos/requests/UpdateRecipeRequest.js';
+import RecipeResponse from '../../application/dtos/responses/RecipeResponse.js';
 
 class RecipeController {
   /**

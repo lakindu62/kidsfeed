@@ -40,20 +40,20 @@ The root `package.json` contains the lint-staged configuration that defines whic
 
 ```json
 "lint-staged": {
-  "backend/**/*.js": [
-    "npm --prefix backend run lint:fix",
-    "npm --prefix backend run format"
-  ],
-  "frontend/src/**/*.{js,jsx}": [
-    "npm --prefix frontend run lint:fix",
-    "npm --prefix frontend run format"
-  ]
-}
+    "backend/**/*.js": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "frontend/src/**/*.{js,jsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
+  }
 ```
 
 ## 2. The Commit Process (The "Hard Gates")
 
-When you run `git commit -m "..."`, the following chain reaction occurs:
+When you run `git commit -m "..."`, the following chain reaction occurs in the codebase:
 
 ### Gate A: The Pre-Commit Hook (`.husky/pre-commit`)
 
