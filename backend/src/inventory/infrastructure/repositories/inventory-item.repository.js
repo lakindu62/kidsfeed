@@ -23,7 +23,7 @@ export class InventoryItemRepository {
   }
 
   /**
-   * Find all inventory items with optional filters
+   * Find all inventory items with optional filters if needed
    * @param {Object} filter - Query filter
    * @returns {Promise<Array>} Array of inventory items
    */

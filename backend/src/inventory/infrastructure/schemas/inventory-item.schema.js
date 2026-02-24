@@ -79,7 +79,7 @@ const inventoryItemSchema = new mongoose.Schema(
 );
 
 /**
- * Index for faster queries
+ * Index for faster queries added on name, category, and status fields
  */
 inventoryItemSchema.index({ name: 1 });
 inventoryItemSchema.index({ category: 1 });

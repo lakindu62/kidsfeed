@@ -10,7 +10,7 @@ const inventoryItemService = new InventoryItemService();
 
 /**
  * GET /api/inventory
- * List all inventory items with optional filters
+ * List all inventory items with optional filters.
  */
 inventoryRouter.get('/', async (req, res) => {
   try {

@@ -19,7 +19,7 @@ export const INVENTORY_STATUS = {
 };
 
 /**
- * Default units of measurement
+ * Default units of measurement exported
  */
 export const MEASUREMENT_UNITS = [
   'pieces',

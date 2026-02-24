@@ -1,7 +1,7 @@
 import { INVENTORY_CATEGORIES } from '../../application/constants/inventory-constants.js';
 
 /**
- * Validator middleware for creating an inventory item
+ * Validator middleware for creating an inventory item safely
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  * @param {Function} next - Express next middleware function

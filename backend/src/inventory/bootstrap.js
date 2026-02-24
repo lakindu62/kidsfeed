@@ -1,2 +1,2 @@
 // Bootstrap file for inventory module initialization
-// Add any initialization logic here
+// Add any initialization logic here if needed
