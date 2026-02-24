@@ -36,5 +36,8 @@
       "prettier --write",
       "eslint --fix"
     ]
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1"
   }
 }
