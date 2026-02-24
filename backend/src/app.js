@@ -1,6 +1,8 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import { studentGetRouter } from './school/index.js';
+
+// Meal distribution imports
 import {
   mealSessionRouter,
   mealAttendanceRouter,
@@ -9,6 +11,9 @@ import {
 
 // Menu Management Imports
 import { recipeRouter } from './menu-management/index.js';
+
+// Inventory imports
+import { inventoryRouter } from './inventory/index.js';
 
 const app = express();
 app.use(express.json());
@@ -22,7 +27,7 @@ app.use('/api/meal-attendance', mealAttendanceRouter);
 app.use('/api/meal-scan', mealScanRouter);
 
 // Menu Management routes
-app.use('api/recipes', recipeRouter);
+app.use('/api/recipes', recipeRouter);
 
 // Inventory component routes
 app.use('/api/inventory', inventoryRouter);
