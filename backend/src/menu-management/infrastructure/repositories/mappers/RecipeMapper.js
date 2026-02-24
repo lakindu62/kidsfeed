@@ -18,9 +18,9 @@
  * @module meal-planning/infrastructure/repositories/mappers/RecipeMapper
  */
 
-const Recipe = require('../../../domain/entities/Recipe.js');
-const NutritionalInfo = require('../../../domain/value-objects/NutritionalInfo.js');
-const DietaryFlags = require('../../../domain/value-objects/DietaryFlags.js');
+import Recipe from '../../../domain/entities/Recipe.js';
+import NutritionalInfo from '../../../domain/value-objects/NutritionalInfo.js';
+import DietaryFlags from '../../../domain/value-objects/DietaryFlags.js';
 
 class RecipeMapper {
   /**

@@ -20,9 +20,9 @@
  * @extends IRecipeRepository
  * @module meal-planning/infrastructure/repositories/MongoRecipeRepository
  */
-const IRecipeRepository = require('../../domain/repositories/IRecipeRepository.js');
-const RecipeSchema = require('../schemas/RecipeSchema.js');
-const RecipeMapper = require('./mappers/RecipeMapper.js');
+import IRecipeRepository from '../../domain/repositories/IRecipeRepository.js';
+import RecipeSchema from '../schemas/RecipeSchema.js';
+import RecipeMapper from './mappers/RecipeMapper.js';
 
 class MongoRecipeRepository extends IRecipeRepository {
   /**
