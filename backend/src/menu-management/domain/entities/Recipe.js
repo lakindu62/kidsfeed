@@ -117,7 +117,7 @@ class Recipe {
    * @note There's a typo in the property name: 'hala' should likely be 'halal'
    */
   isHalal() {
-    return this.dietaryFlags.hala === true; // TODO: Fix typo - should be 'halal'
+    return this.dietaryFlags.halal === true;
   }
 
   /**

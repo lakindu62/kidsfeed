@@ -156,23 +156,21 @@ class NutritionalInfo {
    * Useful for serialization, API responses, and database storage.
    *
    * @returns {Object} Plain object representation of nutritional information
-   * @property {number} callories - Total calories (NOTE: typo in property name)
+   * @property {number} calories - Total calories
    * @property {number} protein - Protein in grams
    * @property {number} carbs - Carbohydrates in grams
    * @property {number} fats - Fats in grams
    * @property {number} fiber - Fiber in grams
    * @property {number} sugar - Sugar in grams
    *
-   * @todo Fix typo: 'callories' should be 'calories'
-   *
    * @example
    * const nutrition = new NutritionalInfo({ calories: 200, protein: 15 });
    * const json = nutrition.toJSON();
-   * // { callories: 200, protein: 15, carbs: 0, ... }
+   * // { calories: 200, protein: 15, carbs: 0, ... }
    */
   toJSON() {
     return {
-      callories: this.calories, // TODO: Fix typo - should be 'calories'
+      calories: this.calories,
       protein: this.protein,
       carbs: this.carbs,
       fats: this.fats,
