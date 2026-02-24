@@ -1,6 +1,6 @@
 # kidsfeed
 
-A school meal management system for tracking student meal distribution and attendance.
+A school meal management system for tracking student meal distribution.
 
 ## Project Structure
 
