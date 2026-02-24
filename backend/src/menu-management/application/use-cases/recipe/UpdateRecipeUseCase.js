@@ -34,9 +34,9 @@
  *   // Other fields remain unchanged
  * });
  */
-import Recipe from '../../../domain/entities/Recipe';
-import DietaryFlags from '../../../domain/value-objects/DietaryFlags';
-import RecipeNotFoundException from '../../../domain/exceptions/RecipeNotFoundException';
+import Recipe from '../../../domain/entities/Recipe.js';
+import DietaryFlags from '../../../domain/value-objects/DietaryFlags.js';
+import RecipeNotFoundException from '../../../domain/exceptions/RecipeNotFoundException.js';
 
 class UpdateRecipeUseCase {
   /**

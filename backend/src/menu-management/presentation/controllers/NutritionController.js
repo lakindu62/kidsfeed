@@ -86,7 +86,7 @@
  *   }
  * }
  */
-import NutritionResponse from '../../application/dtos/responses/NutritionResponse';
+import NutritionResponse from '../../application/dtos/responses/NutritionResponse.js';
 
 class NutritionController {
   /**

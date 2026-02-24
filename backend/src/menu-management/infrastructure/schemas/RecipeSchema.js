@@ -15,7 +15,7 @@
  * @module meal-planning/infrastructure/schemas/RecipeSchema
  * @requires mongoose
  */
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 /**
  * Mongoose schema for the Recipe document

@@ -27,7 +27,7 @@
  * const found = await mockRepo.findById('1');
  * mockRepo.clear(); // Clean up after test
  */
-const IRecipeRepository = require('../../../domain/repositories/IRecipeRepository');
+import IRecipeRepository from '../../../domain/repositories/IRecipeRepository.js';
 
 class MockRecipeRepository extends IRecipeRepository {
   /**

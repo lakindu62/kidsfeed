@@ -31,7 +31,7 @@
  *   }
  * }
  */
-import RecipeNotFoundException from '../../../domain/exceptions/RecipeNotFoundException';
+import RecipeNotFoundException from '../../../domain/exceptions/RecipeNotFoundException.js';
 
 class GetRecipeUseCase {
   /**
