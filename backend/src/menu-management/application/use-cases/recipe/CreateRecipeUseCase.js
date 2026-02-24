@@ -26,8 +26,8 @@
  *   ...
  * });
  */
-import Recipe from '../../../domain/entities/Recipe';
-import DietaryFlags from '../../../domain/value-objects/DietaryFlags';
+import Recipe from '../../../domain/entities/Recipe.js';
+import DietaryFlags from '../../../domain/value-objects/DietaryFlags.js';
 
 class CreateRecipeUseCase {
   /**
