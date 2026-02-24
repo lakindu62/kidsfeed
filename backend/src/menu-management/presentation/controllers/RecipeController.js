@@ -58,7 +58,7 @@
  */
 import CreateRecipeRequest from '../../application/dtos/requests/CreateRecipeRequest.js';
 import UpdateRecipeRequest from '../../application/dtos/requests/UpdateRecipeRequest.js';
-import RecipeResponse from '../../application/dtos/responses/RecipeResponse.js';
+import RecipeResponse from '../../application/dtos/requests/RecipeResponse.js';
 
 class RecipeController {
   /**
