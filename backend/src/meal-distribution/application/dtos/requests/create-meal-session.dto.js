@@ -6,6 +6,7 @@ export class CreateMealSessionDto {
     grade,
     className,
     plannedHeadcount,
+    actualServedCount,
     menuId,
   }) {
     this.date = date;
@@ -14,6 +15,7 @@ export class CreateMealSessionDto {
     this.grade = grade;
     this.className = className;
     this.plannedHeadcount = plannedHeadcount;
+    this.actualServedCount = actualServedCount;
     this.menuId = menuId;
   }
 }

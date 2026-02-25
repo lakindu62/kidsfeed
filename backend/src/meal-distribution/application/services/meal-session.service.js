@@ -6,6 +6,15 @@ export class MealSessionService {
   }
 
   async createMealSession(dto) {
+    const plannedHeadcountValue =
+      dto.plannedHeadcount === undefined || dto.plannedHeadcount === null
+        ? 0
+        : Number(dto.plannedHeadcount);
+    const actualServedCountValue =
+      dto.actualServedCount === undefined || dto.actualServedCount === null
+        ? 0
+        : Number(dto.actualServedCount);
+
     const data = {
       date: dto.date instanceof Date ? dto.date : new Date(dto.date),
       mealType: String(dto.mealType).trim(),
@@ -18,15 +27,15 @@ export class MealSessionService {
         dto.className === undefined || dto.className === null
           ? undefined
           : String(dto.className).trim(),
-      plannedHeadcount:
-        dto.plannedHeadcount === undefined || dto.plannedHeadcount === null
-          ? 0
-          : Number(dto.plannedHeadcount),
+      plannedHeadcount: plannedHeadcountValue,
+      actualServedCount: actualServedCountValue,
       menuId:
         dto.menuId === undefined || dto.menuId === null
           ? undefined
           : String(dto.menuId).trim(),
-      // actualServedCount, wastageCount, status use schema defaults (0, 0, 'PLANNED')
+      // status uses schema default ('PLANNED')
+      // wastageCount is derived from plannedHeadcount - actualServedCount
+      wastageCount: Math.max(plannedHeadcountValue - actualServedCountValue, 0),
       // Later: validate menuId/mealType/date against menu-management when that API exists
     };
 
@@ -41,12 +50,20 @@ export class MealSessionService {
 
   async listMealSessions(filters = {}) {
     const filter = {};
-    if (filters.schoolId) {filter.schoolId = String(filters.schoolId).trim();}
-    if (filters.mealType) {filter.mealType = String(filters.mealType).trim();}
+    if (filters.schoolId) {
+      filter.schoolId = String(filters.schoolId).trim();
+    }
+    if (filters.mealType) {
+      filter.mealType = String(filters.mealType).trim();
+    }
     if (filters.dateFrom || filters.dateTo) {
       filter.date = {};
-      if (filters.dateFrom) {filter.date.$gte = new Date(filters.dateFrom);}
-      if (filters.dateTo) {filter.date.$lte = new Date(filters.dateTo);}
+      if (filters.dateFrom) {
+        filter.date.$gte = new Date(filters.dateFrom);
+      }
+      if (filters.dateTo) {
+        filter.date.$lte = new Date(filters.dateTo);
+      }
     } else if (filters.date) {
       filter.date = new Date(filters.date);
     }
@@ -55,7 +72,61 @@ export class MealSessionService {
     return sessions.map(toMealSessionResponse);
   }
 
-  async updateMealSession(/* mealSessionId, updateMealSessionDto */) {}
+  async updateMealSession(mealSessionId, dto) {
+    const session = await this.mealSessionRepository.findById(mealSessionId);
+    if (!session) {return null;}
 
-  async deleteMealSession(/* mealSessionId */) {}
+    const updates = {};
+    if (dto.date !== undefined && dto.date !== null) {
+      updates.date = dto.date instanceof Date ? dto.date : new Date(dto.date);
+    }
+    if (dto.mealType !== undefined && dto.mealType !== null) {
+      updates.mealType = String(dto.mealType).trim();
+    }
+    if (dto.grade !== undefined && dto.grade !== null) {
+      updates.grade = String(dto.grade).trim();
+    }
+    if (dto.className !== undefined && dto.className !== null) {
+      updates.className = String(dto.className).trim();
+    }
+    if (dto.plannedHeadcount !== undefined && dto.plannedHeadcount !== null) {
+      updates.plannedHeadcount = Number(dto.plannedHeadcount);
+    }
+    if (dto.actualServedCount !== undefined && dto.actualServedCount !== null) {
+      updates.actualServedCount = Number(dto.actualServedCount);
+    }
+    if (dto.status !== undefined && dto.status !== null) {
+      updates.status = String(dto.status).trim();
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return toMealSessionResponse(session);
+    }
+
+    if (
+      updates.plannedHeadcount !== undefined ||
+      updates.actualServedCount !== undefined
+    ) {
+      const planned =
+        updates.plannedHeadcount !== undefined
+          ? updates.plannedHeadcount
+          : session.plannedHeadcount;
+      const actual =
+        updates.actualServedCount !== undefined
+          ? updates.actualServedCount
+          : session.actualServedCount;
+      updates.wastageCount = Math.max(planned - actual, 0);
+    }
+
+    const updated = await this.mealSessionRepository.updateById(
+      mealSessionId,
+      updates
+    );
+    return toMealSessionResponse(updated);
+  }
+
+  async deleteMealSession(mealSessionId) {
+    const deleted = await this.mealSessionRepository.deleteById(mealSessionId);
+    return Boolean(deleted);
+  }
 }
