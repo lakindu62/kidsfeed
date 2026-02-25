@@ -56,3 +56,37 @@ mealAttendanceRouter.post(
     }
   }
 );
+
+// Update attendance: PUT /api/meal-attendance/:id
+mealAttendanceRouter.put('/:id', async (req, res, next) => {
+  try {
+    const dto = new MarkAttendanceDto(req.body);
+    const result = await mealAttendanceService.updateAttendance(
+      req.params.id,
+      dto
+    );
+
+    if (result.notFound) {
+      return res.status(404).json({ message: 'Meal attendance not found' });
+    }
+
+    return res.status(200).json(result.attendance);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Delete attendance: DELETE /api/meal-attendance/:id
+mealAttendanceRouter.delete('/:id', async (req, res, next) => {
+  try {
+    const result = await mealAttendanceService.deleteAttendance(req.params.id);
+
+    if (result.notFound) {
+      return res.status(404).json({ message: 'Meal attendance not found' });
+    }
+
+    return res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
