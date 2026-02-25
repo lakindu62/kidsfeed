@@ -1,4 +1,5 @@
 import { toMealSessionResponse } from '../dtos/responses/meal-session-response.dto.js';
+import { countStudentsBySchool } from '../../../school-management/infrastructure/repositories/student.repository.js';
 
 export class MealSessionService {
   constructor(mealSessionRepository) {
@@ -6,10 +7,8 @@ export class MealSessionService {
   }
 
   async createMealSession(dto) {
-    const plannedHeadcountValue =
-      dto.plannedHeadcount === undefined || dto.plannedHeadcount === null
-        ? 0
-        : Number(dto.plannedHeadcount);
+    // Derive plannedHeadcount from school-management student data
+    const plannedHeadcountValue = await countStudentsBySchool(dto.schoolId);
     const actualServedCountValue =
       dto.actualServedCount === undefined || dto.actualServedCount === null
         ? 0
@@ -74,7 +73,9 @@ export class MealSessionService {
 
   async updateMealSession(mealSessionId, dto) {
     const session = await this.mealSessionRepository.findById(mealSessionId);
-    if (!session) {return null;}
+    if (!session) {
+      return null;
+    }
 
     const updates = {};
     if (dto.date !== undefined && dto.date !== null) {
