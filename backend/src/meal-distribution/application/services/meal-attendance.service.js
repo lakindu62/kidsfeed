@@ -82,7 +82,99 @@ export class MealAttendanceService {
     return docs.map(toMealAttendanceResponse);
   }
 
-  async updateAttendance(/* attendanceId, updateAttendanceDto */) {}
+  async updateAttendance(attendanceId, dto) {
+    const existing = await this.mealAttendanceRepository.findById(attendanceId);
+    if (!existing) {
+      return { notFound: true };
+    }
 
-  async deleteAttendance(/* attendanceId */) {}
+    const updates = {};
+    if (dto.status !== undefined && dto.status !== null) {
+      updates.status = String(dto.status).trim();
+    }
+    if (dto.servedAt !== undefined && dto.servedAt !== null) {
+      updates.servedAt =
+        dto.servedAt instanceof Date && !Number.isNaN(dto.servedAt.getTime())
+          ? dto.servedAt
+          : new Date(dto.servedAt);
+    }
+    if (dto.notes !== undefined && dto.notes !== null) {
+      updates.notes = String(dto.notes).trim();
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return { attendance: toMealAttendanceResponse(existing) };
+    }
+
+    const originalStatus = existing.status;
+    const newStatus = updates.status || originalStatus;
+
+    const updated = await this.mealAttendanceRepository.updateById(
+      attendanceId,
+      updates
+    );
+
+    // Adjust session counts if status changed with respect to PRESENT
+    if (originalStatus !== newStatus) {
+      let delta = 0;
+      if (originalStatus !== 'PRESENT' && newStatus === 'PRESENT') {
+        delta = 1;
+      } else if (originalStatus === 'PRESENT' && newStatus !== 'PRESENT') {
+        delta = -1;
+      }
+
+      if (delta !== 0) {
+        const session = await this.mealSessionRepository.findById(
+          existing.mealSessionId
+        );
+        if (session) {
+          const newActualServedCount = Math.max(
+            (session.actualServedCount || 0) + delta,
+            0
+          );
+          const newWastageCount = Math.max(
+            (session.plannedHeadcount || 0) - newActualServedCount,
+            0
+          );
+          await this.mealSessionRepository.updateById(existing.mealSessionId, {
+            actualServedCount: newActualServedCount,
+            wastageCount: newWastageCount,
+          });
+        }
+      }
+    }
+
+    return { attendance: toMealAttendanceResponse(updated) };
+  }
+
+  async deleteAttendance(attendanceId) {
+    const existing = await this.mealAttendanceRepository.findById(attendanceId);
+    if (!existing) {
+      return { notFound: true };
+    }
+
+    // If this attendance was PRESENT, decrement session counts before deleting
+    if (existing.status === 'PRESENT') {
+      const session = await this.mealSessionRepository.findById(
+        existing.mealSessionId
+      );
+      if (session) {
+        const newActualServedCount = Math.max(
+          (session.actualServedCount || 0) - 1,
+          0
+        );
+        const newWastageCount = Math.max(
+          (session.plannedHeadcount || 0) - newActualServedCount,
+          0
+        );
+        await this.mealSessionRepository.updateById(existing.mealSessionId, {
+          actualServedCount: newActualServedCount,
+          wastageCount: newWastageCount,
+        });
+      }
+    }
+
+    await this.mealAttendanceRepository.deleteById(attendanceId);
+    return { deleted: true };
+  }
 }
