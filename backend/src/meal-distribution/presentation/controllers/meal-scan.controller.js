@@ -1,3 +1,6 @@
+// Presentation layer adapter that turns a scanned QR payload into a call
+// to the core attendance service. The QR token is decoded here and the
+// resulting studentId is passed down as a MarkAttendanceDto.
 import express from 'express';
 import { MealAttendanceRepository } from '../../infrastructure/repositories/meal-attendance.repository.js';
 import { MealSessionRepository } from '../../infrastructure/repositories/meal-session.repository.js';

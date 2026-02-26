@@ -1,3 +1,7 @@
+// Application service responsible for all meal-session business rules.
+// - Derives plannedHeadcount from the school-management component.
+// - Keeps actualServedCount and wastageCount consistent when sessions or
+//   attendance data change.
 import { toMealSessionResponse } from '../dtos/responses/meal-session-response.dto.js';
 import { countStudentsBySchool } from '../../../school-management/infrastructure/repositories/student.repository.js';
 
