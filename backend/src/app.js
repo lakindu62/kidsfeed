@@ -10,7 +10,6 @@ import {
 // Menu Management Imports
 import {
   recipeRouter,
-  nutritionRouter,
   errorHandler as menuManagementErrorHandler,
 } from './menu-management/index.js';
 
@@ -30,7 +29,6 @@ app.use('/api/meal-scan', mealScanRouter);
 
 // Menu Management routes
 app.use('/api/recipes', recipeRouter);
-app.use('/api/nutrition', nutritionRouter);
 
 // Inventory component routes
 app.use('/api/inventory', inventoryRouter);
