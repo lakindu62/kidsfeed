@@ -1,32 +1,21 @@
-/**
- * Recipe Class
- *
- * Represents a recipe with complete details including ingredients, instructions,
- * nutritional information, and dietary flags. Provides methods for validation,
- * serving size adjustment, and recipe management.
- *
- * @class Recipe
- */
+// Represents a recipe with ingredients, instructions, nutritional info, and dietary flags
 class Recipe {
   /**
-   * Creates a new Recipe instance
-   *
-   * @constructor
    * @param {Object} params - Recipe configuration object
-   * @param {string|null} [params.id=null] - Unique identifier for the recipe
-   * @param {string} params.name - Name of the recipe
-   * @param {string} params.description - Detailed description of the recipe
-   * @param {Array<Object>} params.ingredients - List of ingredients with quantities
-   * @param {string} params.instructions - Step-by-step cooking instructions
-   * @param {Object|null} [params.nutritionalInfo=null] - Nutritional information per serving
-   * @param {Object} params.dietaryFlags - Dietary classification flags (vegetarian, halal, etc.)
-   * @param {Array<string>} [params.allergens=[]] - List of allergens present in the recipe
-   * @param {number} params.servingSize - Number of servings this recipe makes
-   * @param {number} params.prepTime - Preparation time in minutes
-   * @param {Array<string>} [params.seasonal=[]] - Seasonal availability indicators
-   * @param {boolean} [params.isActive=true] - Whether the recipe is currently active
-   * @param {Date} [params.createdAt=new Date()] - Recipe creation timestamp
-   * @param {Date} [params.updatedAt=new Date()] - Last update timestamp
+   * @param {string|null} [params.id=null]
+   * @param {string} params.name
+   * @param {string} params.description
+   * @param {Array<Object>} params.ingredients
+   * @param {string} params.instructions
+   * @param {Object|null} [params.nutritionalInfo=null]
+   * @param {Object} params.dietaryFlags
+   * @param {Array<string>} [params.allergens=[]]
+   * @param {number} params.servingSize
+   * @param {number} params.prepTime
+   * @param {Array<string>} [params.seasonal=[]]
+   * @param {boolean} [params.isActive=true]
+   * @param {Date} [params.createdAt=new Date()]
+   * @param {Date} [params.updatedAt=new Date()]
    */
   constructor({
     id = null,
@@ -60,104 +49,68 @@ class Recipe {
     this.updatedAt = updatedAt;
   }
 
+  // Validates required fields; throws if invalid
   /**
-   * Validates the recipe data to ensure all required fields are present and valid
-   *
-   * @returns {boolean} True if validation passes
-   * @throws {Error} If any validation rule fails
+   * @returns {boolean}
+   * @throws {Error}
    */
   validate() {
-    // Check if recipe name exists and is not empty after trimming whitespace
     if (!this.name || this.name.trim().length === 0) {
       throw new Error('Recipe name is required');
     }
-
-    // Ensure at least one ingredient is provided
     if (!this.ingredients || this.ingredients.length === 0) {
       throw new Error('Recipe must have at least one ingredient');
     }
-
-    // Verify that instructions are provided and not empty
     if (!this.instructions || this.instructions.trim().length === 0) {
       throw new Error('Instructions are required');
     }
-
-    // Validate that serving size is a positive number
     if (this.servingSize <= 0) {
       throw new Error('Serving size must be greater than 0');
     }
-
     return true;
   }
 
-  /**
-   * Updates the nutritional information for the recipe
-   * Also updates the last modified timestamp
-   *
-   * @param {Object} nutritionalInfo - New nutritional information object
-   */
+  // Updates nutritional info and timestamp
   updateNutrition(nutritionalInfo) {
     this.nutritionalInfo = nutritionalInfo;
     this.updatedAt = new Date();
   }
 
-  /**
-   * Checks if the recipe is vegetarian
-   *
-   * @returns {boolean} True if the recipe is vegetarian, false otherwise
-   */
+  /** @returns {boolean} */
   isVegetarian() {
     return this.dietaryFlags.vegetarian === true;
   }
 
-  /**
-   * Checks if the recipe is halal
-   *
-   * @returns {boolean} True if the recipe is halal, false otherwise
-   * @note There's a typo in the property name: 'hala' should likely be 'halal'
-   */
+  /** @returns {boolean} */
   isHalal() {
     return this.dietaryFlags.halal === true;
   }
 
   /**
-   * Checks if the recipe contains a specific allergen
-   *
-   * @param {string} allergen - The allergen to check for
-   * @returns {boolean} True if the allergen is present in the recipe
+   * @param {string} allergen
+   * @returns {boolean}
    */
   hasAllergens(allergen) {
     return this.allergens.includes(allergen);
   }
 
-  /**
-   * Marks the recipe as inactive
-   * Updates the last modified timestamp
-   * Inactive recipes can be filtered out from active recipe lists
-   */
+  // Deactivates the recipe and updates timestamp
   markAsInactive() {
     this.isActive = false;
     this.updatedAt = new Date();
   }
 
+  // Scales ingredient quantities proportionally to the new serving size
   /**
-   * Adjusts ingredient quantities based on a new serving size
-   * Calculates a multiplier and scales all ingredient quantities proportionally
-   *
-   * @param {number} newServingSize - The desired new serving size
-   * @throws {Error} If newServingSize is 0 or negative (would cause division by zero or invalid quantities)
+   * @param {number} newServingSize
+   * @throws {Error}
    */
   adjustServingSize(newServingSize) {
-    // Calculate the scaling factor based on the ratio of new to current serving size
     const multiplier = newServingSize / this.servingSize;
-
-    // Scale each ingredient quantity proportionally
     this.ingredients = this.ingredients.map((ingredient) => ({
       ...ingredient,
       quantity: ingredient.quantity * multiplier,
     }));
-
-    // Update the serving size and timestamp
     this.servingSize = newServingSize;
     this.updatedAt = new Date();
   }

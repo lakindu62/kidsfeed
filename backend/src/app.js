@@ -10,7 +10,10 @@ import {
 } from './meal-distribution/index.js';
 
 // Menu Management Imports
-import { recipeRouter } from './menu-management/index.js';
+import {
+  recipeRouter,
+  errorHandler as menuManagementErrorHandler,
+} from './menu-management/index.js';
 
 // Inventory imports
 import { inventoryRouter } from './inventory/index.js';
@@ -31,6 +34,9 @@ app.use('/api/recipes', recipeRouter);
 
 // Inventory component routes
 app.use('/api/inventory', inventoryRouter);
+
+// Menu Management Error Handler
+app.use(menuManagementErrorHandler);
 
 const MONGODB_URI =
   'mongodb+srv://kidsfeed_db_user:FzdVWWzt2SgTs6wz@y3s1-af-kidsfeed.wwmnexn.mongodb.net/kidsfeed?retryWrites=true&w=majority&appName=portfolio';
