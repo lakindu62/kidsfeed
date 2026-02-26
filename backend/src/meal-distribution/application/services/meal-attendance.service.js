@@ -1,3 +1,7 @@
+// Application service for per-student meal attendance.
+// - Records and queries attendance for a given meal session.
+// - Keeps the parent MealSession's actualServedCount and wastageCount
+//   in sync whenever attendance is created, updated or deleted.
 import { toMealAttendanceResponse } from '../dtos/responses/meal-attendance-response.dto.js';
 
 export class MealAttendanceService {
