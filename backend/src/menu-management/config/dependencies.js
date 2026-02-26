@@ -18,7 +18,8 @@ class DependencyContainer {
 
   _initializeInfrastructure() {
     this.instances.recipeRepository = new MongoRecipeRepository();
-    this.instances.usdaNutritionService = new USDANutritionService();
+    // this.instances.usdaNutritionService = new USDANutritionService();
+    //Commented out temporarily. Can be re-added when nutrition info integration is implemented.
   }
 
   _initializeUseCases() {
