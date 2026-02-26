@@ -38,12 +38,13 @@ app.use('/api/inventory', inventoryRouter);
 // Menu Management Error Handler
 app.use(menuManagementErrorHandler);
 
-const MONGODB_URI =
-  'mongodb+srv://kidsfeed_db_user:FzdVWWzt2SgTs6wz@y3s1-af-kidsfeed.wwmnexn.mongodb.net/kidsfeed?retryWrites=true&w=majority&appName=portfolio';
+const MONGODB_URI = process.env.MONGODB_URI;
+
+const PORT = process.env.PORT || 3000;
 
 mongoose
   .connect(MONGODB_URI)
   .then(() => {
-    app.listen(3000, () => console.log('Server running on port 3000'));
+    app.listen(PORT, () => console.log(`Server running on port ${3000}`));
   })
   .catch((err) => console.error('DB connection failed:', err));
