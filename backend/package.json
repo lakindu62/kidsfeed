@@ -6,7 +6,9 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
+    "start:env": "node --env-file=.env src/app.js",
     "dev": "nodemon src/app.js",
+    "dev:env": "nodemon --env-file=.env src/app.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write ."
