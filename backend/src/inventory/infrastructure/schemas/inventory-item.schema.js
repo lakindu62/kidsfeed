@@ -1,5 +1,8 @@
 import mongoose from 'mongoose';
 
+//TODO: This schema is basic. I will be changing this to add fields to take in some of the data from Open Food Facts
+// and also data relevant to the other feature module.
+
 /**
  * Mongoose schema for inventory items
  * @typedef {Object} InventoryItem
