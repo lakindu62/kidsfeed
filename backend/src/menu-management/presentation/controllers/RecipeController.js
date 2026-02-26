@@ -1,6 +1,6 @@
 import CreateRecipeRequest from '../../application/dtos/requests/CreateRecipeRequest.js';
 import UpdateRecipeRequest from '../../application/dtos/requests/UpdateRecipeRequest.js';
-import RecipeResponse from '../../application/dtos/requests/RecipeResponse.js';
+import RecipeResponse from '../../application/dtos/responses/RecipeResponse.js';
 
 // HTTP controller for recipe endpoints; delegates to use cases and formats responses
 class RecipeController {
@@ -196,12 +196,10 @@ class RecipeController {
       const hasFlags = Object.values(flags).some((flag) => flag === true);
 
       if (!hasFlags) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            error: 'At least one dietary flag must be set to true',
-          });
+        return res.status(400).json({
+          success: false,
+          error: 'At least one dietary flag must be set to true',
+        });
       }
 
       const recipes =
