@@ -72,7 +72,7 @@ export class InventoryItemService {
   }
 
   /**
-   * List all inventory items with optional filters
+   * List all inventory items with optional filters if needed
    * @param {Object} filters - Optional filters (category, status, etc.)
    * @returns {Promise<Array>} Array of inventory items
    */

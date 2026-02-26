@@ -14,5 +14,6 @@ export function toMealSessionResponse(mealSessionDoc) {
     actualServedCount: mealSessionDoc.actualServedCount,
     wastageCount: mealSessionDoc.wastageCount,
     status: mealSessionDoc.status,
+    menuId: mealSessionDoc.menuId ?? null,
   };
 }

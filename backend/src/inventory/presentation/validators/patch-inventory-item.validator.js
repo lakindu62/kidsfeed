@@ -1,7 +1,7 @@
 import { INVENTORY_CATEGORIES } from '../../application/constants/inventory-constants.js';
 
 /**
- * Validator middleware for patching an inventory item (PATCH - partial update)
+ * Validator middleware for patching an inventory item safely (PATCH - partial update)
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  * @param {Function} next - Express next middleware function

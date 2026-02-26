@@ -53,7 +53,7 @@ The root `package.json` contains the lint-staged configuration that defines whic
 
 ## 2. The Commit Process (The "Hard Gates")
 
-When you run `git commit -m "..."`, the following chain reaction occurs:
+When you run `git commit -m "..."`, the following chain reaction occurs in the codebase:
 
 ### Gate A: The Pre-Commit Hook (`.husky/pre-commit`)
 
