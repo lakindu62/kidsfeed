@@ -46,7 +46,7 @@ class UpdateRecipeUseCase {
 
     updatedRecipe.validate();
 
-    return await this.recipeRepository.updateData(recipeId, updatedRecipe);
+    return await this.recipeRepository.update(recipeId, updatedRecipe);
   }
 }
 

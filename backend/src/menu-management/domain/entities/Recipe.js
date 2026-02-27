@@ -30,6 +30,7 @@ class Recipe {
     prepTime,
     seasonal = [],
     isActive = true,
+    createdBy = null,
     createdAt = new Date(),
     updatedAt = new Date(),
   }) {
@@ -45,6 +46,7 @@ class Recipe {
     this.prepTime = prepTime;
     this.seasonal = seasonal;
     this.isActive = isActive;
+    this.createdBy = createdBy;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }

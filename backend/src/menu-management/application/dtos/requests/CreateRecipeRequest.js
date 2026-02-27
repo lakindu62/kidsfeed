@@ -46,10 +46,15 @@ class CreateRecipeRequest {
       errors.push('At least one ingredient is required');
     } else {
       this.ingredients.forEach((ing, index) => {
-        if (!ing.name) {errors.push(`Ingredient ${index + 1}: name is required`);}
-        if (!ing.quantity || ing.quantity <= 0)
-          {errors.push(`Ingredient ${index + 1}: valid quantity is required`);}
-        if (!ing.unit) {errors.push(`Ingredient ${index + 1}: unit is required`);}
+        if (!ing.name) {
+          errors.push(`Ingredient ${index + 1}: name is required`);
+        }
+        if (!ing.quantity || ing.quantity <= 0) {
+          errors.push(`Ingredient ${index + 1}: valid quantity is required`);
+        }
+        if (!ing.unit) {
+          errors.push(`Ingredient ${index + 1}: unit is required`);
+        }
       });
     }
 
@@ -59,6 +64,10 @@ class CreateRecipeRequest {
 
     if (!this.servingSize || this.servingSize <= 0) {
       errors.push('Serving size must be greater than 0');
+    }
+
+    if (!this.createdBy || this.createdBy.trim().length === 0) {
+      errors.push('createdBy is required');
     }
 
     return errors;
