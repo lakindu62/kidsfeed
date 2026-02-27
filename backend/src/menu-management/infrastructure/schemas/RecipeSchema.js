@@ -105,13 +105,15 @@ const recipeSchema = new mongoose.Schema(
       min: [1, 'Prep time must be at least 1 minute'],
     },
 
-    seasonal: {
-      type: String,
-      enum: {
-        values: ['spring', 'summer', 'fall', 'winter', 'all-year'],
-        message: '{VALUE} is not a valid season',
+    seasonal: [
+      {
+        type: String,
+        enum: {
+          values: ['spring', 'summer', 'fall', 'winter', 'all-year'],
+          message: '{VALUE} is not a valid season',
+        },
       },
-    },
+    ],
 
     isActive: {
       type: Boolean,

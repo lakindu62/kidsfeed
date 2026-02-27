@@ -26,6 +26,7 @@ class CreateRecipeUseCase {
       seasonal: recipeData.seasonal || [],
       servingSize: recipeData.servingSize,
       prepTime: recipeData.prepTime,
+      createdBy: recipeData.createdBy,
     });
 
     recipe.validate();

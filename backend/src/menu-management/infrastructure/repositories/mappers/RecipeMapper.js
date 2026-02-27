@@ -66,6 +66,10 @@ class RecipeMapper {
       isActive: recipe.isActive,
     };
 
+    if (recipe.createdBy) {
+      mongoDoc.createdBy = recipe.createdBy;
+    }
+
     if (recipe.nutritionalInfo) {
       mongoDoc.nutritionalInfo = {
         calories: recipe.nutritionalInfo.calories,
