@@ -12,8 +12,13 @@ class MongoRecipeRepository extends IRecipeRepository {
     try {
       const persistenceData = RecipeMapper.toPersistence(recipe);
 
-      // BUG: Missing 'await' — savedDoc receives a Promise, causing toDomain() to return null
-      const savedDoc = RecipeSchema.create(persistenceData);
+      // include createdBy if set (use-case/controller should supply this)
+      if (recipe.createdBy) {
+        persistenceData.createdBy = recipe.createdBy;
+      }
+
+      // persist document and await result so we pass a real object to mapper
+      const savedDoc = await RecipeSchema.create(persistenceData);
 
       return RecipeMapper.toDomain(savedDoc);
     } catch (error) {
@@ -50,12 +55,24 @@ class MongoRecipeRepository extends IRecipeRepository {
       const skip = (page - 1) * limit;
       const query = { isActive: true };
 
-      if (filters.vegetarian === true) {query['dietaryFlags.vegetarian'] = true;}
-      if (filters.vegan === true) {query['dietaryFlags.vegan'] = true;}
-      if (filters.halal === true) {query['dietaryFlags.halal'] = true;}
-      if (filters.glutenFree === true) {query['dietaryFlags.glutenFree'] = true;}
-      if (filters.dairyFree === true) {query['dietaryFlags.dairyFree'] = true;}
-      if (filters.nutFree === true) {query['dietaryFlags.nutFree'] = true;}
+      if (filters.vegetarian === true) {
+        query['dietaryFlags.vegetarian'] = true;
+      }
+      if (filters.vegan === true) {
+        query['dietaryFlags.vegan'] = true;
+      }
+      if (filters.halal === true) {
+        query['dietaryFlags.halal'] = true;
+      }
+      if (filters.glutenFree === true) {
+        query['dietaryFlags.glutenFree'] = true;
+      }
+      if (filters.dairyFree === true) {
+        query['dietaryFlags.dairyFree'] = true;
+      }
+      if (filters.nutFree === true) {
+        query['dietaryFlags.nutFree'] = true;
+      }
 
       const docs = await RecipeSchema.find(query)
         .skip(skip)
@@ -93,11 +110,15 @@ class MongoRecipeRepository extends IRecipeRepository {
         }
       );
 
-      if (!updatedDoc) {return null;}
+      if (!updatedDoc) {
+        return null;
+      }
 
       return RecipeMapper.toDomain(updatedDoc);
     } catch (error) {
-      if (error.name === 'CastError') {return null;}
+      if (error.name === 'CastError') {
+        return null;
+      }
       throw new Error(`Failed to update recipe: ${error.message}`);
     }
   }
@@ -115,11 +136,15 @@ class MongoRecipeRepository extends IRecipeRepository {
         { new: true }
       );
 
-      if (!deletedDoc) {return null;}
+      if (!deletedDoc) {
+        return null;
+      }
 
       return RecipeMapper.toDomain(deletedDoc);
     } catch (error) {
-      if (error.name === 'CastError') {return null;}
+      if (error.name === 'CastError') {
+        return null;
+      }
       throw new Error(`Failed to delete recipe: ${error.message}`);
     }
   }

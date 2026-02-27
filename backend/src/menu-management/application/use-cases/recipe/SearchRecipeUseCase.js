@@ -17,7 +17,9 @@ class SearchRecipeUseCase {
       throw new Error('Ingredient name is required for search');
     }
 
-    await this.recipeRepository.searchByIngredient(ingredientName.trim());
+    return await this.recipeRepository.searchByIngredient(
+      ingredientName.trim()
+    );
   }
 
   /**
@@ -25,7 +27,7 @@ class SearchRecipeUseCase {
    * @returns {Promise<Array<Recipe>>}
    * @throws {Error} If no flags are provided
    */
-  async searchDietaryFlags(flags) {
+  async searchByDietaryFlags(flags) {
     if (!flags || Object.keys(flags).length === 0) {
       throw new Error('At least one dietary flag is required for search');
     }
