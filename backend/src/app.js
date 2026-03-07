@@ -21,12 +21,16 @@ import {
 
 // Inventory imports
 import { inventoryRouter } from './inventory/index.js';
+import { createSchoolManagementRouter } from './school-management/bootstrap.js';
+
 
 const app = express();
 app.use(express.json());
 
 // School component routes
 // app.use('/api/students', studentGetRouter);
+const schoolRouter =  createSchoolManagementRouter();
+app.use('/api',schoolRouter);
 
 // Meal distribution component routes
 app.use('/api/meal-sessions', mealSessionRouter);
