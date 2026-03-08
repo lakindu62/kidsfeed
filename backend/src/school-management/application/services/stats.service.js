@@ -8,7 +8,9 @@ const getDashboardOverview = async () => {
 
   const schoolsWithCounts = await Promise.all(
     schools.map(async (school) => {
-      const totalStudents = await Student.countDocuments({ school: school._id });
+      const totalStudents = await Student.countDocuments({
+        school: school._id,
+      });
       return {
         id: school._id,
         schoolName: school.schoolName,
@@ -24,11 +26,16 @@ const getDashboardOverview = async () => {
 
 const getSchoolStats = async (schoolId) => {
   const school = await findSchoolById(schoolId);
-  if (!school) throw new AppError(404, 'School not found');
+  if (!school) {
+    throw new AppError(404, 'School not found');
+  }
 
   const [totalEnrollment, studentsWithDietary, pendingQr] = await Promise.all([
     Student.countDocuments({ school: schoolId }),
-    Student.countDocuments({ school: schoolId, dietaryTags: { $exists: true, $not: { $size: 0 } } }),
+    Student.countDocuments({
+      school: schoolId,
+      dietaryTags: { $exists: true, $not: { $size: 0 } },
+    }),
     Student.countDocuments({ school: schoolId, qrStatus: 'pending' }),
   ]);
 
