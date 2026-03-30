@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { clerkMiddleware } from '@clerk/express';
 
 dotenv.config();
 
@@ -23,14 +24,20 @@ import {
 import { inventoryRouter } from './inventory/index.js';
 import { createSchoolManagementRouter } from './school-management/bootstrap.js';
 
+import { requireAuth } from './shared/middleware/require-auth.middleware.js'; // ADD
+import { attachUser } from './shared/middleware/attach-user.middleware.js';
 
 const app = express();
+
+//Auth Middleware from clerk
+app.use(clerkMiddleware());
+
 app.use(express.json());
 
 // School component routes
 // app.use('/api/students', studentGetRouter);
-const schoolRouter =  createSchoolManagementRouter();
-app.use('/api',schoolRouter);
+const schoolRouter = createSchoolManagementRouter();
+app.use('/api', schoolRouter);
 
 // Meal distribution component routes
 app.use('/api/meal-sessions', mealSessionRouter);
