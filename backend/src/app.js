@@ -24,8 +24,10 @@ import {
 import { inventoryRouter } from './inventory/index.js';
 import { createSchoolManagementRouter } from './school-management/bootstrap.js';
 
-import { requireAuth } from './shared/middleware/require-auth.middleware.js'; // ADD
+import { apiRequireAuth } from './shared/middleware/require-auth.middleware.js'; // ADD
 import { attachUser } from './shared/middleware/attach-user.middleware.js';
+import { requireRole } from './shared/middleware/require-role.middleware.js';
+import { ROLES } from './shared/constants/roles.js';
 
 const app = express();
 
@@ -33,6 +35,20 @@ const app = express();
 app.use(clerkMiddleware());
 
 app.use(express.json());
+
+// ── EXAMPLE PROTECTED ROUTE FOR DEVS ─────────────────────────────
+// Other devs: To protect your routes, insert apiRequireAuth and
+// attachUser BEFORE your router in the app.use chain. To enforce
+// roles, add requireRole([ROLES.YOUR_ROLE]) after attachUser.
+//
+// app.use(
+//   '/api/my-feature',
+//   apiRequireAuth,
+//   attachUser,
+//   requireRole([ROLES.ADMIN, ROLES.MEAL_PLANNER]),
+//   myFeatureRouter
+// );
+// ─────────────────────────────────────────────────────────────────
 
 // School component routes
 // app.use('/api/students', studentGetRouter);
