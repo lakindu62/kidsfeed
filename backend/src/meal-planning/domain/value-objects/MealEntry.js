@@ -1,5 +1,3 @@
-// meal-planning/domain/value-objects/MealEntry.js
-
 // Immutable value object representing a single meal in a meal plan
 class MealEntry {
   constructor({ day, mealType, recipeId, recipeName, plannedServings, notes }) {

@@ -1,5 +1,3 @@
-// meal-planning/domain/entities/MealPlan.js
-
 import MealEntry from '../value-objects/MealEntry.js';
 
 // Represents a weekly meal plan for a specific school
