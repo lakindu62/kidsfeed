@@ -23,6 +23,7 @@ import {
 // Inventory imports
 import { inventoryRouter } from './inventory/index.js';
 import { createSchoolManagementRouter } from './school-management/bootstrap.js';
+import { clerkWebhookRouter } from './user-management/presentation/webhooks/clerk.webhook.router.js';
 
 import { apiRequireAuth } from './shared/middleware/require-auth.middleware.js'; // ADD
 import { attachUser } from './shared/middleware/attach-user.middleware.js';
@@ -31,8 +32,11 @@ import { ROLES } from './shared/constants/roles.js';
 
 const app = express();
 
-//Auth Middleware from clerk
+// Auth Middleware from clerk
 app.use(clerkMiddleware());
+
+// Webhooks MUST be mounted before express.json() so Svix can read the raw request body
+app.use('/api/webhooks', clerkWebhookRouter);
 
 app.use(express.json());
 

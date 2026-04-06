@@ -4,7 +4,7 @@ import { ROLES } from '../../../shared/constants/roles.js';
 const userSchema = new mongoose.Schema(
   {
     clerkId: { type: String, required: true, unique: true, index: true },
-    email: { type: String, default: '' },
+    email: { type: String, default: '', index: true },
     name: { type: String, default: '' },
     role: { type: String, default: ROLES.STAFF },
     schoolId: {
