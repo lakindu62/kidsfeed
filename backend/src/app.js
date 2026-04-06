@@ -35,7 +35,7 @@ const app = express();
 // Auth Middleware from clerk
 app.use(clerkMiddleware());
 
-// Webhooks MUST be mounted before express.json() so Svix can read the raw request body
+// Clerk webhooks MUST be mounted before express.json() so Svix can read the raw request body
 app.use('/api/webhooks', clerkWebhookRouter);
 
 app.use(express.json());
