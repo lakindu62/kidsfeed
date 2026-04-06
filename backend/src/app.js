@@ -17,6 +17,7 @@ import {
 // Menu Management Imports
 import {
   recipeRouter,
+  nutritionRouter,
   errorHandler as menuManagementErrorHandler,
 } from './menu-management/index.js';
 
@@ -25,7 +26,7 @@ import { inventoryRouter } from './inventory/index.js';
 import { createSchoolManagementRouter } from './school-management/bootstrap.js';
 import { clerkWebhookRouter } from './user-management/presentation/webhooks/clerk.webhook.router.js';
 
-import { apiRequireAuth } from './shared/middleware/require-auth.middleware.js'; // ADD
+import { apiRequireAuth } from './shared/middleware/require-auth.middleware.js';
 import { attachUser } from './shared/middleware/attach-user.middleware.js';
 import { requireRole } from './shared/middleware/require-role.middleware.js';
 import { ROLES } from './shared/constants/roles.js';
@@ -66,6 +67,7 @@ app.use('/api/meal-scan', mealScanRouter);
 
 // Menu Management routes
 app.use('/api/recipes', recipeRouter);
+app.use('/api/nutrition', nutritionRouter);
 
 // Inventory component routes
 app.use('/api/inventory', inventoryRouter);
