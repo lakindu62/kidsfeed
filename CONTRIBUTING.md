@@ -101,3 +101,23 @@ npx lint-staged
 
 - **VS Code Extensions:** Install the ESLint, Prettier, and Tailwind CSS IntelliSense extensions for real-time feedback.
 - **ESM Requirement:** Since the project uses ESM (`"type": "module"`), remember to include `.js` extensions in your backend import statements (e.g., `import service from './service.js'`).
+
+## 6. Local Development & Webhooks (Clerk + Ngrok)
+
+Because our backend relies on external Clerk Webhooks to synchronize user identities, Clerk needs a public URL to reach your local machine during development. We use **Ngrok** to create a secure tunnel.
+
+### Setup Instructions
+
+1. **Install Ngrok:** If you haven't already, download and [install Ngrok](https://ngrok.com/download) globally on your machine.
+2. **Start the Dev Environment:** Inside the `backend` directory, simply run `npm run dev`. Due to our setup, this will launch **both** your Express server AND your Ngrok tunnel concurrently.
+3. **Get Your Tunnel URL:** Look at your terminal output for the Ngrok forwarding address. Copy the secure URL (it usually looks like `https://1234-abcd.ngrok-free.app`).
+4. **Register with Clerk:**
+   - Go to the Clerk Developer Dashboard.
+   - Navigate to **Webhooks** and click **Add Endpoint**.
+   - Paste your Ngrok URL and append exactly `/api/webhooks` to the end (e.g., `https://1234-abcd.ngrok-free.app/api/webhooks`).
+   - Subscribe the endpoint to the `user.created`, `user.updated`, and `user.deleted` events.
+5. **Update your `.env`:**
+   - Once created, Clerk will issue a unique **Signing Secret** starting with `whsec_`.
+   - Copy this secret, open your local `backend/.env` file, and assign it to `CLERK_WEBHOOK_SIGNING_SECRET`.
+
+> **⚠️ Team Coordination:** Every developer must run their own Ngrok tunnel and register their own unique endpoint in the shared Clerk Dashboard. **Do not copy another developer's `whsec_` secret into your `.env`**, as it will fail signature validation for your specific tunnel.
