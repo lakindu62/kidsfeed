@@ -108,7 +108,7 @@ Because our backend relies on external Clerk Webhooks to synchronize user identi
 
 ### Setup Instructions
 
-1. **Install Ngrok:** If you haven't already, download and [install Ngrok](https://ngrok.com/download) globally on your machine.
+1. **Install Ngrok:** If you haven't already, download and [install Ngrok](https://ngrok.com/download) globally on your machine and set it up according to the instructions provided by ngrok.
 2. **Start the Dev Environment:** Inside the `backend` directory, simply run `npm run dev`. Due to our setup, this will launch **both** your Express server AND your Ngrok tunnel concurrently.
 3. **Get Your Tunnel URL:** Look at your terminal output for the Ngrok forwarding address. Copy the secure URL (it usually looks like `https://1234-abcd.ngrok-free.app`).
 4. **Register with Clerk:**
