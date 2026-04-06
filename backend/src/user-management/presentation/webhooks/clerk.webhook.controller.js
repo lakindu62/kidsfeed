@@ -1,6 +1,6 @@
 import { verifyWebhook } from '@clerk/express/webhooks';
 import { userSyncService } from '../../application/services/user-sync.service.js';
-import { UserModel } from '../../infrastructure/schemas/user.schema.js';
+import { userRepository } from '../../infrastructure/repositories/user.repository.js';
 
 /**
  * ClerkWebhookController
@@ -34,7 +34,7 @@ class ClerkWebhookController {
 
         case 'user.deleted':
           // Handle deletion (domain logic here handles hard deletion based on clerk ID)
-          await UserModel.findOneAndDelete({ clerkId: data.id });
+          await userRepository.deleteByClerkId(data.id);
           break;
 
         default:

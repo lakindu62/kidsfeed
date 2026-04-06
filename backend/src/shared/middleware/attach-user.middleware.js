@@ -1,5 +1,5 @@
 import { getAuth, clerkClient } from '@clerk/express';
-import { UserModel } from '../../user-management/infrastructure/schemas/user.schema.js';
+import { userRepository } from '../../user-management/infrastructure/repositories/user.repository.js';
 
 /**
  * Resolves the Clerk session and attaches it to req.user.
@@ -36,7 +36,7 @@ export const attachUser = async (req, res, next) => {
     // 2. SLOW PATH (Fallback Resilience)
     // Runs only if the Clerk Webhook hasn't arrived/updated metadata yet,
     // or the frontend hasn't refreshed the token.
-    let user = await UserModel.findOne({ clerkId });
+    let user = await userRepository.findByClerkId(clerkId);
 
     if (!user) {
       // Final edge case: If the DB truly doesn't have them yet, fetch directly.
@@ -45,7 +45,7 @@ export const attachUser = async (req, res, next) => {
       const name =
         `${clerkUser.firstName ?? ''} ${clerkUser.lastName ?? ''}`.trim();
 
-      user = await UserModel.create({ clerkId, email, name });
+      user = await userRepository.create({ clerkId, email, name });
     }
 
     req.user = user;

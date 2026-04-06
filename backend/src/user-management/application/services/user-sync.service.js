@@ -1,5 +1,5 @@
 import { clerkClient } from '@clerk/express';
-import { UserModel } from '../../infrastructure/schemas/user.schema.js';
+import { userRepository } from '../../infrastructure/repositories/user.repository.js';
 import { ROLES } from '../../../shared/constants/roles.js';
 
 /**
@@ -29,16 +29,12 @@ class UserSyncService {
     const email = email_addresses?.[0]?.email_address ?? '';
     const name = `${first_name ?? ''} ${last_name ?? ''}`.trim();
 
-    // 1. Local Database Upsert
-    // $setOnInsert applies only when the document is pristine (user.created)
-    // $set updates properties that may change (user.updated)
-    const syncedUser = await UserModel.findOneAndUpdate(
-      { clerkId },
-      {
-        $setOnInsert: { role: ROLES.STAFF, schoolId: null },
-        $set: { email, name },
-      },
-      { upsert: true, new: true }
+    // 1. Local Database Upsert via Repository
+    // The repository handles the Mongoose-specific $set and $setOnInsert internals
+    const syncedUser = await userRepository.upsertByClerkId(
+      clerkId,
+      { email, name }, // Fields to update if user exists
+      { role: ROLES.STAFF, schoolId: null } // Fields to set only on creation
     );
 
     // 2. Push state back to External Identity Provider (Clerk)

@@ -61,6 +61,32 @@ router.post(
 
 ---
 
+## Cross-Domain Profiling (Fetching Full User Profiles)
+
+**⚠️ CRITICAL ARCHITECTURE RULE:** Due to our Zero-Latency Token design, `req.user` inside your controllers is a *lightweight mock* containing only `_id`, `role`, and `clerkId`. It is NOT a full Mongoose document.
+
+If your specific feature (e.g. Menu Management or Dashboard) explicitly requires full user data (like `email`, `name`, or `schoolId` or any other info), you **MUST NOT** import the `UserModel` schema into your module. Doing so violates strict Domain-Driven Design boundaries.
+
+Instead, import the `userService` from the User Management domain and use `getUserProfile`:
+
+```javascript
+import { userService } from '../../user-management/application/services/user.service.js';
+
+// Inside your controller:
+export const getMyDashboard = async (req, res) => {
+  try {
+    // Correct way to cross the domain boundary
+    const fullProfile = await userService.getUserProfile(req.user._id);
+    
+    return res.json({ name: fullProfile.name, email: fullProfile.email });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+}
+```
+
+---
+
 ## Specific Requirements per Module
 
 Based on the product specs, here is what each dev team needs to implement in their modules:
