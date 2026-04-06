@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import { clerkMiddleware } from '@clerk/express';
 
 dotenv.config();
 
@@ -23,9 +24,36 @@ import {
 // Inventory imports
 import { inventoryRouter } from './inventory/index.js';
 import { createSchoolManagementRouter } from './school-management/bootstrap.js';
+import { clerkWebhookRouter } from './user-management/presentation/webhooks/clerk.webhook.router.js';
+
+import { apiRequireAuth } from './shared/middleware/require-auth.middleware.js';
+import { attachUser } from './shared/middleware/attach-user.middleware.js';
+import { requireRole } from './shared/middleware/require-role.middleware.js';
+import { ROLES } from './shared/constants/roles.js';
 
 const app = express();
+
+// Auth Middleware from clerk
+app.use(clerkMiddleware());
+
+// Clerk webhooks MUST be mounted before express.json() so Svix can read the raw request body
+app.use('/api/webhooks', clerkWebhookRouter);
+
 app.use(express.json());
+
+// ── EXAMPLE PROTECTED ROUTE FOR DEVS ─────────────────────────────
+// Other devs: To protect your routes, insert apiRequireAuth and
+// attachUser BEFORE your router in the app.use chain. To enforce
+// roles, add requireRole([ROLES.YOUR_ROLE]) after attachUser.
+//
+// app.use(
+//   '/api/my-feature',
+//   apiRequireAuth,
+//   attachUser,
+//   requireRole([ROLES.ADMIN, ROLES.MEAL_PLANNER]),
+//   myFeatureRouter
+// );
+// ─────────────────────────────────────────────────────────────────
 
 // School component routes
 // app.use('/api/students', studentGetRouter);

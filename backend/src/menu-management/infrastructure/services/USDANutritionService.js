@@ -5,17 +5,13 @@ import axios from 'axios';
 class USDANutritionService {
   constructor() {
     this.baseUrl = 'https://api.nal.usda.gov/fdc/v1';
-    this.apiKey =
-      process.env.USDA_API_KEY || '7ZLpRVBLUkbqTVTWOzOWNJhtLsN8dwOF8uf6ZyG5';
-
-    if (!this.apiKey) {
-      console.warn('USDA API key not configured in environment variables');
-    }
   }
 
   // Calculates total nutrition for all ingredients; returns rounded aggregated values
   async calculate(ingredients) {
-    if (!this.apiKey) {
+    const apiKey = process.env.USDA_API_KEY;
+
+    if (!apiKey) {
       throw new Error(
         'USDA_API_KEY is not configured in environment variables'
       );
@@ -39,7 +35,8 @@ class USDANutritionService {
         const nutrition = await this.getIngredientNutrition(
           ingredient.name,
           ingredient.quantity,
-          ingredient.unit
+          ingredient.unit,
+          apiKey
         );
 
         totalNutrition.calories += nutrition.calories;
@@ -75,10 +72,10 @@ class USDANutritionService {
   }
 
   // Fetches and scales nutrition for a single ingredient; returns zeros if not found (graceful degradation)
-  async getIngredientNutrition(name, quantity, unit) {
+  async getIngredientNutrition(name, quantity, unit, apiKey) {
     try {
       const searchResponse = await axios.get(`${this.baseUrl}/foods/search`, {
-        params: { api_key: this.apiKey, query: name, pageSize: 1 },
+        params: { api_key: apiKey, query: name, pageSize: 1 },
       });
 
       if (
