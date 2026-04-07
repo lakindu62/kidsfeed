@@ -1,5 +1,6 @@
 import express from 'express';
 import { InventoryItemService } from '../../application/services/inventory-item.service.js';
+import { openFoodFactsService } from '../../application/services/open-food-facts.service.js';
 import { validateCreateInventoryItem } from '../validators/create-inventory-item.validator.js';
 import { validateUpdateInventoryItem } from '../validators/update-inventory-item.validator.js';
 import { validatePatchInventoryItem } from '../validators/patch-inventory-item.validator.js';
@@ -81,6 +82,35 @@ inventoryRouter.get('/low-stock', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to retrieve low stock items',
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * GET /api/inventory/lookup/:barcode
+ * Contacts external Open Food Facts service to autofill frontend mapping.
+ * Entirely optional and completely decoupled from POST /api/inventory.
+ */
+inventoryRouter.get('/lookup/:barcode', async (req, res) => {
+  try {
+    const { barcode } = req.params;
+    const lookupData = await openFoodFactsService.lookupByBarcode(barcode);
+
+    res.status(200).json({
+      success: true,
+      data: lookupData,
+    });
+  } catch (error) {
+    if (error.message.includes('not found')) {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    }
+    res.status(500).json({
+      success: false,
+      message: 'Failed to handle barcode lookup',
       error: error.message,
     });
   }
