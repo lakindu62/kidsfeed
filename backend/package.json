@@ -6,7 +6,7 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js",
+    "dev": "concurrently \"nodemon src/app.js\" \"ngrok http 3000\"",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write ."
@@ -15,6 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@clerk/express": "^2.0.7",
     "axios": "^1.13.5",
     "csv-parse": "^6.1.0",
     "csv-stringify": "^6.6.0",
@@ -26,6 +27,7 @@
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
