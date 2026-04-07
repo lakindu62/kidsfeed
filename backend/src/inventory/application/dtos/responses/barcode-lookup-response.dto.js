@@ -23,7 +23,7 @@ export class BarcodeLookupResponseDTO {
     this.name = data.name || '';
     this.brand = data.brand || '';
     this.weight = data.weight || 0;
-    this.unit = data.unit || 'pieces';
+    this.unit = data.unit || '';
     this.allergens = data.allergens || [];
     this.traces = data.traces || [];
     this.ingredients = data.ingredients || '';

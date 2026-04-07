@@ -7,12 +7,15 @@ import { BarcodeLookupResponseDTO } from '../dtos/responses/barcode-lookup-respo
  */
 class OpenFoodFactsService {
   constructor() {
-    // Dynamically select the Open Food Facts endpoint
-    // Fall back to the safe Sandbox URL if NODE_ENV is not explicitly set to production
-    const isProd = process.env.NODE_ENV === 'production';
-    this.baseUrl = isProd
-      ? process.env.OPEN_FOOD_FACTS_BASEURL_PROD
-      : process.env.OPEN_FOOD_FACTS_BASEURL_DEV;
+    // Preferred config: provide one environment-specific URL via OPEN_FOOD_FACTS_BASE_URL.
+    const defaultSandboxUrl = 'https://world.openfoodfacts.net/api/v2/product';
+    const configuredBaseUrl = process.env.OPEN_FOOD_FACTS_BASE_URL;
+    // const baseUrl =
+    //   process.env.NODE_ENV === 'production'
+    //     ? process.env.OPEN_FOOD_FACTS_BASEURL_PROD
+    //     : process.env.OPEN_FOOD_FACTS_BASEURL_DEV;
+
+    this.baseUrl = configuredBaseUrl || defaultSandboxUrl;
   }
 
   /**
@@ -64,7 +67,9 @@ class OpenFoodFactsService {
 
       // Helper: Open Food Facts nests tags with "en:" prefixes. This cleans them (e.g. "en:nuts" -> "nuts")
       const stripTags = (tags) => {
-        if (!Array.isArray(tags)) {return [];}
+        if (!Array.isArray(tags)) {
+          return [];
+        }
         return tags.map((tag) => tag.replace(/^(\w{2}:)/, '').trim());
       };
 
