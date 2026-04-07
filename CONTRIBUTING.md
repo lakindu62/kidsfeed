@@ -121,3 +121,19 @@ Because our backend relies on external Clerk Webhooks to synchronize user identi
    - Copy this secret, open your local `backend/.env` file, and assign it to `CLERK_WEBHOOK_SIGNING_SECRET`.
 
 > **⚠️ Team Coordination:** Every developer must run their own Ngrok tunnel and register their own unique endpoint in the shared Clerk Dashboard. **Do not copy another developer's `whsec_` secret into your `.env`**, as it will fail signature validation for your specific tunnel.
+
+## 7. Third-Party Integrations (Open Food Facts API)
+
+The Kidsfeed API integrates with the crowdsourced Open Food Facts database to prepopulate nutrition sheets based on standard barcodes. To prevent backend requests from being blocked by their anti-bot automated filters, they mandate a specific `User-Agent` string for all connections.
+
+### Local Setup Requirements
+
+1. **Configure Your Identity:**
+   - Open your local `backend/.env` file.
+   - Assign your personal email to the `OPEN_FOOD_FACTS_USER_AGENT` variable using the exact format: `AppName/Version (YourContactEmail)`.
+   - **Example:** `OPEN_FOOD_FACTS_USER_AGENT=KidsfeedApp/1.0 (developer.name@gmail.com)`
+2. **Environment URLs:**
+   - Our `open-food-facts.service.js` dynamically connects to either the Production `.org` domain or the Sandbox `.net` domain based on your `NODE_ENV`.
+   - Ensure both `OPEN_FOOD_FACTS_BASEURL_PROD` and `OPEN_FOOD_FACTS_BASEURL_DEV` are populated in your secrets exactly as they appear inside `.env.example`.
+
+> **⚠️ API Etiquette:** Open Food Facts is a free, crowdsourced Wikipedia-style database. Do not use generic fake emails or spoof traffic. Use a valid contact method so their admins can notify us instead of abruptly permanently banning our server IP if our lookup loop bugs out during load testing.
