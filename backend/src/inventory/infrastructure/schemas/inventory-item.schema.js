@@ -1,8 +1,5 @@
 import mongoose from 'mongoose';
 
-//TODO: This schema is basic. I will be changing this to add fields to take in some of the data from Open Food Facts
-// and also data relevant to the other feature module.
-
 /**
  * Mongoose schema for inventory items
  * @typedef {Object} InventoryItem
@@ -19,15 +16,55 @@ import mongoose from 'mongoose';
  * @property {string} status - Status of the item ('ACTIVE', 'LOW_STOCK', 'OUT_OF_STOCK', 'EXPIRED')
  * @property {Date} createdAt - Auto-generated creation timestamp
  * @property {Date} updatedAt - Auto-generated update timestamp
+ * @property {string} [barcode] - UPC/EAN barcode from Open Food Facts
+ * @property {string} [brand] - Brand name of the product
+ * @property {string[]} [allergens] - Array of allergens (e.g., 'nuts', 'milk')
+ * @property {string[]} [traces] - Potential allergen traces processing tags
+ * @property {string} [ingredients] - Full ingredients list
+ * @property {string} [imageUrl] - URL to the product image
+ * @property {string} [nutritionalGrade] - Nutritional grade (a-e)
+ * @property {number} [packageWeight] - The numeric weight/volume of a single package (e.g. 400)
+ * @property {string} [packageWeightUnit] - The unit of the package weight (e.g. 'g', 'ml')
+ * @property {string} [packageType] - The container type (e.g. 'jar', 'bottle', 'box')
  */
 const inventoryItemSchema = new mongoose.Schema(
   {
+    barcode: {
+      type: String,
+      trim: true,
+      index: true,
+      default: null,
+    },
     name: {
       type: String,
       required: true,
       trim: true,
     },
     description: {
+      type: String,
+      default: '',
+    },
+    brand: {
+      type: String,
+      default: '',
+    },
+    allergens: {
+      type: [String],
+      default: [],
+    },
+    traces: {
+      type: [String],
+      default: [],
+    },
+    ingredients: {
+      type: String,
+      default: '',
+    },
+    imageUrl: {
+      type: String,
+      default: '',
+    },
+    nutritionalGrade: {
       type: String,
       default: '',
     },
@@ -57,6 +94,19 @@ const inventoryItemSchema = new mongoose.Schema(
       type: Number,
       default: 0,
       min: 0,
+    },
+    packageWeight: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    packageWeightUnit: {
+      type: String,
+      default: '',
+    },
+    packageType: {
+      type: String,
+      default: '',
     },
     supplier: {
       type: String,

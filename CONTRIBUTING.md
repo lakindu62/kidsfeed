@@ -101,3 +101,39 @@ npx lint-staged
 
 - **VS Code Extensions:** Install the ESLint, Prettier, and Tailwind CSS IntelliSense extensions for real-time feedback.
 - **ESM Requirement:** Since the project uses ESM (`"type": "module"`), remember to include `.js` extensions in your backend import statements (e.g., `import service from './service.js'`).
+
+## 6. Local Development & Webhooks (Clerk + Ngrok)
+
+Because our backend relies on external Clerk Webhooks to synchronize user identities, Clerk needs a public URL to reach your local machine during development. We use **Ngrok** to create a secure tunnel.
+
+### Setup Instructions
+
+1. **Install Ngrok:** If you haven't already, download and [install Ngrok](https://ngrok.com/download) globally on your machine and set it up according to the instructions provided by ngrok.
+2. **Start the Dev Environment:** Inside the `backend` directory, simply run `npm run dev`. Due to our setup, this will launch **both** your Express server AND your Ngrok tunnel concurrently.
+3. **Get Your Tunnel URL:** Look at your terminal output for the Ngrok forwarding address. Copy the secure URL (it usually looks like `https://1234-abcd.ngrok-free.app`).
+4. **Register with Clerk:**
+   - Go to the Clerk Developer Dashboard.
+   - Navigate to **Webhooks** and click **Add Endpoint**.
+   - Paste your Ngrok URL and append exactly `/api/webhooks` to the end (e.g., `https://1234-abcd.ngrok-free.app/api/webhooks`).
+   - Subscribe the endpoint to the `user.created`, `user.updated`, and `user.deleted` events.
+5. **Update your `.env`:**
+   - Once created, Clerk will issue a unique **Signing Secret** starting with `whsec_`.
+   - Copy this secret, open your local `backend/.env` file, and assign it to `CLERK_WEBHOOK_SIGNING_SECRET`.
+
+> **⚠️ Team Coordination:** Every developer must run their own Ngrok tunnel and register their own unique endpoint in the shared Clerk Dashboard. **Do not copy another developer's `whsec_` secret into your `.env`**, as it will fail signature validation for your specific tunnel.
+
+## 7. Third-Party Integrations (Open Food Facts API)
+
+The Kidsfeed API integrates with the crowdsourced Open Food Facts database to prepopulate nutrition sheets based on standard barcodes. To prevent backend requests from being blocked by their anti-bot automated filters, they mandate a specific `User-Agent` string for all connections.
+
+### Local Setup Requirements
+
+1. **Configure Your Identity:**
+   - Open your local `backend/.env` file.
+   - Assign your personal email to the `OPEN_FOOD_FACTS_USER_AGENT` variable using the exact format: `AppName/Version (YourContactEmail)`.
+   - **Example:** `OPEN_FOOD_FACTS_USER_AGENT=KidsfeedApp/1.0 (developer.name@gmail.com)`
+2. **Environment URLs:**
+   - Our `open-food-facts.service.js` dynamically connects to either the Production `.org` domain or the Sandbox `.net` domain based on your `NODE_ENV`.
+   - Ensure both `OPEN_FOOD_FACTS_BASEURL_PROD` and `OPEN_FOOD_FACTS_BASEURL_DEV` are populated in your secrets exactly as they appear inside `.env.example`.
+
+> **⚠️ API Etiquette:** Open Food Facts is a free, crowdsourced Wikipedia-style database. Do not use generic fake emails or spoof traffic. Use a valid contact method so their admins can notify us instead of abruptly permanently banning our server IP if our lookup loop bugs out during load testing.

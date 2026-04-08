@@ -121,9 +121,10 @@ const recipeSchema = new mongoose.Schema(
     },
 
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      type: String,
       required: [true, 'Created by is required'],
+      trim: true,
+      set: (value) => (value === null ? value : String(value).trim()),
     },
   },
   {

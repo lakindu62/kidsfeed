@@ -11,6 +11,7 @@ coverage/
 .env
 .env.*
 .env*.local
+!.env.example
 
 # debug & logs
 npm-debug.log*
@@ -35,6 +36,7 @@ Thumbs.db
 .pnp.js
 .yarn/install-state.gz
 .vercel
+implementations/
 
 # system/editor
 .vscode/
@@ -52,3 +54,6 @@ Thumbs.db
 
 # certificate files
 *.pem
+
+
+
