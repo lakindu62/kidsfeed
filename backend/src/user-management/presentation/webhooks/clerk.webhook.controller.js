@@ -22,14 +22,25 @@ class ClerkWebhookController {
     }
 
     const { type: eventType, data } = evt;
-    console.log(`[Clerk Webhook] Event received: ${eventType}`);
+    const deliveryId = req.headers['svix-id'];
+    const attempt = req.headers['svix-attempt'];
+    const safeDeliveryId = Array.isArray(deliveryId)
+      ? deliveryId[0]
+      : (deliveryId ?? 'unknown');
+    const safeAttempt = Array.isArray(attempt) ? attempt[0] : (attempt ?? '1');
+
+    console.log(
+      `[Clerk Webhook] Event received: ${eventType} (svix-id=${safeDeliveryId}, attempt=${safeAttempt})`
+    );
 
     try {
       switch (eventType) {
         case 'user.created':
+          await userSyncService.syncOnUserCreated(data);
+          break;
+
         case 'user.updated':
-          // Delegate to the Application layer service
-          await userSyncService.syncClerkUserToMongo(data);
+          await userSyncService.syncOnUserUpdated(data);
           break;
 
         case 'user.deleted':

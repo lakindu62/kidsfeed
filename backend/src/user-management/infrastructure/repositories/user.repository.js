@@ -57,6 +57,27 @@ class UserRepository {
   }
 
   /**
+   * Upsert only profile fields by Clerk ID.
+   * This helper exists to make intent explicit for webhook user.updated sync,
+   * where role must never be overwritten for existing users.
+   *
+   * @param {string} clerkId
+   * @param {Object} profileData
+   * @param {Object} setOnInsertData
+   * @returns {Promise<Object>}
+   */
+  async upsertProfileByClerkId(clerkId, profileData, setOnInsertData = {}) {
+    return UserModel.findOneAndUpdate(
+      { clerkId },
+      {
+        $setOnInsert: setOnInsertData,
+        $set: profileData,
+      },
+      { upsert: true, new: true }
+    );
+  }
+
+  /**
    * Delete a user by their external Clerk ID.
    * @param {string} clerkId
    * @returns {Promise<Object|null>}
