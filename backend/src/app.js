@@ -29,7 +29,7 @@ import { createMealPlanningRouter } from './meal-planning/index.js';
 import { inventoryRouter } from './inventory/index.js';
 import { createSchoolManagementRouter } from './school-management/bootstrap.js';
 import { clerkWebhookRouter } from './user-management/presentation/webhooks/clerk.webhook.router.js';
-import { userManagementRouter } from './user-management/index.js';
+import { createUserManagementRouter } from './user-management/index.js';
 
 import { apiRequireAuth } from './shared/middleware/require-auth.middleware.js';
 import { attachUser } from './shared/middleware/attach-user.middleware.js';
@@ -88,7 +88,8 @@ app.use('/api', mealPlanningRouter);
 app.use('/api/inventory', inventoryRouter);
 
 // User-management routes (unguarded for now by request)
-app.use('/api/users', userManagementRouter);
+const userManagementRouter = createUserManagementRouter();
+app.use('/api', userManagementRouter);
 
 // Error handlers (must be AFTER all routes)
 app.use(menuManagementErrorHandler);

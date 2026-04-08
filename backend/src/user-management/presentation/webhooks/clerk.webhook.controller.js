@@ -39,9 +39,12 @@ class ClerkWebhookController {
           await userSyncService.syncOnUserCreated(data);
           break;
 
-        case 'user.updated':
-          await userSyncService.syncOnUserUpdated(data);
-          break;
+        // case 'user.updated':
+        //   // user.updated handling intentionally disabled.
+        //   // We no longer subscribe to this event in Clerk, but we keep the
+        //   // original sync line commented for easy re-enable if needed later.
+        //   // await userSyncService.syncOnUserUpdated(data);
+        //   break;
 
         case 'user.deleted':
           // Handle deletion (domain logic here handles hard deletion based on clerk ID)

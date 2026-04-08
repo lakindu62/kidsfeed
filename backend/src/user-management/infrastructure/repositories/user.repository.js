@@ -103,6 +103,34 @@ class UserRepository {
   async findByRole(role) {
     return UserModel.find({ role }).sort({ name: 1 });
   }
+
+  /**
+   * Update user role by internal MongoDB ID.
+   * @param {string} userId
+   * @param {string} newRole
+   * @returns {Promise<Object|null>}
+   */
+  async updateRoleById(userId, newRole) {
+    return UserModel.findByIdAndUpdate(
+      userId,
+      { $set: { role: newRole } },
+      { new: true }
+    );
+  }
+
+  /**
+   * Update user role by external Clerk ID.
+   * @param {string} clerkId
+   * @param {string} newRole
+   * @returns {Promise<Object|null>}
+   */
+  async updateRoleByClerkId(clerkId, newRole) {
+    return UserModel.findOneAndUpdate(
+      { clerkId },
+      { $set: { role: newRole } },
+      { new: true }
+    );
+  }
 }
 
 export const userRepository = new UserRepository();

@@ -45,18 +45,52 @@ class UserService {
       );
     }
 
-    // 1. Update the local MongoDB database via the repository abstraction.
-    // upsertByClerkId serves natively as a safe patch since $set will simply
-    // overwrite the role, and $setOnInsert will be safely ignored for existing users.
-    const updatedUser = await userRepository.upsertByClerkId(
+    // 1. Update the local MongoDB role by Clerk identity.
+    const updatedUser = await userRepository.updateRoleByClerkId(
       clerkId,
-      { role: newRole },
-      {}
+      newRole
     );
+
+    if (!updatedUser) {
+      throw new Error('User not found for provided clerkId');
+    }
 
     // 2. Transmit state change to external provider (Clerk JWT Engine).
     // This immediately forces custom sessionClaims to re-generate with the new Role.
     await clerkClient.users.updateUserMetadata(clerkId, {
+      publicMetadata: {
+        role: newRole,
+        mongoId: updatedUser._id.toString(),
+      },
+    });
+
+    return updatedUser;
+  }
+
+  /**
+   * Domain logic orchestrating a role change by internal MongoDB user ID.
+   * Safely updates BOTH local role state and Clerk metadata.
+   *
+   * @param {string} userId - The internal MongoDB user _id
+   * @param {string} newRole - The new role to apply
+   * @returns {Promise<Object>} The updated User MongoDB document
+   */
+  async updateUserRoleById(userId, newRole) {
+    if (!userId || !newRole) {
+      throw new Error(
+        'userId and newRole are strictly required to update role'
+      );
+    }
+
+    // 1. Update the local MongoDB role by internal user ID.
+    const updatedUser = await userRepository.updateRoleById(userId, newRole);
+
+    if (!updatedUser) {
+      throw new Error('User not found for provided userId');
+    }
+
+    // 2. Propagate role and mongoId into Clerk metadata for token claims.
+    await clerkClient.users.updateUserMetadata(updatedUser.clerkId, {
       publicMetadata: {
         role: newRole,
         mongoId: updatedUser._id.toString(),

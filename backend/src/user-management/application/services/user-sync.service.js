@@ -62,49 +62,48 @@ class UserSyncService {
 
     return syncedUser;
   }
-
-  /**
-   * Handles user.updated webhook events.
-   * Syncs profile fields locally and updates linkage metadata only.
-   * Role is intentionally NOT written here to avoid accidental role resets.
-   *
-   * @param {Object} clerkUserData - The user data payload received from a Clerk webhook event.
-   * @returns {Promise<Object>} The synchronized MongoDB user document.
-   */
-  async syncOnUserUpdated(clerkUserData) {
-    const { clerkId, email, name } = this.extractIdentity(clerkUserData);
-
-    const syncedUser = await userRepository.upsertProfileByClerkId(
-      clerkId,
-      { email, name },
-      { role: ROLES.UNASSIGNED, schoolId: null }
-    );
-
-    const desiredMongoId = syncedUser._id.toString();
-    const existingMongoId = clerkUserData?.public_metadata?.mongoId;
-
-    if (existingMongoId !== desiredMongoId) {
-      await clerkClient.users.updateUserMetadata(clerkId, {
-        publicMetadata: {
-          mongoId: desiredMongoId,
-        },
-      });
-    }
-
-    return syncedUser;
-  }
-
-  /**
-   * Backward-compatible bridge for older call sites.
-   * This default behavior follows the safe user.updated path.
-   *
-   * @param {Object} clerkUserData
-   * @returns {Promise<Object>}
-   */
-  async syncClerkUserToMongo(clerkUserData) {
-    return this.syncOnUserUpdated(clerkUserData);
-  }
 }
+/**
+ * Handles user.updated webhook events.
+ * Syncs profile fields locally and updates linkage metadata only.
+ * Role is intentionally NOT written here to avoid accidental role resets.
+ *
+ * @param {Object} clerkUserData - The user data payload received from a Clerk webhook event.
+ * @returns {Promise<Object>} The synchronized MongoDB user document.
+ */
+// async syncOnUserUpdated(clerkUserData) {
+//   const { clerkId, email, name } = this.extractIdentity(clerkUserData);
+
+//   const syncedUser = await userRepository.upsertProfileByClerkId(
+//     clerkId,
+//     { email, name },
+//     { role: ROLES.UNASSIGNED, schoolId: null }
+//   );
+
+//   const desiredMongoId = syncedUser._id.toString();
+//   const existingMongoId = clerkUserData?.public_metadata?.mongoId;
+
+//   if (existingMongoId !== desiredMongoId) {
+//     await clerkClient.users.updateUserMetadata(clerkId, {
+//       publicMetadata: {
+//         mongoId: desiredMongoId,
+//       },
+//     });
+//   }
+
+//   return syncedUser;
+// }
+
+// /**
+//  * Backward-compatible bridge for older call sites.
+//  * This default behavior follows the safe user.updated path.
+//  *
+//  * @param {Object} clerkUserData
+//  * @returns {Promise<Object>}
+//  */
+// async syncClerkUserToMongo(clerkUserData) {
+//   return this.syncOnUserUpdated(clerkUserData);
+// }
 
 // Exporting a singleton instance for clean DI/usage across controllers
 export const userSyncService = new UserSyncService();
