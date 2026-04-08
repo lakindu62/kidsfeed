@@ -43,7 +43,7 @@ class UserSyncService {
     const syncedUser = await userRepository.upsertByClerkId(
       clerkId,
       { email, name },
-      { role: ROLES.STAFF, schoolId: null }
+      { role: ROLES.UNASSIGNED, schoolId: null }
     );
 
     const desiredMongoId = syncedUser._id.toString();
@@ -77,7 +77,7 @@ class UserSyncService {
     const syncedUser = await userRepository.upsertProfileByClerkId(
       clerkId,
       { email, name },
-      { role: ROLES.STAFF, schoolId: null }
+      { role: ROLES.UNASSIGNED, schoolId: null }
     );
 
     const desiredMongoId = syncedUser._id.toString();
