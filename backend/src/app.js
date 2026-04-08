@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { clerkMiddleware } from '@clerk/express';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -32,6 +33,10 @@ import { requireRole } from './shared/middleware/require-role.middleware.js';
 import { ROLES } from './shared/constants/roles.js';
 
 const app = express();
+
+// Temporarily allow all origins for initial deployment testing.
+// TODO: Lock this down to the specific Vercel frontend domain before production.
+app.use(cors());
 
 // Auth Middleware from clerk
 app.use(clerkMiddleware());
