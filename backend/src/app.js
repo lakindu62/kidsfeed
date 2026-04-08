@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { clerkMiddleware } from '@clerk/express';
 import cors from 'cors';
+import { corsOptions, handleCorsPreflight } from './config/cors.config.js';
 
 dotenv.config();
 
@@ -34,9 +35,11 @@ import { ROLES } from './shared/constants/roles.js';
 
 const app = express();
 
-// Temporarily allow all origins for initial deployment testing.
-// TODO: Lock this down to the specific Vercel frontend domain before production.
-app.use(cors());
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// Always finish preflight before Clerk middleware to avoid auth redirects on OPTIONS.
+app.use(handleCorsPreflight);
 
 // Auth Middleware from clerk
 app.use(clerkMiddleware());
