@@ -60,17 +60,18 @@ class MongoMealPlanRepository extends IMealPlanRepository {
 
   async update(id, mealPlan) {
     try {
-      const persistenceData = MealPlanMapper.toPersistence(mealPlan);
+      const existingDoc = await MealPlanSchema.findById(id);
 
-      const updatedDoc = await MealPlanSchema.findByIdAndUpdate(
-        id,
-        persistenceData,
-        { new: true, runValidators: true }
-      );
-
-      if (!updatedDoc) {
+      if (!existingDoc) {
         return null;
       }
+
+      const persistenceData = MealPlanMapper.toPersistence(mealPlan);
+      const { _id, ...updatableData } = persistenceData;
+
+      existingDoc.set(updatableData);
+      const updatedDoc = await existingDoc.save();
+
       return MealPlanMapper.toDomain(updatedDoc);
     } catch (error) {
       if (error.name === 'CastError') {

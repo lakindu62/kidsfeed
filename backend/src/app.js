@@ -27,7 +27,7 @@ import {
 import {
   mealPlanRouter,
   mealPlanningErrorHandler,
-} from './meal-planning-and-menu-management/meal-planning/index.js';
+} from './meal-planning/index.js';
 
 // Inventory imports
 import { inventoryRouter } from './inventory/index.js';
