@@ -2,6 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { clerkMiddleware } from '@clerk/express';
+import cors from 'cors';
+import { corsOptions, handleCorsPreflight } from './config/cors.config.js';
 
 dotenv.config();
 
@@ -32,6 +34,12 @@ import { requireRole } from './shared/middleware/require-role.middleware.js';
 import { ROLES } from './shared/constants/roles.js';
 
 const app = express();
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// Always finish preflight before Clerk middleware to avoid auth redirects on OPTIONS.
+app.use(handleCorsPreflight);
 
 // Auth Middleware from clerk
 app.use(clerkMiddleware());

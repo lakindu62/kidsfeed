@@ -17,6 +17,7 @@
   "dependencies": {
     "@clerk/express": "^2.0.7",
     "axios": "^1.13.5",
+    "cors": "^2.8.6",
     "csv-parse": "^6.1.0",
     "csv-stringify": "^6.6.0",
     "dotenv": "^17.3.1",
