@@ -1,5 +1,4 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { clerkMiddleware } from '@clerk/express';
 import cors from 'cors';
@@ -7,7 +6,7 @@ import { corsOptions, handleCorsPreflight } from './config/cors.config.js';
 
 dotenv.config();
 
-// import { studentGetRouter } from './school/index.js';
+import { connectDB } from './database.config.js';
 
 // Meal distribution imports
 import {
@@ -90,13 +89,8 @@ app.use('/api/inventory', inventoryRouter);
 // Error handlers (must be AFTER all routes)
 app.use(menuManagementErrorHandler);
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
 const PORT = process.env.PORT || 3000;
 
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => {
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch((err) => console.error('DB connection failed:', err));
+connectDB().then(() => {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+});

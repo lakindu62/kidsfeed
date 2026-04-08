@@ -23,20 +23,32 @@ const getAllSchools = async () => {
 
 const getSchoolById = async (id) => {
   const school = await findSchoolById(id);
-  if (!school) throw new AppError(404, 'School not found');
+  if (!school) {
+    throw new AppError(404, 'School not found');
+  }
   return toSchoolResponse(school);
 };
 
 const updateSchool = async (id, body) => {
   const data = toUpdateSchoolData(body);
   const school = await updateSchoolById(id, data);
-  if (!school) throw new AppError(404, 'School not found');
+  if (!school) {
+    throw new AppError(404, 'School not found');
+  }
   return toSchoolResponse(school);
 };
 
 const deleteSchool = async (id) => {
   const school = await deleteSchoolById(id);
-  if (!school) throw new AppError(404, 'School not found');
+  if (!school) {
+    throw new AppError(404, 'School not found');
+  }
 };
 
-export { createNewSchool, getAllSchools, getSchoolById, updateSchool, deleteSchool };
+export {
+  createNewSchool,
+  getAllSchools,
+  getSchoolById,
+  updateSchool,
+  deleteSchool,
+};

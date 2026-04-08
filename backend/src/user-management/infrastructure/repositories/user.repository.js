@@ -67,7 +67,7 @@ class UserRepository {
 
   /**
    * Find all users with optional filtering.
-   * @param {Object} filter 
+   * @param {Object} filter
    * @returns {Promise<Array>}
    */
   async findAll(filter = {}) {
@@ -76,7 +76,7 @@ class UserRepository {
 
   /**
    * Find all users matching a specific role.
-   * @param {string} role 
+   * @param {string} role
    * @returns {Promise<Array>}
    */
   async findByRole(role) {

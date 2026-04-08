@@ -16,10 +16,14 @@ import { AppError } from '../errors/app-error.js';
 
 const createStudentForSchool = async (schoolId, body) => {
   const school = await findSchoolById(schoolId);
-  if (!school) throw new AppError(404, 'School not found');
+  if (!school) {
+    throw new AppError(404, 'School not found');
+  }
 
   const existing = await findByStudentId(body.studentId);
-  if (existing) throw new AppError(409, 'Student ID already exists');
+  if (existing) {
+    throw new AppError(409, 'Student ID already exists');
+  }
 
   const data = toCreateStudentData(body, schoolId);
   const student = await createStudent(data);
@@ -28,29 +32,48 @@ const createStudentForSchool = async (schoolId, body) => {
 
 const listStudentsForSchool = async (schoolId, rawQuery) => {
   const school = await findSchoolById(schoolId);
-  if (!school) throw new AppError(404, 'School not found');
+  if (!school) {
+    throw new AppError(404, 'School not found');
+  }
 
   const { page, limit, search, grade } = toStudentQueryParams(rawQuery);
-  const { data, total } = await findStudentsBySchool(schoolId, { page, limit, search, grade });
+  const { data, total } = await findStudentsBySchool(schoolId, {
+    page,
+    limit,
+    search,
+    grade,
+  });
   return toStudentListResponse(data, total, page, limit);
 };
 
 const getStudent = async (id) => {
   const student = await findStudentById(id);
-  if (!student) throw new AppError(404, 'Student not found');
+  if (!student) {
+    throw new AppError(404, 'Student not found');
+  }
   return toStudentResponse(student);
 };
 
 const updateStudent = async (id, body) => {
   const data = toUpdateStudentData(body);
   const student = await updateStudentById(id, data);
-  if (!student) throw new AppError(404, 'Student not found');
+  if (!student) {
+    throw new AppError(404, 'Student not found');
+  }
   return toStudentResponse(student);
 };
 
 const deleteStudent = async (id) => {
   const student = await deleteStudentById(id);
-  if (!student) throw new AppError(404, 'Student not found');
+  if (!student) {
+    throw new AppError(404, 'Student not found');
+  }
 };
 
-export { createStudentForSchool, listStudentsForSchool, getStudent, updateStudent, deleteStudent };
+export {
+  createStudentForSchool,
+  listStudentsForSchool,
+  getStudent,
+  updateStudent,
+  deleteStudent,
+};
