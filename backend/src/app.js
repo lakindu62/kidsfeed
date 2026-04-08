@@ -21,6 +21,12 @@ import {
   errorHandler as menuManagementErrorHandler,
 } from './menu-management/index.js';
 
+// Meal Planning
+import {
+  mealPlanRouter,
+  mealPlanningErrorHandler,
+} from './meal-planning-and-menu-management/meal-planning/index.js';
+
 // Inventory imports
 import { inventoryRouter } from './inventory/index.js';
 import { createSchoolManagementRouter } from './school-management/bootstrap.js';
@@ -69,11 +75,15 @@ app.use('/api/meal-scan', mealScanRouter);
 app.use('/api/recipes', recipeRouter);
 app.use('/api/nutrition', nutritionRouter);
 
+// Meal planning component routes
+app.use('/api/meal-plans', mealPlanRouter);
+
 // Inventory component routes
 app.use('/api/inventory', inventoryRouter);
 
-// Menu Management Error Handler
+// Error handlers (must be AFTER all routes)
 app.use(menuManagementErrorHandler);
+app.use(mealPlanningErrorHandler);
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
