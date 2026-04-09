@@ -16,11 +16,7 @@ import {
 } from './meal-distribution/index.js';
 
 // Menu Management Imports
-import {
-  recipeRouter,
-  nutritionRouter,
-  errorHandler as menuManagementErrorHandler,
-} from './menu-management/index.js';
+import { createMenuManagementRouter } from './menu-management/index.js';
 
 // Meal Planning
 import { createMealPlanningRouter } from './meal-planning/index.js';
@@ -70,24 +66,21 @@ app.use(express.json());
 const schoolRouter = createSchoolManagementRouter();
 app.use('/api', schoolRouter);
 
-// Meal distribution component routes
-app.use('/api/meal-sessions', mealSessionRouter);
-app.use('/api/meal-attendance', mealAttendanceRouter);
-app.use('/api/meal-scan', mealScanRouter);
-
-// Menu Management routes
-app.use('/api/recipes', recipeRouter);
-app.use('/api/nutrition', nutritionRouter);
+// Menu Management Routes
+const menuManagementRouter = createMenuManagementRouter();
+app.use('/api', menuManagementRouter);
 
 // Meal Planning routes
 const mealPlanningRouter = createMealPlanningRouter();
 app.use('/api', mealPlanningRouter);
 
+// Meal distribution component routes
+app.use('/api/meal-sessions', mealSessionRouter);
+app.use('/api/meal-attendance', mealAttendanceRouter);
+app.use('/api/meal-scan', mealScanRouter);
+
 // Inventory component routes
 app.use('/api/inventory', inventoryRouter);
-
-// Error handlers (must be AFTER all routes)
-app.use(menuManagementErrorHandler);
 
 const PORT = process.env.PORT || 3000;
 
