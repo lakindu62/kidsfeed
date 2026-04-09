@@ -5,6 +5,10 @@ export class MealSessionRepository {
     return MealSession.create(data);
   }
 
+  async findOne(filter = {}) {
+    return MealSession.findOne(filter);
+  }
+
   async findById(id) {
     return MealSession.findById(id);
   }

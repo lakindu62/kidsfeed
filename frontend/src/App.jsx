@@ -4,6 +4,14 @@
 // import './App.css';
 import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
+import {
+  MealAttendanceRoute,
+  MealDistributionRoute,
+  MealSessionsRoute,
+  mealAttendancePath,
+  mealDistributionPath,
+  mealSessionsPath,
+} from './features/meal-distribution';
 
 function App() {
   return (
@@ -11,6 +19,9 @@ function App() {
       {/* Example routes */}
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<div>About Page</div>} />
+      <Route path={mealDistributionPath} element={<MealDistributionRoute />} />
+      <Route path={mealSessionsPath} element={<MealSessionsRoute />} />
+      <Route path={mealAttendancePath} element={<MealAttendanceRoute />} />
     </Routes>
   );
 }
