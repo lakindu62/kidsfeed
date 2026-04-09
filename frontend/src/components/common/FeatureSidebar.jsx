@@ -1,10 +1,11 @@
 import { cloneElement, isValidElement } from 'react';
 import { CircleHelp, LogOut } from 'lucide-react';
+import { DEFAULT_FOOTER_ACTIONS } from './configs/defaults';
 
-const DEFAULT_FOOTER_ACTIONS = [
-  { key: 'support', label: 'Support', icon: CircleHelp },
-  { key: 'logout', label: 'Log Out', icon: LogOut },
-];
+// const DEFAULT_FOOTER_ACTIONS = [
+//   { key: 'support', label: 'Support', icon: CircleHelp },
+//   { key: 'logout', label: 'Log Out', icon: LogOut },
+// ];
 
 function cx(...classes) {
   return classes.filter(Boolean).join(' ');
