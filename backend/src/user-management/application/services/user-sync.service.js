@@ -11,13 +11,11 @@ import { ROLES } from '../../../shared/constants/roles.js';
  */
 class UserSyncService {
   /**
-   * Safely upserts a user into the local database and subsequently pushes
-   * critical domain data (mongoId, role) back to Clerk's public metadata.
-   *
-   * @param {Object} clerkUserData - The user data payload received from a Clerk webhook event.
-   * @returns {Promise<Object>} The synchronized MongoDB user document.
+   * Extract normalized identity fields from Clerk payload.
+   * @param {Object} clerkUserData
+   * @returns {{ clerkId: string, email: string, name: string }}
    */
-  async syncClerkUserToMongo(clerkUserData) {
+  extractIdentity(clerkUserData) {
     const {
       id: clerkId,
       email_addresses,
@@ -25,31 +23,87 @@ class UserSyncService {
       last_name,
     } = clerkUserData;
 
-    // Safely extract email and construct full name
     const email = email_addresses?.[0]?.email_address ?? '';
     const name = `${first_name ?? ''} ${last_name ?? ''}`.trim();
 
-    // 1. Local Database Upsert via Repository
-    // The repository handles the Mongoose-specific $set and $setOnInsert internals
+    return { clerkId, email, name };
+  }
+
+  /**
+   * Handles user.created webhook events.
+   * Ensures first-time users get default role assignment via $setOnInsert,
+   * then syncs token-critical metadata back to Clerk.
+   *
+   * @param {Object} clerkUserData - The user data payload received from a Clerk webhook event.
+   * @returns {Promise<Object>} The synchronized MongoDB user document.
+   */
+  async syncOnUserCreated(clerkUserData) {
+    const { clerkId, email, name } = this.extractIdentity(clerkUserData);
+
     const syncedUser = await userRepository.upsertByClerkId(
       clerkId,
-      { email, name }, // Fields to update if user exists
-      { role: ROLES.STAFF, schoolId: null } // Fields to set only on creation
+      { email, name },
+      { role: ROLES.UNASSIGNED, schoolId: null }
     );
 
-    // 2. Push state back to External Identity Provider (Clerk)
-    // We bind the user's localized role and Mongo ID to their session token
-    // allowing subsequent requests to be verified statelessy without DB lookups.
-    await clerkClient.users.updateUserMetadata(clerkId, {
-      publicMetadata: {
-        mongoId: syncedUser._id.toString(),
-        role: syncedUser.role,
-      },
-    });
+    const desiredMongoId = syncedUser._id.toString();
+    const desiredRole = syncedUser.role;
+    const existingMongoId = clerkUserData?.public_metadata?.mongoId;
+    const existingRole = clerkUserData?.public_metadata?.role;
+
+    if (existingMongoId !== desiredMongoId || existingRole !== desiredRole) {
+      await clerkClient.users.updateUserMetadata(clerkId, {
+        publicMetadata: {
+          mongoId: desiredMongoId,
+          role: desiredRole,
+        },
+      });
+    }
 
     return syncedUser;
   }
 }
+/**
+ * Handles user.updated webhook events.
+ * Syncs profile fields locally and updates linkage metadata only.
+ * Role is intentionally NOT written here to avoid accidental role resets.
+ *
+ * @param {Object} clerkUserData - The user data payload received from a Clerk webhook event.
+ * @returns {Promise<Object>} The synchronized MongoDB user document.
+ */
+// async syncOnUserUpdated(clerkUserData) {
+//   const { clerkId, email, name } = this.extractIdentity(clerkUserData);
+
+//   const syncedUser = await userRepository.upsertProfileByClerkId(
+//     clerkId,
+//     { email, name },
+//     { role: ROLES.UNASSIGNED, schoolId: null }
+//   );
+
+//   const desiredMongoId = syncedUser._id.toString();
+//   const existingMongoId = clerkUserData?.public_metadata?.mongoId;
+
+//   if (existingMongoId !== desiredMongoId) {
+//     await clerkClient.users.updateUserMetadata(clerkId, {
+//       publicMetadata: {
+//         mongoId: desiredMongoId,
+//       },
+//     });
+//   }
+
+//   return syncedUser;
+// }
+
+// /**
+//  * Backward-compatible bridge for older call sites.
+//  * This default behavior follows the safe user.updated path.
+//  *
+//  * @param {Object} clerkUserData
+//  * @returns {Promise<Object>}
+//  */
+// async syncClerkUserToMongo(clerkUserData) {
+//   return this.syncOnUserUpdated(clerkUserData);
+// }
 
 // Exporting a singleton instance for clean DI/usage across controllers
 export const userSyncService = new UserSyncService();

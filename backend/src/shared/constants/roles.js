@@ -32,7 +32,13 @@ const ROLES = Object.freeze({
 
   /**
    * Default role assigned to every new user on first login.
-   * Has read-only access to most data. Admin can upgrade this role.
+   * Represents a user who has not yet been assigned a functional role.
+   */
+  UNASSIGNED: 'unassigned',
+
+  /**
+   * Staff role for internal users.
+   * Can be assigned by admins after onboarding.
    */
   STAFF: 'staff',
 });
