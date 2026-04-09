@@ -2,12 +2,18 @@
 // - Derives plannedHeadcount from the school-management component.
 // - Keeps actualServedCount and wastageCount consistent when sessions or
 //   attendance data change.
-import { toMealSessionResponse } from '../dtos/responses/meal-session-response.dto.js';
+import {
+  toGuardianNotificationResponse,
+  toMealSessionResponse,
+} from '../dtos/responses/meal-session-response.dto.js';
 import { countStudentsBySchool } from '../../../school-management/infrastructure/repositories/student.repository.js';
 
 export class MealSessionService {
-  constructor(mealSessionRepository) {
+  constructor(mealSessionRepository, deps = {}) {
     this.mealSessionRepository = mealSessionRepository;
+    this.completionService = deps.completionService ?? null;
+    this.mealGuardianNotificationRepository =
+      deps.mealGuardianNotificationRepository ?? null;
   }
 
   async createMealSession(dto) {
@@ -163,5 +169,16 @@ export class MealSessionService {
   async deleteMealSession(mealSessionId) {
     const deleted = await this.mealSessionRepository.deleteById(mealSessionId);
     return Boolean(deleted);
+  }
+
+  async listGuardianNotificationsForSession(mealSessionId) {
+    if (!this.mealGuardianNotificationRepository) {
+      return [];
+    }
+    const rows =
+      await this.mealGuardianNotificationRepository.findBySessionId(
+        mealSessionId
+      );
+    return rows.map((row) => toGuardianNotificationResponse(row));
   }
 }

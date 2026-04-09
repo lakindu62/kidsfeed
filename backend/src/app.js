@@ -13,6 +13,7 @@ import {
   mealSessionRouter,
   mealAttendanceRouter,
   mealScanRouter,
+  noShowAlertsRouter,
 } from './meal-distribution/index.js';
 
 // Menu Management Imports
@@ -75,6 +76,7 @@ app.use('/api', schoolRouter);
 app.use('/api/meal-sessions', mealSessionRouter);
 app.use('/api/meal-attendance', mealAttendanceRouter);
 app.use('/api/meal-scan', mealScanRouter);
+app.use('/api/meal-distribution/no-show-alerts', noShowAlertsRouter);
 
 // Menu Management routes
 app.use('/api/recipes', recipeRouter);
