@@ -22,15 +22,29 @@ class ClerkWebhookController {
     }
 
     const { type: eventType, data } = evt;
-    console.log(`[Clerk Webhook] Event received: ${eventType}`);
+    const deliveryId = req.headers['svix-id'];
+    const attempt = req.headers['svix-attempt'];
+    const safeDeliveryId = Array.isArray(deliveryId)
+      ? deliveryId[0]
+      : (deliveryId ?? 'unknown');
+    const safeAttempt = Array.isArray(attempt) ? attempt[0] : (attempt ?? '1');
+
+    console.log(
+      `[Clerk Webhook] Event received: ${eventType} (svix-id=${safeDeliveryId}, attempt=${safeAttempt})`
+    );
 
     try {
       switch (eventType) {
         case 'user.created':
-        case 'user.updated':
-          // Delegate to the Application layer service
-          await userSyncService.syncClerkUserToMongo(data);
+          await userSyncService.syncOnUserCreated(data);
           break;
+
+        // case 'user.updated':
+        //   // user.updated handling intentionally disabled.
+        //   // We no longer subscribe to this event in Clerk, but we keep the
+        //   // original sync line commented for easy re-enable if needed later.
+        //   // await userSyncService.syncOnUserUpdated(data);
+        //   break;
 
         case 'user.deleted':
           // Handle deletion (domain logic here handles hard deletion based on clerk ID)

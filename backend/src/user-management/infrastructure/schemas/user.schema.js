@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema(
     clerkId: { type: String, required: true, unique: true, index: true },
     email: { type: String, default: '', index: true },
     name: { type: String, default: '' },
-    role: { type: String, default: ROLES.STAFF },
+    role: { type: String, default: ROLES.UNASSIGNED },
     schoolId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'School',

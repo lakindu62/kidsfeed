@@ -15,16 +15,17 @@ import {
   mealScanRouter,
 } from './meal-distribution/index.js';
 
-// Menu Management Imports
+// Menu Management imports
 import { createMenuManagementRouter } from './menu-management/index.js';
 
-// Meal Planning
+// Meal Planning imports
 import { createMealPlanningRouter } from './meal-planning/index.js';
 
 // Inventory imports
 import { inventoryRouter } from './inventory/index.js';
 import { createSchoolManagementRouter } from './school-management/bootstrap.js';
 import { clerkWebhookRouter } from './user-management/presentation/webhooks/clerk.webhook.router.js';
+import { createUserManagementRouter } from './user-management/index.js';
 
 import { apiRequireAuth } from './shared/middleware/require-auth.middleware.js';
 import { attachUser } from './shared/middleware/attach-user.middleware.js';
@@ -39,7 +40,7 @@ app.options('*', cors(corsOptions));
 // Always finish preflight before Clerk middleware to avoid auth redirects on OPTIONS.
 app.use(handleCorsPreflight);
 
-// Auth Middleware from clerk
+// Auth middleware from Clerk
 app.use(clerkMiddleware());
 
 // Clerk webhooks MUST be mounted before express.json() so Svix can read the raw request body
@@ -61,12 +62,11 @@ app.use(express.json());
 // );
 // ─────────────────────────────────────────────────────────────────
 
-// School component routes
-// app.use('/api/students', studentGetRouter);
+// School Management routes
 const schoolRouter = createSchoolManagementRouter();
 app.use('/api', schoolRouter);
 
-// Menu Management Routes
+// Menu Management routes
 const menuManagementRouter = createMenuManagementRouter();
 app.use('/api', menuManagementRouter);
 
@@ -74,13 +74,17 @@ app.use('/api', menuManagementRouter);
 const mealPlanningRouter = createMealPlanningRouter();
 app.use('/api', mealPlanningRouter);
 
-// Meal distribution component routes
+// Meal Distribution routes
 app.use('/api/meal-sessions', mealSessionRouter);
 app.use('/api/meal-attendance', mealAttendanceRouter);
 app.use('/api/meal-scan', mealScanRouter);
 
-// Inventory component routes
+// Inventory routes
 app.use('/api/inventory', inventoryRouter);
+
+// User Management routes (unguarded for now by request)
+const userManagementRouter = createUserManagementRouter();
+app.use('/api', userManagementRouter);
 
 const PORT = process.env.PORT || 3000;
 
