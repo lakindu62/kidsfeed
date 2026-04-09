@@ -6,11 +6,11 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import {
   MealAttendanceRoute,
-  MealDistributionRoute,
+  MealDistributionDashboardRoute,
+  MealDistributionLayoutRoute,
+  MealNoShowAlertsRoute,
   MealSessionsRoute,
-  mealAttendancePath,
   mealDistributionPath,
-  mealSessionsPath,
 } from './features/meal-distribution';
 
 function App() {
@@ -19,9 +19,15 @@ function App() {
       {/* Example routes */}
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<div>About Page</div>} />
-      <Route path={mealDistributionPath} element={<MealDistributionRoute />} />
-      <Route path={mealSessionsPath} element={<MealSessionsRoute />} />
-      <Route path={mealAttendancePath} element={<MealAttendanceRoute />} />
+      <Route
+        path={mealDistributionPath}
+        element={<MealDistributionLayoutRoute />}
+      >
+        <Route index element={<MealDistributionDashboardRoute />} />
+        <Route path="sessions" element={<MealSessionsRoute />} />
+        <Route path="attendance" element={<MealAttendanceRoute />} />
+        <Route path="no-show-alerts" element={<MealNoShowAlertsRoute />} />
+      </Route>
     </Routes>
   );
 }
