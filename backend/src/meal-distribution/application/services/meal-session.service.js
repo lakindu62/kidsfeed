@@ -11,17 +11,47 @@ export class MealSessionService {
   }
 
   async createMealSession(dto) {
+    const sessionDate =
+      dto.date instanceof Date ? dto.date : new Date(dto.date);
+    const mealTypeValue = String(dto.mealType).trim();
+    const schoolIdValue = String(dto.schoolId).trim();
+
+    // Only one session per day for each meal type per school.
+    const dayStartUtc = new Date(
+      Date.UTC(
+        sessionDate.getUTCFullYear(),
+        sessionDate.getUTCMonth(),
+        sessionDate.getUTCDate()
+      )
+    );
+    const nextDayStartUtc = new Date(dayStartUtc);
+    nextDayStartUtc.setUTCDate(nextDayStartUtc.getUTCDate() + 1);
+
+    const existingSession = await this.mealSessionRepository.findOne({
+      schoolId: schoolIdValue,
+      mealType: new RegExp(`^${mealTypeValue}$`, 'i'),
+      date: { $gte: dayStartUtc, $lt: nextDayStartUtc },
+    });
+
+    if (existingSession) {
+      const duplicateError = new Error(
+        `${mealTypeValue} session already exists for this day`
+      );
+      duplicateError.code = 'MEAL_SESSION_DUPLICATE';
+      throw duplicateError;
+    }
+
     // Derive plannedHeadcount from school-management student data
-    const plannedHeadcountValue = await countStudentsBySchool(dto.schoolId);
+    const plannedHeadcountValue = await countStudentsBySchool(schoolIdValue);
     const actualServedCountValue =
       dto.actualServedCount === undefined || dto.actualServedCount === null
         ? 0
         : Number(dto.actualServedCount);
 
     const data = {
-      date: dto.date instanceof Date ? dto.date : new Date(dto.date),
-      mealType: String(dto.mealType).trim(),
-      schoolId: String(dto.schoolId).trim(),
+      date: sessionDate,
+      mealType: mealTypeValue,
+      schoolId: schoolIdValue,
       grade:
         dto.grade === undefined || dto.grade === null
           ? undefined

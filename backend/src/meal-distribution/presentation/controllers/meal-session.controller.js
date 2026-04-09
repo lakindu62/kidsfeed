@@ -43,6 +43,9 @@ mealSessionRouter.post(
       const session = await mealSessionService.createMealSession(dto);
       return res.status(201).json(session);
     } catch (err) {
+      if (err?.code === 'MEAL_SESSION_DUPLICATE') {
+        return res.status(409).json({ message: err.message });
+      }
       next(err);
     }
   }

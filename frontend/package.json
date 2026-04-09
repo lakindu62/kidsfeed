@@ -15,6 +15,7 @@
     "@clerk/clerk-react": "^5.61.4",
     "@fontsource-variable/inter": "^5.2.8",
     "@tailwindcss/vite": "^4.1.18",
+    "@zxing/browser": "^0.1.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.7.0",

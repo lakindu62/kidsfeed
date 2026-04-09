@@ -1,0 +1,28 @@
+.meal-distribution-root {
+  min-height: 100vh;
+}
+
+.meal-distribution-root button {
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.meal-distribution-root button:focus,
+.meal-distribution-root button:focus-visible {
+  outline: none;
+}
+
+.meal-distribution-root .md-date-input {
+  -webkit-appearance: none;
+  appearance: none;
+  color-scheme: light;
+}
+
+.meal-distribution-root .md-date-input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  pointer-events: none;
+}
