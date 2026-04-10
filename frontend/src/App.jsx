@@ -12,11 +12,11 @@ import RequireRole from './components/common/guards/RequireRole';
 import { USER_ROLES } from './lib/user-roles';
 import {
   MealAttendanceRoute,
-  MealDistributionRoute,
+  MealDistributionDashboardRoute,
+  MealDistributionLayoutRoute,
+  MealNoShowAlertsRoute,
   MealSessionsRoute,
-  mealAttendancePath,
   mealDistributionPath,
-  mealSessionsPath,
 } from './features/meal-distribution';
 import { InventoryRoute, inventoryPath } from './features/inventory';
 
@@ -91,6 +91,14 @@ function App() {
           </RequireAuth>
         }
       />
+        path={mealDistributionPath}
+        element={<MealDistributionLayoutRoute />}
+      >
+        <Route index element={<MealDistributionDashboardRoute />} />
+        <Route path="sessions" element={<MealSessionsRoute />} />
+        <Route path="attendance" element={<MealAttendanceRoute />} />
+        <Route path="no-show-alerts" element={<MealNoShowAlertsRoute />} />
+      </Route>
     </Routes>
   );
 }

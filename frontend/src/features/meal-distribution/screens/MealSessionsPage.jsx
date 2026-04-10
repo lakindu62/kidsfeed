@@ -3,13 +3,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CalendarDays, ChevronDown, Filter, X } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
+import { describeApiFetchFailure } from '../../../lib/describe-api-fetch-failure';
 import { createMealSession, fetchMealSessions } from '../api';
 import {
   FeatureSidebar,
   FeatureTopBar,
   NewSessionFloatingButton,
 } from '../components';
-import { useMealDistributionSchool } from '../hooks';
+import {
+  formatMealDistributionSchoolSubtitle,
+  useMealDistributionSchool,
+} from '../hooks';
 import '../styles/meal-distribution.css';
 
 function formatMealType(mealType) {
@@ -81,7 +85,7 @@ export default function MealSessionsPage() {
 
   const loadSessions = useCallback(async () => {
     if (!apiUrl || !schoolId) {
-      setError(!apiUrl ? 'Missing VITE_API_URL in frontend/.env' : '');
+      setError(!apiUrl ? 'Could not resolve API base URL.' : '');
       setIsLoading(false);
       return;
     }
@@ -101,7 +105,9 @@ export default function MealSessionsPage() {
       });
       setSessions(data);
     } catch (loadError) {
-      setError(loadError.message || 'Failed to fetch meal sessions');
+      setError(
+        describeApiFetchFailure(loadError, 'Failed to fetch meal sessions'),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -145,7 +151,7 @@ export default function MealSessionsPage() {
     }
 
     if (!apiUrl) {
-      setCreateError('Missing VITE_API_URL in frontend/.env');
+      setCreateError('Could not resolve API base URL.');
       return;
     }
 
@@ -171,7 +177,9 @@ export default function MealSessionsPage() {
       setSuccessMessage('Session created successfully.');
       await loadSessions();
     } catch (submitError) {
-      setCreateError(submitError.message || 'Failed to create session');
+      setCreateError(
+        describeApiFetchFailure(submitError, 'Failed to create session'),
+      );
     } finally {
       setIsCreating(false);
     }
@@ -203,7 +211,7 @@ export default function MealSessionsPage() {
         <main className="w-[1280px] shrink-0 pt-3 pr-10 pb-8 pl-6">
           <FeatureTopBar
             title="Meal Sessions"
-            subtitle={`Manage meal sessions for ${schoolId}`}
+            subtitle={`${formatMealDistributionSchoolSubtitle(schoolName)} · Create and manage sessions`}
             query={query}
             onQueryChange={setQuery}
             searchPlaceholder="Search by meal type, date, status..."
@@ -358,7 +366,7 @@ export default function MealSessionsPage() {
                   Create New Session
                 </h3>
                 <p className="text-xs font-medium text-zinc-500">
-                  School: {schoolName} ({schoolId})
+                  {formatMealDistributionSchoolSubtitle(schoolName)}
                 </p>
               </div>
               <Button

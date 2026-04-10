@@ -9,6 +9,10 @@ export class MealAttendanceRepository {
     return MealAttendance.findById(id);
   }
 
+  async findOne(filter = {}) {
+    return MealAttendance.findOne(filter);
+  }
+
   async findMany(filter = {}) {
     return MealAttendance.find(filter).sort({ servedAt: -1 });
   }

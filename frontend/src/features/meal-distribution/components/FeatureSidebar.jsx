@@ -55,7 +55,12 @@ export default function FeatureSidebar({ schoolName, activeItem, navigate }) {
             active={activeItem === 'attendance'}
             onClick={() => navigate('/meal-distribution/attendance')}
           />
-          <SidebarLink icon={Megaphone} label="No-Show Alerts" />
+          <SidebarLink
+            icon={Megaphone}
+            label="No-Show Alerts"
+            active={activeItem === 'noShowAlerts'}
+            onClick={() => navigate('/meal-distribution/no-show-alerts')}
+          />
         </div>
         <div className="mt-1">
           <SidebarLink icon={FileText} label="Reports" />
