@@ -40,31 +40,31 @@ inventory/
 
 ### InventoryItem Schema
 
-| Field          | Type          | Required | Description                                    |
-| -------------- | ------------- | -------- | ---------------------------------------------- |
-| `name`         | String        | Yes      | Name of the inventory item                     |
-| `barcode`      | String        | No       | Product barcode (digits only when provided)    |
-| `description`  | String        | No       | Detailed description of the item               |
-| `brand`        | String        | No       | Product brand                                  |
-| `allergens`    | String[]      | No       | Array of allergens                             |
-| `traces`       | String[]      | No       | Array of allergen traces                       |
-| `ingredients`  | String        | No       | Full ingredients text                          |
-| `imageUrl`     | String        | No       | Product image URL                              |
-| `nutritionalGrade` | String    | No       | Nutritional grade: a, b, c, d, e              |
-| `category`     | String (Enum) | Yes      | Category: FOOD, SUPPLIES, EQUIPMENT, OTHER     |
-| `quantity`     | Number        | Yes      | Current quantity in stock (min: 0)             |
-| `unit`         | String        | Yes      | Unit of measurement (e.g., kg, pieces, liters) |
-| `reorderLevel` | Number        | No       | Minimum quantity before reorder (default: 10)  |
-| `unitPrice`    | Number        | No       | Price per unit (min: 0)                        |
-| `packageWeight` | Number       | No       | Package weight/volume value (min: 0)           |
-| `packageWeightUnit` | String   | No       | Package weight/volume unit                     |
-| `packageType`  | String        | No       | Package/container type                         |
-| `supplier`     | String        | No       | Supplier name                                  |
-| `location`     | String        | No       | Storage location                               |
-| `expiryDate`   | Date          | No       | Expiry date for perishable items               |
-| `status`       | String (Enum) | Auto     | ACTIVE, LOW_STOCK, OUT_OF_STOCK, EXPIRED       |
-| `createdAt`    | Date          | Auto     | Creation timestamp                             |
-| `updatedAt`    | Date          | Auto     | Last update timestamp                          |
+| Field               | Type          | Required | Description                                    |
+| ------------------- | ------------- | -------- | ---------------------------------------------- |
+| `name`              | String        | Yes      | Name of the inventory item                     |
+| `barcode`           | String        | No       | Product barcode (digits only when provided)    |
+| `description`       | String        | No       | Detailed description of the item               |
+| `brand`             | String        | No       | Product brand                                  |
+| `allergens`         | String[]      | No       | Array of allergens                             |
+| `traces`            | String[]      | No       | Array of allergen traces                       |
+| `ingredients`       | String        | No       | Full ingredients text                          |
+| `imageUrl`          | String        | No       | Product image URL                              |
+| `nutritionalGrade`  | String        | No       | Nutritional grade: a, b, c, d, e               |
+| `category`          | String (Enum) | Yes      | Category: FOOD, SUPPLIES, EQUIPMENT, OTHER     |
+| `quantity`          | Number        | Yes      | Current quantity in stock (min: 0)             |
+| `unit`              | String        | Yes      | Unit of measurement (e.g., kg, pieces, liters) |
+| `reorderLevel`      | Number        | No       | Minimum quantity before reorder (default: 10)  |
+| `unitPrice`         | Number        | No       | Price per unit (min: 0)                        |
+| `packageWeight`     | Number        | No       | Package weight/volume value (min: 0)           |
+| `packageWeightUnit` | String        | No       | Package weight/volume unit                     |
+| `packageType`       | String        | No       | Package/container type                         |
+| `supplier`          | String        | No       | Supplier name                                  |
+| `location`          | String        | No       | Storage location                               |
+| `expiryDate`        | Date          | No       | Expiry date for perishable items               |
+| `status`            | String (Enum) | Auto     | ACTIVE, LOW_STOCK, OUT_OF_STOCK, EXPIRED       |
+| `createdAt`         | Date          | Auto     | Creation timestamp                             |
+| `updatedAt`         | Date          | Auto     | Last update timestamp                          |
 
 ### Status Auto-Calculation
 
