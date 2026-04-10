@@ -18,9 +18,12 @@ function normalizeRecipe(recipe = {}) {
     id: recipe.id,
     name: recipe.name || 'Untitled Recipe',
     description: recipe.description || 'No description available.',
+    imageUrl: recipe.imageUrl || '',
+    instructions: recipe.instructions || '',
     ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
     servingSize: Number(recipe.servingSize) || 0,
     prepTime: Number(recipe.prepTime) || 0,
+    seasonal: Array.isArray(recipe.seasonal) ? recipe.seasonal : [],
     allergens: Array.isArray(recipe.allergens) ? recipe.allergens : [],
     dietaryFlags: recipe.dietaryFlags || {},
     nutritionalInfo: recipe.nutritionalInfo || null,
@@ -188,4 +191,102 @@ export async function updateRecipeServingSize({
   });
 
   return normalizeRecipe(payload?.data || {});
+}
+
+export async function updateRecipe({ apiUrl, recipeId, payload, getToken }) {
+  if (!apiUrl) {
+    throw new Error('API base URL is not configured.');
+  }
+
+  if (!recipeId) {
+    throw new Error('Recipe id is required.');
+  }
+
+  const endpoint = new URL(`/api/recipes/${recipeId}`, apiUrl);
+  const responsePayload = await fetchMenuApi({
+    url: endpoint.toString(),
+    getToken,
+    options: {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+  });
+
+  return normalizeRecipe(responsePayload?.data || {});
+}
+
+export async function deleteRecipe({ apiUrl, recipeId, getToken }) {
+  if (!apiUrl) {
+    throw new Error('API base URL is not configured.');
+  }
+
+  if (!recipeId) {
+    throw new Error('Recipe id is required.');
+  }
+
+  const endpoint = new URL(`/api/recipes/${recipeId}`, apiUrl);
+  await fetchMenuApi({
+    url: endpoint.toString(),
+    getToken,
+    options: {
+      method: 'DELETE',
+    },
+  });
+
+  return true;
+}
+
+export async function createRecipe({ apiUrl, payload, getToken }) {
+  if (!apiUrl) {
+    throw new Error('API base URL is not configured.');
+  }
+
+  const endpoint = new URL('/api/recipes', apiUrl);
+  const responsePayload = await fetchMenuApi({
+    url: endpoint.toString(),
+    getToken,
+    options: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+  });
+
+  return normalizeRecipe(responsePayload?.data || {});
+}
+
+export async function calculateRecipeNutrition({
+  apiUrl,
+  ingredients,
+  getToken,
+}) {
+  if (!apiUrl) {
+    throw new Error('API base URL is not configured.');
+  }
+
+  if (!Array.isArray(ingredients) || ingredients.length === 0) {
+    throw new Error(
+      'At least one ingredient is required to calculate nutrition.',
+    );
+  }
+
+  const endpoint = new URL('/api/nutrition/calculate', apiUrl);
+  const responsePayload = await fetchMenuApi({
+    url: endpoint.toString(),
+    getToken,
+    options: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ingredients }),
+    },
+  });
+
+  return responsePayload?.data || null;
 }

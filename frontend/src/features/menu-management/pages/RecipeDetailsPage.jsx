@@ -6,16 +6,18 @@ import {
   Heart,
   Leaf,
   Minus,
+  Pencil,
   Plus,
   Printer,
   ShoppingBasket,
+  Trash2,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { describeApiFetchFailure } from '@/lib/describe-api-fetch-failure';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base';
 import { useAuthRole } from '@/lib/auth/use-auth-role';
-import { fetchRecipeById, updateRecipeServingSize } from '../api';
+import { deleteRecipe, fetchRecipeById, updateRecipeServingSize } from '../api';
 import MenuManagementLayout from '../layouts/MenuManagementLayout';
 
 const FALLBACK_RECIPE = {
@@ -86,6 +88,8 @@ function getActiveDietTags(dietaryFlags = {}) {
     vegan: 'Vegan',
     halal: 'Halal',
     glutenFree: 'Gluten-Free',
+    dairyFree: 'Dairy-Free',
+    nutFree: 'Nut-Free',
   })
     .filter(([key]) => dietaryFlags[key] === true)
     .map(([, label]) => label);
@@ -95,6 +99,8 @@ function RecipeDetailsPage() {
   const { role } = useAuthRole();
   const { isSignedIn, getToken } = useAuth();
   const { recipeId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const apiBaseUrl = resolveApiBaseUrl();
   const [servings, setServings] = useState(FALLBACK_RECIPE.servingSize);
@@ -102,6 +108,8 @@ function RecipeDetailsPage() {
   const [error, setError] = useState('');
   const [isUpdatingServings, setIsUpdatingServings] = useState(false);
   const [servingsSaved, setServingsSaved] = useState(false);
+  const [isDeletingRecipe, setIsDeletingRecipe] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   useEffect(() => {
     if (!recipeId) {
@@ -160,6 +168,73 @@ function RecipeDetailsPage() {
   );
 
   const nutrition = recipe.nutritionalInfo || FALLBACK_RECIPE.nutritionalInfo;
+  const canMutateRecipe = Boolean(recipeId && recipeId !== FALLBACK_RECIPE.id);
+
+  useEffect(() => {
+    const message = location.state?.toastMessage;
+    if (message) {
+      setToastMessage(message);
+      navigate(location.pathname, { replace: true, state: {} });
+
+      const timer = window.setTimeout(() => setToastMessage(''), 2400);
+      return () => window.clearTimeout(timer);
+    }
+
+    return undefined;
+  }, [location.pathname, location.state, navigate]);
+
+  const handleEditRecipe = () => {
+    if (!canMutateRecipe) {
+      return;
+    }
+
+    navigate(`/menu-management/recipes/${recipeId}/edit`);
+  };
+
+  const handleDeleteRecipe = async () => {
+    if (!canMutateRecipe) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      'Delete this recipe? This action cannot be undone.',
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    if (!apiBaseUrl) {
+      setError('Could not resolve API base URL for menu management.');
+      return;
+    }
+
+    try {
+      setIsDeletingRecipe(true);
+      setError('');
+
+      await deleteRecipe({
+        apiUrl: apiBaseUrl,
+        recipeId,
+        getToken: isSignedIn ? getToken : undefined,
+      });
+
+      setTimeout(() => {
+        navigate('/menu-management/menus', {
+          state: { toastMessage: 'Recipe deleted successfully.' },
+        });
+      }, 900);
+    } catch (requestError) {
+      setError(
+        describeApiFetchFailure(
+          requestError,
+          'Failed to delete recipe. Please try again.',
+        ),
+      );
+    } finally {
+      setIsDeletingRecipe(false);
+    }
+  };
 
   const persistServings = async (nextServings) => {
     if (nextServings < 1) {
@@ -224,6 +299,12 @@ function RecipeDetailsPage() {
       subtitle={recipe.name}
       searchPlaceholder="Search institutional database..."
     >
+      {toastMessage ? (
+        <p className="mb-4 rounded-xl border border-[#cce8d0] bg-[#edf8ef] px-4 py-3 text-sm font-semibold text-[#1f7a34] shadow-sm">
+          {toastMessage}
+        </p>
+      ) : null}
+
       {error ? (
         <p className="mb-4 rounded-xl border border-[#f3cece] bg-[#fdecec] px-4 py-3 text-sm text-[#a61e1e]">
           {error}
@@ -233,7 +314,16 @@ function RecipeDetailsPage() {
       <section className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <article className="overflow-hidden rounded-[24px] bg-[#151a22] shadow-[0_8px_20px_rgba(0,0,0,0.18)]">
           <div className="relative h-full min-h-84 bg-[radial-gradient(circle_at_20%_20%,#5d6f83_0%,#263443_45%,#171c26_100%)]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_62%_36%,#f7d856_0%,#f0c832_18%,#b58d2a_34%,transparent_40%),radial-gradient(circle_at_42%_58%,#fafafa_0%,#ececec_22%,#d8d8d8_38%,transparent_48%)] opacity-90" />
+            {recipe.imageUrl ? (
+              <img
+                src={recipe.imageUrl}
+                alt={recipe.name}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_62%_36%,#f7d856_0%,#f0c832_18%,#b58d2a_34%,transparent_40%),radial-gradient(circle_at_42%_58%,#fafafa_0%,#ececec_22%,#d8d8d8_38%,transparent_48%)] opacity-90" />
+            )}
+            <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(9,13,19,0.82)_0%,rgba(9,13,19,0.14)_45%,rgba(9,13,19,0)_100%)]" />
             <div className="absolute right-4 bottom-4 left-4 z-10">
               <div className="mb-3 flex flex-wrap gap-2">
                 {dietTags.map((tag) => (
@@ -254,6 +344,27 @@ function RecipeDetailsPage() {
         </article>
 
         <article className="rounded-[24px] bg-white p-5 shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
+          <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={handleEditRecipe}
+              disabled={!canMutateRecipe}
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#d8dee5] bg-white px-4 py-2 text-sm font-semibold text-[#334255] hover:bg-[#f4f6f8] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Pencil size={14} />
+              Edit Recipe
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteRecipe}
+              disabled={!canMutateRecipe || isDeletingRecipe}
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#b83a2f] px-4 py-2 text-sm font-semibold text-white hover:bg-[#9f2f26] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Trash2 size={14} />
+              {isDeletingRecipe ? 'Deleting...' : 'Delete Recipe'}
+            </button>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-2xl bg-[#f4f7f3] p-3">
               <p className="text-[10px] font-semibold tracking-[0.12em] text-[#6d6f74] uppercase">

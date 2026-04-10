@@ -7,6 +7,50 @@ class USDANutritionService {
     this.baseUrl = 'https://api.nal.usda.gov/fdc/v1';
   }
 
+  // Returns an empty nutrition payload so callers can degrade gracefully.
+  getZeroNutrition() {
+    return {
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fats: 0,
+      fiber: 0,
+      sugar: 0,
+    };
+  }
+
+  // Builds a small list of progressively simpler queries for USDA search.
+  buildQueryCandidates(name) {
+    const raw = String(name || '').trim();
+    if (!raw) {
+      return [];
+    }
+
+    const withoutParens = raw.replace(/\([^)]*\)/g, ' ').trim();
+    const normalizedSpaces = withoutParens.replace(/\s+/g, ' ').trim();
+    const alphaNumericOnly = normalizedSpaces
+      .replace(/[^a-zA-Z0-9\s-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const firstSegment = alphaNumericOnly.split(',')[0].trim();
+    const firstTwoWords = alphaNumericOnly
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .join(' ')
+      .trim();
+
+    return [
+      ...new Set([
+        raw,
+        normalizedSpaces,
+        alphaNumericOnly,
+        firstSegment,
+        firstTwoWords,
+      ]),
+    ].filter(Boolean);
+  }
+
   // Calculates total nutrition for all ingredients; returns rounded aggregated values
   async calculate(ingredients) {
     const apiKey = process.env.USDA_API_KEY;
@@ -22,22 +66,23 @@ class USDANutritionService {
     }
 
     try {
-      const totalNutrition = {
-        calories: 0,
-        protein: 0,
-        carbs: 0,
-        fats: 0,
-        fiber: 0,
-        sugar: 0,
-      };
+      const totalNutrition = this.getZeroNutrition();
 
       for (const ingredient of ingredients) {
-        const nutrition = await this.getIngredientNutrition(
-          ingredient.name,
-          ingredient.quantity,
-          ingredient.unit,
-          apiKey
-        );
+        let nutrition = this.getZeroNutrition();
+        try {
+          nutrition = await this.getIngredientNutrition(
+            ingredient.name,
+            ingredient.quantity,
+            ingredient.unit,
+            apiKey
+          );
+        } catch (ingredientError) {
+          // Keep aggregation alive even if one ingredient lookup fails.
+          console.warn(
+            `Skipping nutrition lookup for ${ingredient.name}: ${ingredientError.message}`
+          );
+        }
 
         totalNutrition.calories += nutrition.calories;
         totalNutrition.protein += nutrition.protein;
@@ -58,8 +103,12 @@ class USDANutritionService {
     } catch (error) {
       if (error.response) {
         console.error('USDA API error: ', error.response.data);
+        const upstreamMessage =
+          typeof error.response.data === 'object'
+            ? error.response.data?.message
+            : null;
         throw new Error(
-          `Nutrition API error: ${error.response.data.message || 'Unknown error'}`
+          `Nutrition API error: ${upstreamMessage || `HTTP ${error.response.status}`}`
         );
       } else if (error.request) {
         throw new Error(
@@ -73,42 +122,48 @@ class USDANutritionService {
 
   // Fetches and scales nutrition for a single ingredient; returns zeros if not found (graceful degradation)
   async getIngredientNutrition(name, quantity, unit, apiKey) {
-    try {
-      const searchResponse = await axios.get(`${this.baseUrl}/foods/search`, {
-        params: { api_key: apiKey, query: name, pageSize: 1 },
-      });
+    const queries = this.buildQueryCandidates(name);
 
-      if (
-        !searchResponse.data.foods ||
-        searchResponse.data.foods.length === 0
-      ) {
-        console.warn(`Ingredient not found in USDA database: ${name}`);
+    for (const query of queries) {
+      try {
+        const searchResponse = await axios.get(`${this.baseUrl}/foods/search`, {
+          params: { api_key: apiKey, query, pageSize: 1 },
+          timeout: 10000,
+        });
+
+        if (
+          !searchResponse.data.foods ||
+          searchResponse.data.foods.length === 0
+        ) {
+          continue;
+        }
+
+        const food = searchResponse.data.foods[0];
+        const nutrientsPer100g = this.extractNutrients(food);
+        const conversionFactor = this.convertToGrams(quantity, unit) / 100;
+
         return {
-          calories: 0,
-          protein: 0,
-          carbs: 0,
-          fats: 0,
-          fiber: 0,
-          sugar: 0,
+          calories: nutrientsPer100g.calories * conversionFactor,
+          protein: nutrientsPer100g.protein * conversionFactor,
+          carbs: nutrientsPer100g.carbs * conversionFactor,
+          fats: nutrientsPer100g.fats * conversionFactor,
+          fiber: nutrientsPer100g.fiber * conversionFactor,
+          sugar: nutrientsPer100g.sugar * conversionFactor,
         };
+      } catch (error) {
+        const status = error?.response?.status;
+        if (status && status >= 400 && status < 500) {
+          // Try the next simplified query for client-side USDA lookup issues.
+          continue;
+        }
+
+        console.error(`Error getting nutrition for ${name}: `, error.message);
+        throw error;
       }
-
-      const food = searchResponse.data.foods[0];
-      const nutrientsPer100g = this.extractNutrients(food);
-      const conversionFactor = this.convertToGrams(quantity, unit) / 100;
-
-      return {
-        calories: nutrientsPer100g.calories * conversionFactor,
-        protein: nutrientsPer100g.protein * conversionFactor,
-        carbs: nutrientsPer100g.carbs * conversionFactor,
-        fats: nutrientsPer100g.fats * conversionFactor,
-        fiber: nutrientsPer100g.fiber * conversionFactor,
-        sugar: nutrientsPer100g.sugar * conversionFactor,
-      };
-    } catch (error) {
-      console.error(`Error getting nutrition for ${name}: `, error.message);
-      throw error;
     }
+
+    console.warn(`Ingredient not found in USDA database: ${name}`);
+    return this.getZeroNutrition();
   }
 
   // Maps USDA nutrient IDs to our standard nutrition fields (values per 100g)

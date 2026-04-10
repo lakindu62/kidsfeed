@@ -8,13 +8,26 @@ import {
 function RecipeCard({ recipe }) {
   const [startColor, endColor] = getRecipePalette(recipe.name);
   const dietaryBadges = getRecipeDietaryBadges(recipe.dietaryFlags);
+  const hasImage = Boolean(recipe.imageUrl);
 
   return (
     <article className="overflow-hidden rounded-[20px] border border-[#e6e9e5] bg-[#f8f9f8] shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
       <div
-        className="relative h-33"
+        className="relative h-33 overflow-hidden"
         style={{ '--mm-media-start': startColor, '--mm-media-end': endColor }}
       >
+        {hasImage ? (
+          <img
+            src={recipe.imageUrl}
+            alt={recipe.name}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,var(--mm-media-start)_0%,var(--mm-media-end)_100%)]" />
+        )}
+
+        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(15,23,42,0.34)_0%,rgba(15,23,42,0.05)_45%,rgba(15,23,42,0)_100%)]" />
+
         <div className="absolute top-2 left-2 flex gap-2">
           {dietaryBadges.slice(0, 2).map((badge) => (
             <span
