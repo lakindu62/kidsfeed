@@ -1,9 +1,15 @@
 export const USER_ROLES = Object.freeze({
   ADMIN: 'admin',
+  SCHOOL_ADMIN: 'school_admin',
+  SCHOOL_STAFF: 'school_staff',
+  MENU_CREATOR: 'menu_creator',
   MEAL_PLANNER: 'meal_planner',
   INVENTORY_MANAGER: 'inventory_manager',
   UNASSIGNED: 'unassigned',
-  STAFF: 'staff',
+
+  // Legacy roles kept for migration reference:
+  // MEAL_PLANNER: 'meal_planner',
+  // STAFF: 'staff',
 });
 
 export function listUserRoles() {
