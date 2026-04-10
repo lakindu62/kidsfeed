@@ -1,5 +1,4 @@
 import { APP_FEATURES } from '../app-features';
-import { listUserRoles, USER_ROLES } from '../user-roles';
 import { SIDEBAR_CONFIG_BY_FEATURE } from './configs';
 import { ROLE_SIDEBAR_PERMISSIONS } from './configs/role-sidebar-permissions';
 
@@ -112,4 +111,4 @@ export function listAvailableSidebarFeatures() {
   return Object.values(APP_FEATURES);
 }
 
-export { APP_FEATURES, ROLE_SIDEBAR_PERMISSIONS, USER_ROLES, listUserRoles };
+export { ROLE_SIDEBAR_PERMISSIONS };

@@ -29,7 +29,7 @@ It covers:
 
 ### Sidebar builder/orchestrator
 
-- frontend/src/lib/sidebar/configs.js
+- frontend/src/lib/sidebar/buildSideBarConfigs.js
 - frontend/src/lib/sidebar/index.js
 
 ### Sidebar UI component
@@ -55,11 +55,9 @@ This is the minimal pattern developers should follow inside a page/screen.
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FeatureSidebar from '../../components/common/FeatureSidebar';
-import {
-  APP_FEATURES,
-  USER_ROLES,
-  buildSidebarConfig,
-} from '../../lib/sidebar';
+import { buildSidebarConfig } from '../../lib/sidebar';
+import { APP_FEATURES } from '../../lib/app-features';
+import { USER_ROLES } from '../../lib/user-roles';
 
 export default function InventoryPageLayout() {
   const navigate = useNavigate();
