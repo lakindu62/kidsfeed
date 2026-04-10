@@ -12,13 +12,18 @@ import {
 import { useAuth } from '@clerk/clerk-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { describeApiFetchFailure } from '../../../lib/describe-api-fetch-failure';
+import { resolveApiBaseUrl } from '../../../lib/resolve-api-base';
 import { fetchMealAttendance, fetchMealSessions } from '../api';
 import {
   FeatureSidebar,
   FeatureTopBar,
   NewSessionFloatingButton,
 } from '../components';
-import { useMealDistributionSchool } from '../hooks';
+import {
+  formatMealDistributionSchoolSubtitle,
+  useMealDistributionSchool,
+} from '../hooks';
 import '../styles/meal-distribution.css';
 
 const fallbackMealSessions = [
@@ -28,29 +33,32 @@ const fallbackMealSessions = [
   { mealType: 'Lunch', planned: 55, served: 30, status: 'IN_PROGRESS' },
 ];
 
-const fallbackNoShowAlerts = [
-  {
-    id: '#10023',
-    school: 'Lincoln High',
-    period: 'Lunch',
-    count: 2,
-    notified: true,
-  },
-  {
-    id: '#10087',
-    school: 'Lincoln High',
-    period: 'Breakfast',
-    count: 1,
-    notified: false,
-  },
-  {
-    id: '#10112',
-    school: 'Lincoln High',
-    period: 'Lunch',
-    count: 3,
-    notified: true,
-  },
-];
+function buildFallbackNoShowAlerts(schoolName) {
+  const school = schoolName || 'School';
+  return [
+    {
+      id: '#10023',
+      school,
+      period: 'Lunch',
+      count: 2,
+      notified: true,
+    },
+    {
+      id: '#10087',
+      school,
+      period: 'Breakfast',
+      count: 1,
+      notified: false,
+    },
+    {
+      id: '#10112',
+      school,
+      period: 'Lunch',
+      count: 3,
+      notified: true,
+    },
+  ];
+}
 
 const statusClasses = {
   COMPLETED: 'bg-green-100 text-green-700',
@@ -90,7 +98,7 @@ export default function MealDistributionDashboard() {
   const [apiAttendance, setApiAttendance] = useState([]);
   const [isLoadingAttendance, setIsLoadingAttendance] = useState(true);
   const [attendanceError, setAttendanceError] = useState('');
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl = resolveApiBaseUrl();
 
   useEffect(() => {
     let isMounted = true;
@@ -100,7 +108,7 @@ export default function MealDistributionDashboard() {
         if (isMounted) {
           setIsLoadingSessions(false);
           setSessionsError(
-            !apiUrl ? 'Missing VITE_API_URL in frontend/.env' : '',
+            !apiUrl ? 'Could not resolve API base URL (browser only).' : '',
           );
         }
         return;
@@ -197,7 +205,9 @@ export default function MealDistributionDashboard() {
         }
       } catch (error) {
         if (isMounted) {
-          setAttendanceError(error.message || 'Failed to load attendance');
+          setAttendanceError(
+            describeApiFetchFailure(error, 'Failed to load attendance'),
+          );
         }
       } finally {
         if (isMounted) {
@@ -321,7 +331,7 @@ export default function MealDistributionDashboard() {
   const noShowAlertsMetrics = useMemo(() => {
     if (apiAttendance.length === 0) {
       return {
-        rows: fallbackNoShowAlerts,
+        rows: buildFallbackNoShowAlerts(schoolName),
         isFallback: true,
       };
     }
@@ -364,7 +374,7 @@ export default function MealDistributionDashboard() {
     }
 
     return {
-      rows: fallbackNoShowAlerts,
+      rows: buildFallbackNoShowAlerts(schoolName),
       isFallback: true,
     };
   }, [apiAttendance, todaySessionDocs, schoolName]);
@@ -381,7 +391,7 @@ export default function MealDistributionDashboard() {
         <main className="w-[1280px] shrink-0 pt-3 pr-10 pb-8 pl-6">
           <FeatureTopBar
             title="Dashboard"
-            subtitle={`Check the overview for today - ${schoolId}`}
+            subtitle={`${formatMealDistributionSchoolSubtitle(schoolName)} · Today's overview`}
             searchPlaceholder="Search sessions or students..."
           />
 
@@ -427,6 +437,7 @@ export default function MealDistributionDashboard() {
                 )}
                 <button
                   type="button"
+                  onClick={() => navigate('/meal-distribution/sessions')}
                   className="text-xs font-medium text-[#a83206]"
                 >
                   View All
@@ -553,16 +564,25 @@ export default function MealDistributionDashboard() {
           </section>
 
           <section className="mt-6 rounded-[12px] bg-[#f0f1f1] p-8">
-            <div className="mb-6 flex items-center gap-2">
-              <Bell className="h-5 w-5 text-[#b31b25]" />
-              <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
-                Recent No-Show Alerts
-              </h2>
-              {noShowAlertsMetrics.isFallback && (
-                <span className="ml-2 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold text-amber-700">
-                  Using fallback data
-                </span>
-              )}
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Bell className="h-5 w-5 text-[#b31b25]" />
+                <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
+                  Recent No-Show Alerts
+                </h2>
+                {noShowAlertsMetrics.isFallback && (
+                  <span className="ml-2 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold text-amber-700">
+                    Using fallback data
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/meal-distribution/no-show-alerts')}
+                className="text-xs font-medium text-[#a83206]"
+              >
+                View All
+              </button>
             </div>
             {isLoadingAttendance && (
               <p className="mb-4 text-xs font-medium text-zinc-500">

@@ -1,6 +1,9 @@
-import MealDistributionDashboard from './screens';
-import MealSessionsPage from './screens/MealSessionsPage';
+import { Outlet } from 'react-router-dom';
+import MealDistributionSchoolScopeBanner from './components/MealDistributionSchoolScopeBanner';
+import MealDistributionDashboard from './screens/MealDistributionDashboard';
 import MarkAttendancePage from './screens/MarkAttendancePage';
+import MealSessionsPage from './screens/MealSessionsPage';
+import NoShowAlertsPage from './screens/NoShowAlertsPage';
 import {
   getDefaultMealDistributionSchoolScope,
   MealDistributionSchoolProvider,
@@ -9,33 +12,32 @@ import {
 export const mealDistributionPath = '/meal-distribution';
 export const mealSessionsPath = '/meal-distribution/sessions';
 export const mealAttendancePath = '/meal-distribution/attendance';
+export const mealNoShowAlertsPath = '/meal-distribution/no-show-alerts';
 
-export function MealDistributionRoute() {
+/** Wraps all meal-distribution pages with one school provider (from env). */
+export function MealDistributionLayoutRoute() {
   const { schoolId, schoolName } = getDefaultMealDistributionSchoolScope();
 
   return (
     <MealDistributionSchoolProvider schoolId={schoolId} schoolName={schoolName}>
-      <MealDistributionDashboard />
+      <MealDistributionSchoolScopeBanner />
+      <Outlet />
     </MealDistributionSchoolProvider>
   );
+}
+
+export function MealDistributionDashboardRoute() {
+  return <MealDistributionDashboard />;
 }
 
 export function MealSessionsRoute() {
-  const { schoolId, schoolName } = getDefaultMealDistributionSchoolScope();
-
-  return (
-    <MealDistributionSchoolProvider schoolId={schoolId} schoolName={schoolName}>
-      <MealSessionsPage />
-    </MealDistributionSchoolProvider>
-  );
+  return <MealSessionsPage />;
 }
 
 export function MealAttendanceRoute() {
-  const { schoolId, schoolName } = getDefaultMealDistributionSchoolScope();
+  return <MarkAttendancePage />;
+}
 
-  return (
-    <MealDistributionSchoolProvider schoolId={schoolId} schoolName={schoolName}>
-      <MarkAttendancePage />
-    </MealDistributionSchoolProvider>
-  );
+export function MealNoShowAlertsRoute() {
+  return <NoShowAlertsPage />;
 }

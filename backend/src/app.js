@@ -13,6 +13,7 @@ import {
   mealSessionRouter,
   mealAttendanceRouter,
   mealScanRouter,
+  noShowAlertsRouter,
 } from './meal-distribution/index.js';
 
 // Menu Management imports
@@ -65,6 +66,12 @@ app.use(express.json());
 // School Management routes
 const schoolRouter = createSchoolManagementRouter();
 app.use('/api', schoolRouter);
+
+// Meal distribution component routes
+app.use('/api/meal-sessions', mealSessionRouter);
+app.use('/api/meal-attendance', mealAttendanceRouter);
+app.use('/api/meal-scan', mealScanRouter);
+app.use('/api/meal-distribution/no-show-alerts', noShowAlertsRouter);
 
 // Menu Management routes
 const menuManagementRouter = createMenuManagementRouter();

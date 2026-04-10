@@ -188,6 +188,53 @@ export async function markAttendanceByQr({
   return response.json();
 }
 
+export async function fetchNoShowAlerts({
+  apiUrl,
+  schoolId,
+  getToken,
+  dateFrom,
+  dateTo,
+}) {
+  const url = new URL('/api/meal-distribution/no-show-alerts', apiUrl);
+  url.searchParams.set('schoolId', schoolId);
+  if (dateFrom) url.searchParams.set('dateFrom', dateFrom);
+  if (dateTo) url.searchParams.set('dateTo', dateTo);
+
+  const response = await fetchApi({
+    url: url.toString(),
+    getToken,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch no-show alerts (${response.status})`);
+  }
+
+  const payload = await response.json();
+  return Array.isArray(payload) ? payload : [];
+}
+
+export async function fetchGuardianNotificationsForSession({
+  apiUrl,
+  mealSessionId,
+  getToken,
+}) {
+  const url = new URL(
+    `/api/meal-sessions/${mealSessionId}/guardian-notifications`,
+    apiUrl,
+  );
+  const response = await fetchApi({
+    url: url.toString(),
+    getToken,
+  });
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch guardian notifications (${response.status})`,
+    );
+  }
+  const payload = await response.json();
+  return Array.isArray(payload) ? payload : [];
+}
+
 export async function completeMealSession({ apiUrl, getToken, mealSessionId }) {
   const response = await fetchApi({
     url: new URL(`/api/meal-sessions/${mealSessionId}`, apiUrl).toString(),

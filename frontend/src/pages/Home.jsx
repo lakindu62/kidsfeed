@@ -6,7 +6,9 @@ import {
   useAuth,
   useUser,
 } from '@clerk/clerk-react';
+import { describeApiFetchFailure } from '../lib/describe-api-fetch-failure';
 import { fetchApi } from '../lib/api-client';
+import { resolveApiBaseUrl } from '../lib/resolve-api-base';
 
 const Home = () => {
   const [data, setData] = useState(null);
@@ -17,11 +19,11 @@ const Home = () => {
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const { user } = useUser();
 
-  const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = resolveApiBaseUrl();
 
   const fetchInventory = async () => {
     if (!API_URL) {
-      setError('Missing VITE_API_URL in frontend/.env');
+      setError('Could not resolve API base URL.');
       return;
     }
 
@@ -43,7 +45,7 @@ const Home = () => {
       setStatus('Success');
     } catch (requestError) {
       setStatus('Failed');
-      setError(requestError.message);
+      setError(describeApiFetchFailure(requestError, 'Request failed'));
     }
   };
 

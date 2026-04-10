@@ -12,6 +12,7 @@ const mealSessionSchema = new mongoose.Schema(
     wastageCount: { type: Number, default: 0 },
     status: { type: String, default: 'PLANNED' },
     menuId: { type: String },
+    guardianNotificationsCompletedAt: { type: Date },
   },
   {
     timestamps: true,
