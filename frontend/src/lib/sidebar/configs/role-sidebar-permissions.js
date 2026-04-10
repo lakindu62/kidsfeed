@@ -34,7 +34,7 @@
 //   // },
 
 //   // Frontend feature shell not wired yet:
-//   // [USER_ROLES.MENU_CREATOR]: {
+//   // [USER_ROLES.MENU_MANAGER]: {
 //   //   [APP_FEATURES.MENU_MANAGEMENT]: {
 //   //     allowedItemKeys: ['dashboard', 'menus', 'calendar'],
 //   //     allowedFooterActionKeys: ['support', 'logout'],

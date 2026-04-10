@@ -30,8 +30,8 @@ const ROLES = Object.freeze({
   /** School staff member responsible for meal distribution. */
   SCHOOL_STAFF: 'school_staff',
 
-  /** Menu creation and menu management role. */
-  MENU_CREATOR: 'menu_creator',
+  /** Menu management role. */
+  MENU_MANAGER: 'menu_manager',
 
   /** Meal planning role. */
   MEAL_PLANNER: 'meal_planner',

@@ -1,3 +1,5 @@
+### MIGHT BE OUTDATED
+
 # Sidebar Configuration Maintenance Playbook
 
 ## Purpose

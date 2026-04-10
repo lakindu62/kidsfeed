@@ -2,7 +2,7 @@ export const USER_ROLES = Object.freeze({
   ADMIN: 'admin',
   SCHOOL_ADMIN: 'school_admin',
   SCHOOL_STAFF: 'school_staff',
-  MENU_MANAGER: 'menu_creator',
+  MENU_MANAGER: 'menu_manager',
   MEAL_PLANNER: 'meal_planner',
   INVENTORY_MANAGER: 'inventory_manager',
   UNASSIGNED: 'unassigned',
