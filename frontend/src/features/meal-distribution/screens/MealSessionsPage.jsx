@@ -143,6 +143,25 @@ export default function MealSessionsPage() {
     });
   }, [sessions, mealTypeFilter, statusFilter, query]);
 
+  const currentStats = useMemo(() => {
+    const totalSessions = filteredSessions.length;
+    const planned = filteredSessions.reduce(
+      (sum, item) => sum + Number(item.plannedHeadcount || 0),
+      0,
+    );
+    const served = filteredSessions.reduce(
+      (sum, item) => sum + Number(item.actualServedCount || 0),
+      0,
+    );
+    const completed = filteredSessions.filter(
+      (item) => String(item.status || '').toUpperCase() === 'COMPLETED',
+    ).length;
+    const completionRate =
+      planned > 0 ? Math.round((served / planned) * 100) : 0;
+
+    return { totalSessions, planned, served, completed, completionRate };
+  }, [filteredSessions]);
+
   const handleCreateSession = async (event) => {
     event.preventDefault();
     if (!createForm.date || !createForm.mealType) {
@@ -289,6 +308,49 @@ export default function MealSessionsPage() {
                     <option value="COMPLETED">Completed</option>
                   </select>
                 </div>
+              </div>
+            </div>
+
+            <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              <div className="rounded-lg bg-white px-4 py-3 shadow-sm">
+                <p className="text-[11px] font-semibold text-zinc-500">
+                  Sessions (current view)
+                </p>
+                <p className="mt-1 text-xl font-bold text-zinc-800">
+                  {currentStats.totalSessions}
+                </p>
+              </div>
+              <div className="rounded-lg bg-white px-4 py-3 shadow-sm">
+                <p className="text-[11px] font-semibold text-zinc-500">
+                  Planned meals
+                </p>
+                <p className="mt-1 text-xl font-bold text-zinc-800">
+                  {currentStats.planned}
+                </p>
+              </div>
+              <div className="rounded-lg bg-white px-4 py-3 shadow-sm">
+                <p className="text-[11px] font-semibold text-zinc-500">
+                  Meals served
+                </p>
+                <p className="mt-1 text-xl font-bold text-[#a83206]">
+                  {currentStats.served}
+                </p>
+              </div>
+              <div className="rounded-lg bg-white px-4 py-3 shadow-sm">
+                <p className="text-[11px] font-semibold text-zinc-500">
+                  Completed sessions
+                </p>
+                <p className="mt-1 text-xl font-bold text-green-700">
+                  {currentStats.completed}
+                </p>
+              </div>
+              <div className="rounded-lg bg-white px-4 py-3 shadow-sm">
+                <p className="text-[11px] font-semibold text-zinc-500">
+                  Completion rate
+                </p>
+                <p className="mt-1 text-xl font-bold text-zinc-800">
+                  {currentStats.completionRate}%
+                </p>
               </div>
             </div>
 

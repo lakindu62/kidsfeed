@@ -1,14 +1,14 @@
 import { useAuth } from '@clerk/clerk-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { AlertCircle, CheckCircle2, QrCode, Upload, Video } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import {
   completeMealSession,
-  fetchAttendanceBySession,
   fetchGuardianNotificationsForSession,
   fetchMealSessions,
+  fetchSessionRoster,
   markAttendanceByQr,
   markAttendanceByStudentId,
 } from '../api';
@@ -20,14 +20,10 @@ import {
   useMealDistributionSchool,
 } from '../hooks';
 import '../styles/meal-distribution.css';
-
-/** Styles for native button elements — shared Button may ignore className merges. */
-const mealPrimaryActionClass = cn(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-xl bg-gradient-to-br from-[#116e20] to-[#006117] text-sm font-semibold tracking-[0.01em] text-white shadow-[0px_8px_20px_-8px_rgba(0,97,23,0.45)] transition-all',
-  'hover:translate-y-[-1px] hover:shadow-[0px_12px_24px_-8px_rgba(0,97,23,0.55)]',
-  'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-60',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#116e20]/50 focus-visible:ring-offset-2',
-);
+import {
+  mealPrimaryButtonClass,
+  mealPrimaryButtonCompactClass,
+} from '../utils/meal-primary-button-classes';
 
 function formatMealType(mealType) {
   if (!mealType) return '-';
@@ -46,13 +42,16 @@ function toDateKey(value) {
 
 export default function MarkAttendancePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { schoolName, schoolId } = useMealDistributionSchool();
   const { isSignedIn, getToken } = useAuth();
   const apiUrl = resolveApiBaseUrl();
+  const preferredSessionId = searchParams.get('sessionId') || '';
 
   const [sessions, setSessions] = useState([]);
   const [selectedSessionId, setSelectedSessionId] = useState('');
-  const [attendanceRows, setAttendanceRows] = useState([]);
+  const [sessionRosterRows, setSessionRosterRows] = useState([]);
+  const [rosterFilter, setRosterFilter] = useState('ALL');
   const [attendanceMode, setAttendanceMode] = useState('manual');
   const [studentIdInput, setStudentIdInput] = useState('');
   const [error, setError] = useState('');
@@ -74,6 +73,8 @@ export default function MarkAttendancePage() {
     () => sessions.find((session) => session.id === selectedSessionId),
     [sessions, selectedSessionId],
   );
+  const isSelectedSessionCompleted =
+    String(selectedSession?.status || '').toUpperCase() === 'COMPLETED';
   const todayDateKey = toDateKey(new Date());
   const todaysSessions = useMemo(
     () =>
@@ -92,22 +93,37 @@ export default function MarkAttendancePage() {
     const todayOnly = data.filter(
       (session) => toDateKey(session.date) === todayDateKey,
     );
+    if (
+      preferredSessionId &&
+      data.some((session) => session.id === preferredSessionId)
+    ) {
+      setSelectedSessionId(preferredSessionId);
+      return;
+    }
     if (!selectedSessionId && todayOnly.length > 0) {
       setSelectedSessionId(todayOnly[0].id);
     }
-  }, [apiUrl, schoolId, getToken, isSignedIn, selectedSessionId, todayDateKey]);
+  }, [
+    apiUrl,
+    schoolId,
+    getToken,
+    isSignedIn,
+    preferredSessionId,
+    selectedSessionId,
+    todayDateKey,
+  ]);
 
-  const loadAttendance = useCallback(async () => {
+  const loadSessionRoster = useCallback(async () => {
     if (!apiUrl || !selectedSessionId) {
-      setAttendanceRows([]);
+      setSessionRosterRows([]);
       return;
     }
-    const data = await fetchAttendanceBySession({
+    const data = await fetchSessionRoster({
       apiUrl,
       mealSessionId: selectedSessionId,
       getToken: isSignedIn ? getToken : undefined,
     });
-    setAttendanceRows(data);
+    setSessionRosterRows(data);
   }, [apiUrl, selectedSessionId, getToken, isSignedIn]);
 
   const loadGuardianNotifications = useCallback(async () => {
@@ -136,10 +152,12 @@ export default function MarkAttendancePage() {
   }, [loadSessions]);
 
   useEffect(() => {
-    loadAttendance().catch((loadError) =>
-      setError(describeApiFetchFailure(loadError, 'Failed to load attendance')),
+    loadSessionRoster().catch((loadError) =>
+      setError(
+        describeApiFetchFailure(loadError, 'Failed to load session roster'),
+      ),
     );
-  }, [loadAttendance]);
+  }, [loadSessionRoster]);
 
   useEffect(() => {
     if (!successMessage) return undefined;
@@ -158,16 +176,81 @@ export default function MarkAttendancePage() {
         getToken: isSignedIn ? getToken : undefined,
         studentId: studentIdInput.trim(),
         mealSessionId: selectedSessionId,
+        status: 'PRESENT',
       });
       setStudentIdInput('');
       setSuccessMessage('Attendance marked successfully.');
-      await Promise.all([loadAttendance(), loadSessions()]);
+      await Promise.all([loadSessions(), loadSessionRoster()]);
     } catch (markError) {
       setError(describeApiFetchFailure(markError, 'Failed to mark attendance'));
     } finally {
       setIsBusy(false);
     }
   };
+
+  const handleManualExcused = async () => {
+    if (!selectedSessionId || !studentIdInput.trim()) return;
+    setIsBusy(true);
+    setError('');
+    try {
+      await markAttendanceByStudentId({
+        apiUrl,
+        getToken: isSignedIn ? getToken : undefined,
+        studentId: studentIdInput.trim(),
+        mealSessionId: selectedSessionId,
+        status: 'EXCUSED',
+      });
+      setStudentIdInput('');
+      setSuccessMessage('Student marked as excused.');
+      await Promise.all([loadSessions(), loadSessionRoster()]);
+    } catch (markError) {
+      setError(describeApiFetchFailure(markError, 'Failed to mark excused'));
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const markStudentFromRoster = useCallback(
+    async (studentId, status) => {
+      if (!selectedSessionId || !studentId) return;
+      setIsBusy(true);
+      setError('');
+      try {
+        await markAttendanceByStudentId({
+          apiUrl,
+          getToken: isSignedIn ? getToken : undefined,
+          studentId: String(studentId).trim(),
+          mealSessionId: selectedSessionId,
+          status,
+        });
+        setSuccessMessage(
+          status === 'EXCUSED'
+            ? 'Student marked as excused.'
+            : 'Attendance marked successfully.',
+        );
+        await Promise.all([loadSessions(), loadSessionRoster()]);
+      } catch (markError) {
+        setError(
+          describeApiFetchFailure(
+            markError,
+            status === 'EXCUSED'
+              ? 'Failed to mark excused'
+              : 'Failed to mark attendance',
+          ),
+        );
+      } finally {
+        setIsBusy(false);
+      }
+    },
+    [
+      apiUrl,
+      getToken,
+      isSignedIn,
+      loadSessionRoster,
+      loadSessions,
+      selectedSessionId,
+    ],
+  );
 
   const extractStudentIdFromQrValue = (decodedValue) => {
     if (!decodedValue) return '';
@@ -201,14 +284,14 @@ export default function MarkAttendancePage() {
       });
 
       setSuccessMessage(successText);
-      await Promise.all([loadAttendance(), loadSessions()]);
+      await Promise.all([loadSessions(), loadSessionRoster()]);
       return studentId;
     },
     [
       apiUrl,
       getToken,
       isSignedIn,
-      loadAttendance,
+      loadSessionRoster,
       loadSessions,
       selectedSessionId,
     ],
@@ -480,7 +563,7 @@ export default function MarkAttendancePage() {
       setSuccessMessage('Meal session marked as completed.');
       await Promise.all([
         loadSessions(),
-        loadAttendance(),
+        loadSessionRoster(),
         loadGuardianNotifications(),
       ]);
     } catch (completeError) {
@@ -491,6 +574,30 @@ export default function MarkAttendancePage() {
       setIsBusy(false);
     }
   };
+
+  const filteredRosterRows = useMemo(() => {
+    if (rosterFilter === 'ALL') return sessionRosterRows;
+    return sessionRosterRows.filter(
+      (row) => String(row.status || '').toUpperCase() === rosterFilter,
+    );
+  }, [sessionRosterRows, rosterFilter]);
+
+  const rosterCounts = useMemo(() => {
+    const base = {
+      ALL: sessionRosterRows.length,
+      NOT_MARKED: 0,
+      PRESENT: 0,
+      EXCUSED: 0,
+      NO_SHOW: 0,
+    };
+    sessionRosterRows.forEach((row) => {
+      const status = String(row.status || '').toUpperCase();
+      if (base[status] !== undefined) {
+        base[status] += 1;
+      }
+    });
+    return base;
+  }, [sessionRosterRows]);
 
   return (
     <div className="meal-distribution-root min-h-screen bg-[#f6f6f6] text-zinc-900">
@@ -541,10 +648,7 @@ export default function MarkAttendancePage() {
                     isBusy ||
                     selectedSession?.status === 'COMPLETED'
                   }
-                  className={cn(
-                    mealPrimaryActionClass,
-                    'h-11 w-auto min-w-[170px] px-4',
-                  )}
+                  className={cn(mealPrimaryButtonClass, 'min-w-[170px]')}
                 >
                   {selectedSession?.status === 'COMPLETED'
                     ? 'Session Completed'
@@ -606,18 +710,31 @@ export default function MarkAttendancePage() {
                     placeholder="Enter student ID"
                     className="h-10 w-full rounded-lg border border-zinc-200 px-3 text-sm outline-none focus:border-green-600"
                   />
-                  <div className="mt-4 flex justify-center">
+                  <div className="mt-4 flex justify-center gap-3">
                     <button
                       type="submit"
                       disabled={
-                        !selectedSessionId || !studentIdInput.trim() || isBusy
+                        !selectedSessionId ||
+                        !studentIdInput.trim() ||
+                        isBusy ||
+                        isSelectedSessionCompleted
                       }
-                      className={cn(
-                        mealPrimaryActionClass,
-                        'h-11 w-auto min-w-[220px] px-5',
-                      )}
+                      className={cn(mealPrimaryButtonClass, 'min-w-[220px]')}
                     >
                       Mark by Student ID
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleManualExcused}
+                      disabled={
+                        !selectedSessionId ||
+                        !studentIdInput.trim() ||
+                        isBusy ||
+                        isSelectedSessionCompleted
+                      }
+                      className={cn(mealPrimaryButtonClass, 'min-w-[170px]')}
+                    >
+                      Mark Excused
                     </button>
                   </div>
                 </form>
@@ -702,7 +819,11 @@ export default function MarkAttendancePage() {
                         onClick={
                           isCameraActive ? stopCameraScan : startCameraScan
                         }
-                        disabled={!selectedSessionId || isBusy}
+                        disabled={
+                          !selectedSessionId ||
+                          isBusy ||
+                          isSelectedSessionCompleted
+                        }
                         className={cn(
                           'inline-flex h-9 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-700',
                           'hover:bg-zinc-50 disabled:pointer-events-none disabled:opacity-60',
@@ -760,7 +881,11 @@ export default function MarkAttendancePage() {
                       accept="image/*"
                       aria-labelledby="qr-upload-heading"
                       onChange={handleQrImageUpload}
-                      disabled={!selectedSessionId || isBusy}
+                      disabled={
+                        !selectedSessionId ||
+                        isBusy ||
+                        isSelectedSessionCompleted
+                      }
                       className="block w-full text-xs text-zinc-600 file:mr-3 file:rounded-lg file:border file:border-zinc-200 file:bg-white file:px-4 file:py-2.5 file:text-xs file:font-semibold file:text-zinc-800 hover:file:border-zinc-300 hover:file:bg-zinc-50 disabled:opacity-60"
                     />
                   </div>
@@ -784,6 +909,12 @@ export default function MarkAttendancePage() {
                   {successMessage}
                 </span>
               </div>
+            )}
+            {isSelectedSessionCompleted && (
+              <p className="mt-4 text-sm font-semibold text-amber-700">
+                This session is completed. Attendance is locked and unresolved
+                students are finalized as NO_SHOW.
+              </p>
             )}
 
             {selectedSession?.status === 'COMPLETED' &&
@@ -830,43 +961,117 @@ export default function MarkAttendancePage() {
                 </div>
               )}
 
-            <div className="mt-6 overflow-x-auto rounded-xl bg-white">
-              <table className="w-full">
-                <thead className="bg-[#e7e8e8] text-left text-xs font-medium text-zinc-500">
-                  <tr>
-                    <th className="px-5 py-3">Student ID</th>
-                    <th className="px-5 py-3">Status</th>
-                    <th className="px-5 py-3">Served At</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100">
-                  {attendanceRows.map((row) => (
-                    <tr key={row.id}>
-                      <td className="px-5 py-3 text-sm text-zinc-800">
-                        {row.studentId}
-                      </td>
-                      <td className="px-5 py-3 text-sm text-zinc-800">
-                        {row.status}
-                      </td>
-                      <td className="px-5 py-3 text-sm text-zinc-800">
-                        {row.servedAt
-                          ? new Date(row.servedAt).toLocaleString()
-                          : '-'}
-                      </td>
-                    </tr>
+            <div className="mt-6 rounded-xl bg-white p-4">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <h3 className="text-sm font-semibold text-zinc-800">
+                  All students - current session
+                </h3>
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  {[
+                    ['ALL', 'All'],
+                    ['NOT_MARKED', 'Not Marked'],
+                    ['PRESENT', 'Present'],
+                    ['EXCUSED', 'Excused'],
+                    ['NO_SHOW', 'No-Show'],
+                  ].map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setRosterFilter(key)}
+                      className={cn(
+                        'rounded-full px-3 py-1 font-semibold transition-colors',
+                        rosterFilter === key
+                          ? 'bg-[#116e20] text-white'
+                          : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200',
+                      )}
+                    >
+                      {label} ({rosterCounts[key] || 0})
+                    </button>
                   ))}
-                  {attendanceRows.length === 0 && (
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-[#e7e8e8] text-left text-xs font-medium text-zinc-500">
                     <tr>
-                      <td
-                        colSpan={3}
-                        className="px-5 py-6 text-center text-sm text-zinc-500"
-                      >
-                        No attendance records for selected session.
-                      </td>
+                      <th className="px-5 py-3">Student ID</th>
+                      <th className="px-5 py-3">Name</th>
+                      <th className="px-5 py-3">Status</th>
+                      <th className="px-5 py-3">Served At</th>
+                      <th className="px-5 py-3 text-center">Quick Actions</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-100">
+                    {filteredRosterRows.map((row) => (
+                      <tr key={row.studentId}>
+                        <td className="px-5 py-3 text-sm text-zinc-800">
+                          {row.studentId}
+                        </td>
+                        <td className="px-5 py-3 text-sm text-zinc-800">
+                          {row.fullName || '-'}
+                        </td>
+                        <td className="px-5 py-3 text-sm text-zinc-800">
+                          {row.status}
+                        </td>
+                        <td className="px-5 py-3 text-sm text-zinc-800">
+                          {row.servedAt
+                            ? new Date(row.servedAt).toLocaleString()
+                            : '-'}
+                        </td>
+                        <td className="px-5 py-3">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              type="button"
+                              disabled={
+                                !selectedSessionId ||
+                                isBusy ||
+                                isSelectedSessionCompleted
+                              }
+                              onClick={() =>
+                                markStudentFromRoster(row.studentId, 'PRESENT')
+                              }
+                              className={cn(
+                                mealPrimaryButtonCompactClass,
+                                'min-w-[96px]',
+                              )}
+                            >
+                              Present
+                            </button>
+                            <button
+                              type="button"
+                              disabled={
+                                !selectedSessionId ||
+                                isBusy ||
+                                isSelectedSessionCompleted
+                              }
+                              onClick={() =>
+                                markStudentFromRoster(row.studentId, 'EXCUSED')
+                              }
+                              className={cn(
+                                mealPrimaryButtonCompactClass,
+                                'min-w-[96px]',
+                              )}
+                            >
+                              Excused
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredRosterRows.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="px-5 py-6 text-center text-sm text-zinc-500"
+                        >
+                          No students found for selected filter/session.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </section>
         </main>
