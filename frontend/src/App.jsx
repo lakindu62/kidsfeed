@@ -4,6 +4,12 @@
 // import './App.css';
 import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
+import AuthRedirectPage from './pages/AuthRedirectPage';
+import Unauthorized from './pages/Unauthorized';
+import RolePendingAssignment from './pages/RolePendingAssignment';
+import RequireAuth from './components/common/guards/RequireAuth';
+import RequireRole from './components/common/guards/RequireRole';
+import { USER_ROLES } from './lib/user-roles';
 import {
   MealAttendanceRoute,
   MealDistributionRoute,
@@ -17,13 +23,74 @@ import { InventoryRoute, inventoryPath } from './features/inventory';
 function App() {
   return (
     <Routes>
-      {/* Example routes */}
       <Route path="/" element={<Home />} />
+      <Route path="/auth-redirect" element={<AuthRedirectPage />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
+      <Route
+        path="/role-pending-assignment"
+        element={<RolePendingAssignment />}
+      />
       <Route path="/about" element={<div>About Page</div>} />
-      <Route path={inventoryPath} element={<InventoryRoute />} />
-      <Route path={mealDistributionPath} element={<MealDistributionRoute />} />
-      <Route path={mealSessionsPath} element={<MealSessionsRoute />} />
-      <Route path={mealAttendancePath} element={<MealAttendanceRoute />} />
+      <Route
+        path={inventoryPath}
+        element={
+          <RequireAuth>
+            <RequireRole
+              allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.INVENTORY_MANAGER]}
+            >
+              <InventoryRoute />
+            </RequireRole>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={mealDistributionPath}
+        element={
+          <RequireAuth>
+            <RequireRole
+              allowedRoles={[
+                USER_ROLES.ADMIN,
+                USER_ROLES.MEAL_PLANNER,
+                USER_ROLES.STAFF,
+              ]}
+            >
+              <MealDistributionRoute />
+            </RequireRole>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={mealSessionsPath}
+        element={
+          <RequireAuth>
+            <RequireRole
+              allowedRoles={[
+                USER_ROLES.ADMIN,
+                USER_ROLES.MEAL_PLANNER,
+                USER_ROLES.STAFF,
+              ]}
+            >
+              <MealSessionsRoute />
+            </RequireRole>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path={mealAttendancePath}
+        element={
+          <RequireAuth>
+            <RequireRole
+              allowedRoles={[
+                USER_ROLES.ADMIN,
+                USER_ROLES.MEAL_PLANNER,
+                USER_ROLES.STAFF,
+              ]}
+            >
+              <MealAttendanceRoute />
+            </RequireRole>
+          </RequireAuth>
+        }
+      />
     </Routes>
   );
 }

@@ -9,3 +9,11 @@ export const USER_ROLES = Object.freeze({
 export function listUserRoles() {
   return Object.values(USER_ROLES);
 }
+
+export function isValidUserRole(role) {
+  return typeof role === 'string' && listUserRoles().includes(role);
+}
+
+export function normalizeUserRole(role) {
+  return isValidUserRole(role) ? role : USER_ROLES.UNASSIGNED;
+}
