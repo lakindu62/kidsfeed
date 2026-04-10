@@ -50,8 +50,8 @@ function App() {
             <RequireRole
               allowedRoles={[
                 USER_ROLES.ADMIN,
-                USER_ROLES.MEAL_PLANNER,
-                USER_ROLES.STAFF,
+                USER_ROLES.SCHOOL_STAFF,
+                USER_ROLES.SCHOOL_ADMIN,
               ]}
             >
               <MealDistributionLayoutRoute />
