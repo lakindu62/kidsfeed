@@ -80,4 +80,41 @@ export class InventoryItemRepository {
   async findByCategory(category) {
     return InventoryItem.find({ category }).sort({ name: 1 });
   }
+
+  /**
+   * Increment item quantity by amount
+   * @param {string} id - Inventory item ID
+   * @param {number} amount - Amount to increase
+   * @returns {Promise<Object|null>} Updated inventory item or null
+   */
+  async incrementQuantityById(id, amount) {
+    return InventoryItem.findByIdAndUpdate(
+      id,
+      { $inc: { quantity: amount } },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+  }
+
+  /**
+   * Decrement item quantity by amount with non-negative guard
+   * @param {string} id - Inventory item ID
+   * @param {number} amount - Amount to decrease
+   * @returns {Promise<Object|null>} Updated inventory item or null
+   */
+  async decrementQuantityById(id, amount) {
+    return InventoryItem.findOneAndUpdate(
+      {
+        _id: id,
+        quantity: { $gte: amount },
+      },
+      { $inc: { quantity: -amount } },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+  }
 }

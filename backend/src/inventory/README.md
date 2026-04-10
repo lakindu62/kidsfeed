@@ -43,12 +43,22 @@ inventory/
 | Field          | Type          | Required | Description                                    |
 | -------------- | ------------- | -------- | ---------------------------------------------- |
 | `name`         | String        | Yes      | Name of the inventory item                     |
+| `barcode`      | String        | No       | Product barcode (digits only when provided)    |
 | `description`  | String        | No       | Detailed description of the item               |
+| `brand`        | String        | No       | Product brand                                  |
+| `allergens`    | String[]      | No       | Array of allergens                             |
+| `traces`       | String[]      | No       | Array of allergen traces                       |
+| `ingredients`  | String        | No       | Full ingredients text                          |
+| `imageUrl`     | String        | No       | Product image URL                              |
+| `nutritionalGrade` | String    | No       | Nutritional grade: a, b, c, d, e              |
 | `category`     | String (Enum) | Yes      | Category: FOOD, SUPPLIES, EQUIPMENT, OTHER     |
 | `quantity`     | Number        | Yes      | Current quantity in stock (min: 0)             |
 | `unit`         | String        | Yes      | Unit of measurement (e.g., kg, pieces, liters) |
 | `reorderLevel` | Number        | No       | Minimum quantity before reorder (default: 10)  |
 | `unitPrice`    | Number        | No       | Price per unit (min: 0)                        |
+| `packageWeight` | Number       | No       | Package weight/volume value (min: 0)           |
+| `packageWeightUnit` | String   | No       | Package weight/volume unit                     |
+| `packageType`  | String        | No       | Package/container type                         |
 | `supplier`     | String        | No       | Supplier name                                  |
 | `location`     | String        | No       | Storage location                               |
 | `expiryDate`   | Date          | No       | Expiry date for perishable items               |
@@ -64,6 +74,8 @@ The `status` field is automatically calculated based on:
 - **OUT_OF_STOCK**: If `quantity` is 0
 - **LOW_STOCK**: If `quantity` ≤ `reorderLevel`
 - **ACTIVE**: Otherwise
+
+Clients cannot set `status` manually in POST, PUT, or PATCH requests.
 
 ## API Endpoints
 
@@ -152,6 +164,15 @@ GET /api/inventory/:id
 }
 ```
 
+**Error Response (400 - invalid id format):**
+
+```json
+{
+  "success": false,
+  "message": "Invalid inventory item id format"
+}
+```
+
 ### 5. Create New Item
 
 ```http
@@ -168,11 +189,23 @@ POST /api/inventory
 **Optional Fields:**
 
 - `description` (string)
+- `barcode` (string of digits)
+- `brand` (string)
+- `allergens` (array of strings)
+- `traces` (array of strings)
+- `ingredients` (string)
+- `imageUrl` (valid URL string or empty string)
+- `nutritionalGrade` (string: a, b, c, d, e)
+- `packageWeight` (number, ≥ 0)
+- `packageWeightUnit` (string)
+- `packageType` (string)
 - `reorderLevel` (number, ≥ 0)
 - `unitPrice` (number, ≥ 0)
 - `supplier` (string)
 - `location` (string)
 - `expiryDate` (ISO date string)
+
+`status` is derived by backend and must not be provided by clients.
 
 **Request Example:**
 
@@ -209,6 +242,10 @@ PUT /api/inventory/:id
 
 **Required Fields:** Same as POST (all required fields must be provided)
 
+**Optional Fields:** Same optional fields as POST.
+
+`status` is derived by backend and must not be provided by clients.
+
 **Success Response (200):**
 
 ```json
@@ -232,9 +269,11 @@ PATCH /api/inventory/:id
 ```json
 {
   "quantity": 30,
-  "status": "ACTIVE"
+  "brand": "Updated Brand"
 }
 ```
+
+`status` is derived by backend and must not be provided by clients.
 
 **Success Response (200):**
 
@@ -270,15 +309,27 @@ DELETE /api/inventory/:id
 - `category`: Required, must be one of: FOOD, SUPPLIES, EQUIPMENT, OTHER
 - `quantity`: Required, non-negative number
 - `unit`: Required, non-empty string
+- `barcode`: Optional, digits-only string
+- `brand`: Optional, string
+- `allergens`: Optional, array of strings
+- `traces`: Optional, array of strings
+- `ingredients`: Optional, string
+- `imageUrl`: Optional, valid URL or empty string
+- `nutritionalGrade`: Optional, one of: a, b, c, d, e
+- `packageWeight`: Optional, non-negative number
+- `packageWeightUnit`: Optional, string
+- `packageType`: Optional, string
 - `reorderLevel`: Optional, non-negative number
 - `unitPrice`: Optional, non-negative number
 - `expiryDate`: Optional, valid ISO date string
+- `status`: Rejected if provided (server-derived)
 
 ### Partial Update (PATCH)
 
 - At least one field must be provided
 - All provided fields must pass their respective validations
 - Fields not provided will remain unchanged
+- `status`: Rejected if provided (server-derived)
 
 ## Service Layer Methods
 
@@ -327,7 +378,7 @@ All endpoints follow a consistent error response format:
 
 - `200` - Success
 - `201` - Created
-- `400` - Validation error
+- `400` - Validation error or invalid inventory id format
 - `404` - Item not found
 - `500` - Server error
 
