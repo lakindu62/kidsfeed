@@ -1,9 +1,8 @@
-import { USER_ROLES } from '@/lib/user-roles';
-import React from 'react';
+import { useAuthRole } from '@/lib/auth/use-auth-role';
 import InventoryLayout from '../layouts/InventoryLayout';
 
 function InventoryDashboardPage() {
-  const role = USER_ROLES.INVENTORY_MANAGER; // This would typically come from user authentication context or props
+  const { role } = useAuthRole();
 
   return (
     <div>
