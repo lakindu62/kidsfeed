@@ -67,8 +67,8 @@ function filterByCourse(recipes, course) {
   });
 }
 
-async function fetchMenuApi({ url, getToken }) {
-  const response = await fetchApi({ url, getToken });
+async function fetchMenuApi({ url, getToken, options }) {
+  const response = await fetchApi({ url, getToken, options });
 
   let payload = null;
   try {
@@ -139,4 +139,53 @@ export async function fetchRecipeCatalog({
     page: safePage,
     totalPages,
   };
+}
+
+export async function fetchRecipeById({ apiUrl, recipeId, getToken }) {
+  if (!apiUrl) {
+    throw new Error('API base URL is not configured.');
+  }
+
+  if (!recipeId) {
+    throw new Error('Recipe id is required.');
+  }
+
+  const endpoint = new URL(`/api/recipes/${recipeId}`, apiUrl);
+  const payload = await fetchMenuApi({ url: endpoint.toString(), getToken });
+
+  return normalizeRecipe(payload?.data || {});
+}
+
+export async function updateRecipeServingSize({
+  apiUrl,
+  recipeId,
+  servingSize,
+  getToken,
+}) {
+  if (!apiUrl) {
+    throw new Error('API base URL is not configured.');
+  }
+
+  if (!recipeId) {
+    throw new Error('Recipe id is required.');
+  }
+
+  if (!Number.isFinite(servingSize) || servingSize <= 0) {
+    throw new Error('Serving size must be greater than 0.');
+  }
+
+  const endpoint = new URL(`/api/recipes/${recipeId}`, apiUrl);
+  const payload = await fetchMenuApi({
+    url: endpoint.toString(),
+    getToken,
+    options: {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ servingSize }),
+    },
+  });
+
+  return normalizeRecipe(payload?.data || {});
 }

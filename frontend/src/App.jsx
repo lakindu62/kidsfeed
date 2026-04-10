@@ -22,6 +22,7 @@ import {
 } from './features/meal-distribution';
 import { InventoryRoute, inventoryPath } from './features/inventory';
 import {
+  MenuManagementRecipeDetailsRoute,
   MenuManagementRoute,
   menuManagementPath,
   MenuManagementRecipesRoute,
@@ -87,6 +88,10 @@ function App() {
       >
         <Route index element={<MenuManagementRoute />} />
         <Route path="recipes" element={<MenuManagementRecipesRoute />} />
+        <Route
+          path="recipes/:recipeId"
+          element={<MenuManagementRecipeDetailsRoute />}
+        />
         <Route path="menus" element={<MenuManagementRoute />} />
         <Route path="calendar" element={<MenuManagementRoute />} />
       </Route>
