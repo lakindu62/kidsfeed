@@ -15,7 +15,9 @@ import {
   MealDistributionDashboardRoute,
   MealDistributionLayoutRoute,
   MealNoShowAlertsRoute,
+  MealReportsRoute,
   MealSessionsRoute,
+  MealStudentHistoryRoute,
   mealDistributionPath,
 } from './features/meal-distribution';
 import { InventoryRoute, inventoryPath } from './features/inventory';
@@ -63,6 +65,8 @@ function App() {
         <Route path="sessions" element={<MealSessionsRoute />} />
         <Route path="attendance" element={<MealAttendanceRoute />} />
         <Route path="no-show-alerts" element={<MealNoShowAlertsRoute />} />
+        <Route path="student-history" element={<MealStudentHistoryRoute />} />
+        <Route path="reports" element={<MealReportsRoute />} />
       </Route>
     </Routes>
   );
