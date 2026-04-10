@@ -163,6 +163,16 @@ export class MealSessionService {
       mealSessionId,
       updates
     );
+
+    const beforeStatus = String(session.status || '').toUpperCase();
+    const afterStatus = String(updated?.status || '').toUpperCase();
+    const movedToCompleted =
+      beforeStatus !== 'COMPLETED' && afterStatus === 'COMPLETED';
+
+    if (movedToCompleted && this.completionService) {
+      await this.completionService.finalizeOnSessionCompleted(updated);
+    }
+
     return toMealSessionResponse(updated);
   }
 

@@ -8,7 +8,7 @@ function notifyKey(mealSessionId, studentId) {
 }
 
 /**
- * Aggregates NO_SHOW / ABSENT attendance for the school’s meal sessions in an optional date range,
+ * Aggregates NO_SHOW attendance for the school’s meal sessions in an optional date range,
  * with guardian email (from Student schema) and guardian email audit (if session was finalized).
  */
 export async function listNoShowAlertsForSchool({
@@ -42,7 +42,7 @@ export async function listNoShowAlertsForSchool({
 
   const attendances = await MealAttendance.find({
     mealSessionId: { $in: sessionIds },
-    status: { $in: ['NO_SHOW', 'ABSENT'] },
+    status: 'NO_SHOW',
   }).lean();
 
   if (attendances.length === 0) {
@@ -94,7 +94,9 @@ export async function listNoShowAlertsForSchool({
   items.sort((x, y) => {
     const dx = new Date(x.sessionDate || 0).getTime();
     const dy = new Date(y.sessionDate || 0).getTime();
-    if (dy !== dx) {return dy - dx;}
+    if (dy !== dx) {
+      return dy - dx;
+    }
     return String(x.studentId).localeCompare(String(y.studentId));
   });
 
