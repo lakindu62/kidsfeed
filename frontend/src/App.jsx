@@ -15,7 +15,9 @@ import {
   MealDistributionDashboardRoute,
   MealDistributionLayoutRoute,
   MealNoShowAlertsRoute,
+  MealReportsRoute,
   MealSessionsRoute,
+  MealStudentHistoryRoute,
   mealDistributionPath,
 } from './features/meal-distribution';
 import { InventoryRoute, inventoryPath } from './features/inventory';
@@ -55,8 +57,8 @@ function App() {
             <RequireRole
               allowedRoles={[
                 USER_ROLES.ADMIN,
-                USER_ROLES.MEAL_PLANNER,
-                USER_ROLES.STAFF,
+                USER_ROLES.SCHOOL_STAFF,
+                USER_ROLES.SCHOOL_ADMIN,
               ]}
             >
               <MealDistributionLayoutRoute />
@@ -68,6 +70,8 @@ function App() {
         <Route path="sessions" element={<MealSessionsRoute />} />
         <Route path="attendance" element={<MealAttendanceRoute />} />
         <Route path="no-show-alerts" element={<MealNoShowAlertsRoute />} />
+        <Route path="student-history" element={<MealStudentHistoryRoute />} />
+        <Route path="reports" element={<MealReportsRoute />} />
       </Route>
       <Route
         path={menuManagementPath}

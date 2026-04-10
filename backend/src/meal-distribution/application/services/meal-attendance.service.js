@@ -2,12 +2,39 @@
 // - Records and queries attendance for a given meal session.
 // - Keeps the parent MealSession's actualServedCount and wastageCount
 //   in sync whenever attendance is created, updated or deleted.
+import { MarkAttendanceDto } from '../dtos/requests/mark-attendance.dto.js';
 import { toMealAttendanceResponse } from '../dtos/responses/meal-attendance-response.dto.js';
+import {
+  findActiveStudentsWithGuardianForMealSession,
+  isActiveStudentInSchool,
+} from '../../infrastructure/services/meal-student-lookup.service.js';
+import { pickLatestAttendanceByStudentId } from '../../infrastructure/utils/latest-attendance-by-student.util.js';
 
 export class MealAttendanceService {
   constructor(mealAttendanceRepository, mealSessionRepository) {
     this.mealAttendanceRepository = mealAttendanceRepository;
     this.mealSessionRepository = mealSessionRepository;
+  }
+
+  async promoteSessionToInProgressIfNeeded(session, nextAttendanceStatus) {
+    if (!session) {
+      return;
+    }
+    const sessionStatus = String(session.status || 'PLANNED').toUpperCase();
+    const attendanceStatus = String(nextAttendanceStatus || '').toUpperCase();
+    const shouldPromote =
+      sessionStatus === 'PLANNED' &&
+      (attendanceStatus === 'PRESENT' || attendanceStatus === 'EXCUSED');
+
+    if (shouldPromote) {
+      await this.mealSessionRepository.updateById(session._id, {
+        status: 'IN_PROGRESS',
+      });
+    }
+  }
+
+  isSessionCompleted(session) {
+    return String(session?.status || '').toUpperCase() === 'COMPLETED';
   }
 
   async markAttendance(dto) {
@@ -18,11 +45,63 @@ export class MealAttendanceService {
     if (!session) {
       return { error: 'MEAL_SESSION_NOT_FOUND' };
     }
+    if (this.isSessionCompleted(session)) {
+      return { error: 'MEAL_SESSION_COMPLETED' };
+    }
+
+    const normalizedStudentId = String(studentId).trim();
+    const inSchool = await isActiveStudentInSchool(
+      normalizedStudentId,
+      session.schoolId
+    );
+    if (!inSchool) {
+      return { error: 'STUDENT_NOT_IN_SCHOOL' };
+    }
 
     const status = dto.status ? String(dto.status).trim() : 'PRESENT';
 
+    const rowsForStudent = await this.mealAttendanceRepository.findMany({
+      mealSessionId,
+      studentId: normalizedStudentId,
+    });
+    const bySid = pickLatestAttendanceByStudentId(rowsForStudent);
+    const existing = bySid.get(normalizedStudentId);
+
+    if (existing) {
+      if (
+        String(existing.status || '').toUpperCase() === 'PRESENT' &&
+        String(status).toUpperCase() === 'PRESENT'
+      ) {
+        return { error: 'STUDENT_ALREADY_PRESENT' };
+      }
+
+      const updateDto = new MarkAttendanceDto({
+        studentId: normalizedStudentId,
+        mealSessionId,
+        status,
+        servedAt:
+          dto.servedAt instanceof Date && !Number.isNaN(dto.servedAt.getTime())
+            ? dto.servedAt
+            : dto.servedAt
+              ? new Date(dto.servedAt)
+              : new Date(),
+        notes: dto.notes,
+      });
+      const updated = await this.updateAttendance(
+        existing._id.toString(),
+        updateDto
+      );
+      if (updated.notFound) {
+        return { error: 'MEAL_SESSION_NOT_FOUND' };
+      }
+      if (updated.error) {
+        return { error: updated.error };
+      }
+      return { attendance: updated.attendance };
+    }
+
     const data = {
-      studentId: String(studentId).trim(),
+      studentId: normalizedStudentId,
       mealSessionId,
       status,
       servedAt:
@@ -38,6 +117,8 @@ export class MealAttendanceService {
     };
 
     const created = await this.mealAttendanceRepository.create(data);
+
+    await this.promoteSessionToInProgressIfNeeded(session, status);
 
     // Only bump counts when marking a PRESENT attendance
     if (status === 'PRESENT') {
@@ -86,10 +167,55 @@ export class MealAttendanceService {
     return docs.map(toMealAttendanceResponse);
   }
 
+  async listSessionRoster(mealSessionId) {
+    const session = await this.mealSessionRepository.findById(mealSessionId);
+    if (!session) {
+      return { error: 'MEAL_SESSION_NOT_FOUND' };
+    }
+    const isCompleted = this.isSessionCompleted(session);
+
+    const [students, attendanceDocs] = await Promise.all([
+      findActiveStudentsWithGuardianForMealSession(session.schoolId),
+      this.mealAttendanceRepository.findMany({ mealSessionId }),
+    ]);
+
+    const attendanceByStudentId =
+      pickLatestAttendanceByStudentId(attendanceDocs);
+
+    const roster = students
+      .map((student) => {
+        const sid = String(student.studentId);
+        const attendance = attendanceByStudentId.get(sid);
+        return {
+          studentId: sid,
+          firstName: student.firstName || '',
+          lastName: student.lastName || '',
+          fullName: [student.firstName, student.lastName]
+            .filter(Boolean)
+            .join(' ')
+            .trim(),
+          status:
+            attendance?.status || (isCompleted ? 'NO_SHOW' : 'NOT_MARKED'),
+          servedAt: attendance?.servedAt || null,
+          attendanceId: attendance?._id?.toString?.() || null,
+        };
+      })
+      .sort((a, b) => String(a.studentId).localeCompare(String(b.studentId)));
+
+    return { roster };
+  }
+
   async updateAttendance(attendanceId, dto) {
     const existing = await this.mealAttendanceRepository.findById(attendanceId);
     if (!existing) {
       return { notFound: true };
+    }
+
+    const session = await this.mealSessionRepository.findById(
+      existing.mealSessionId
+    );
+    if (this.isSessionCompleted(session)) {
+      return { error: 'MEAL_SESSION_COMPLETED' };
     }
 
     const updates = {};
@@ -128,16 +254,20 @@ export class MealAttendanceService {
       }
 
       if (delta !== 0) {
-        const session = await this.mealSessionRepository.findById(
+        const sessionForCount = await this.mealSessionRepository.findById(
           existing.mealSessionId
         );
-        if (session) {
+        if (sessionForCount) {
+          await this.promoteSessionToInProgressIfNeeded(
+            sessionForCount,
+            newStatus
+          );
           const newActualServedCount = Math.max(
-            (session.actualServedCount || 0) + delta,
+            (sessionForCount.actualServedCount || 0) + delta,
             0
           );
           const newWastageCount = Math.max(
-            (session.plannedHeadcount || 0) - newActualServedCount,
+            (sessionForCount.plannedHeadcount || 0) - newActualServedCount,
             0
           );
           await this.mealSessionRepository.updateById(existing.mealSessionId, {
@@ -146,6 +276,11 @@ export class MealAttendanceService {
           });
         }
       }
+    } else if (newStatus === 'EXCUSED') {
+      const session = await this.mealSessionRepository.findById(
+        existing.mealSessionId
+      );
+      await this.promoteSessionToInProgressIfNeeded(session, newStatus);
     }
 
     return { attendance: toMealAttendanceResponse(updated) };
@@ -155,6 +290,13 @@ export class MealAttendanceService {
     const existing = await this.mealAttendanceRepository.findById(attendanceId);
     if (!existing) {
       return { notFound: true };
+    }
+
+    const session = await this.mealSessionRepository.findById(
+      existing.mealSessionId
+    );
+    if (this.isSessionCompleted(session)) {
+      return { error: 'MEAL_SESSION_COMPLETED' };
     }
 
     // If this attendance was PRESENT, decrement session counts before deleting

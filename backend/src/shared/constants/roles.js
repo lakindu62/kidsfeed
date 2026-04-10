@@ -21,10 +21,19 @@
  *  (Yes Lakindu, I am looking at you, dont do stupid shit)
  */
 const ROLES = Object.freeze({
-  /** Full system access. Can manage users, schools, all data. */
+  /** Full system access. Can observe and manage all data. */
   ADMIN: 'admin',
 
-  /** Plans school menus and manages recipes. */
+  /** School administrator for school management. */
+  SCHOOL_ADMIN: 'school_admin',
+
+  /** School staff member responsible for meal distribution. */
+  SCHOOL_STAFF: 'school_staff',
+
+  /** Menu creation and menu management role. */
+  MENU_CREATOR: 'menu_creator',
+
+  /** Meal planning role. */
   MEAL_PLANNER: 'meal_planner',
 
   /** Manages stock levels, inventory items, and low-stock alerts. */
@@ -40,7 +49,9 @@ const ROLES = Object.freeze({
    * Staff role for internal users.
    * Can be assigned by admins after onboarding.
    */
-  STAFF: 'staff',
+  // Legacy roles kept for migration reference:
+  // MEAL_PLANNER: 'meal_planner',
+  // STAFF: 'staff',
 });
 
 export { ROLES };

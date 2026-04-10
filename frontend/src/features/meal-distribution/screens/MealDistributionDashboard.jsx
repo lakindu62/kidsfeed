@@ -1,20 +1,14 @@
-import {
-  CheckCircle2,
-  Eye,
-  Pencil,
-  Bell,
-  Trash2,
-  UserX,
-  Users,
-  UtensilsCrossed,
-  XCircle,
-} from 'lucide-react';
+import { Pencil, Bell, Trash2 } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { describeApiFetchFailure } from '../../../lib/describe-api-fetch-failure';
 import { resolveApiBaseUrl } from '../../../lib/resolve-api-base';
-import { fetchMealAttendance, fetchMealSessions } from '../api';
+import {
+  deleteMealSession,
+  fetchNoShowAlerts,
+  fetchMealSessions,
+} from '../api';
 import {
   FeatureSidebar,
   FeatureTopBar,
@@ -26,51 +20,16 @@ import {
 } from '../hooks';
 import '../styles/meal-distribution.css';
 
-const fallbackMealSessions = [
-  { mealType: 'Lunch', planned: 60, served: 58, status: 'COMPLETED' },
-  { mealType: 'Snack', planned: 50, served: 0, status: 'PLANNED' },
-  { mealType: 'Breakfast', planned: 45, served: 45, status: 'COMPLETED' },
-  { mealType: 'Lunch', planned: 55, served: 30, status: 'IN_PROGRESS' },
-];
-
-function buildFallbackNoShowAlerts(schoolName) {
-  const school = schoolName || 'School';
-  return [
-    {
-      id: '#10023',
-      school,
-      period: 'Lunch',
-      count: 2,
-      notified: true,
-    },
-    {
-      id: '#10087',
-      school,
-      period: 'Breakfast',
-      count: 1,
-      notified: false,
-    },
-    {
-      id: '#10112',
-      school,
-      period: 'Lunch',
-      count: 3,
-      notified: true,
-    },
-  ];
-}
-
 const statusClasses = {
   COMPLETED: 'bg-green-100 text-green-700',
   PLANNED: 'bg-zinc-100 text-zinc-500',
   IN_PROGRESS: 'bg-blue-100 text-blue-600',
 };
 
-const fallbackDonutData = [
-  { label: 'Present', value: 209, colorClass: 'bg-green-500' },
-  { label: 'Absent', value: 31, colorClass: 'bg-red-500' },
-  { label: 'Excused', value: 18, colorClass: 'bg-blue-500' },
-  { label: 'No-Show', value: 13, colorClass: 'bg-orange-500' },
+const fallbackSessionStatusData = [
+  { label: 'Planned', value: 1, colorClass: 'bg-zinc-400' },
+  { label: 'In Progress', value: 1, colorClass: 'bg-blue-500' },
+  { label: 'Completed', value: 1, colorClass: 'bg-green-500' },
 ];
 
 function toDateKey(value) {
@@ -88,6 +47,12 @@ function formatMealType(mealType) {
     .replace(/^\w/, (match) => match.toUpperCase());
 }
 
+function formatShortDateLabel(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 export default function MealDistributionDashboard() {
   const navigate = useNavigate();
   const { schoolName, schoolId } = useMealDistributionSchool();
@@ -95,55 +60,42 @@ export default function MealDistributionDashboard() {
   const [apiMealSessions, setApiMealSessions] = useState([]);
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
   const [sessionsError, setSessionsError] = useState('');
-  const [apiAttendance, setApiAttendance] = useState([]);
-  const [isLoadingAttendance, setIsLoadingAttendance] = useState(true);
-  const [attendanceError, setAttendanceError] = useState('');
+  const [todayNoShowRows, setTodayNoShowRows] = useState([]);
+  const [isLoadingNoShowLogs, setIsLoadingNoShowLogs] = useState(true);
+  const [noShowLogsError, setNoShowLogsError] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [deletingSessionId, setDeletingSessionId] = useState('');
   const apiUrl = resolveApiBaseUrl();
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadMealSessions() {
-      if (!apiUrl || !schoolId) {
-        if (isMounted) {
-          setIsLoadingSessions(false);
-          setSessionsError(
-            !apiUrl ? 'Could not resolve API base URL (browser only).' : '',
-          );
-        }
-        return;
-      }
-
-      setIsLoadingSessions(true);
-      setSessionsError('');
-
-      try {
-        const sessions = await fetchMealSessions({
-          apiUrl,
-          schoolId,
-          getToken: isSignedIn ? getToken : undefined,
-        });
-
-        if (isMounted) {
-          setApiMealSessions(sessions);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setSessionsError(error.message || 'Failed to load meal sessions');
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingSessions(false);
-        }
-      }
+  const loadMealSessions = useCallback(async () => {
+    if (!apiUrl || !schoolId) {
+      setIsLoadingSessions(false);
+      setSessionsError(
+        !apiUrl ? 'Could not resolve API base URL (browser only).' : '',
+      );
+      return;
     }
 
-    loadMealSessions();
+    setIsLoadingSessions(true);
+    setSessionsError('');
 
-    return () => {
-      isMounted = false;
-    };
+    try {
+      const sessions = await fetchMealSessions({
+        apiUrl,
+        schoolId,
+        getToken: isSignedIn ? getToken : undefined,
+      });
+      setApiMealSessions(sessions);
+    } catch (error) {
+      setSessionsError(error.message || 'Failed to load meal sessions');
+    } finally {
+      setIsLoadingSessions(false);
+    }
   }, [apiUrl, schoolId, getToken, isSignedIn]);
+
+  useEffect(() => {
+    loadMealSessions();
+  }, [loadMealSessions]);
 
   const todayDateKey = toDateKey(new Date());
 
@@ -155,229 +107,201 @@ export default function MealDistributionDashboard() {
     [apiMealSessions, todayDateKey],
   );
 
-  const todaySessionIds = useMemo(
-    () => todaySessionDocs.map((session) => session.id).filter(Boolean),
-    [todaySessionDocs],
-  );
-
   const normalizedTodaySessions = useMemo(() => {
-    const todaysSessions = todaySessionDocs.map((session) => ({
+    return todaySessionDocs.map((session) => ({
+      id: session.id,
       mealType: formatMealType(session.mealType),
       planned: Number(session.plannedHeadcount || 0),
       served: Number(session.actualServedCount || 0),
       status: session.status || 'PLANNED',
     }));
-
-    return todaysSessions.length > 0 ? todaysSessions : fallbackMealSessions;
   }, [todaySessionDocs]);
   const isUsingFallbackSessions = todaySessionDocs.length === 0;
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadAttendance() {
-      if (!apiUrl || todaySessionIds.length === 0) {
-        if (isMounted) {
-          setApiAttendance([]);
-          setIsLoadingAttendance(false);
-          setAttendanceError('');
-        }
-        return;
-      }
-
-      setIsLoadingAttendance(true);
-      setAttendanceError('');
-
-      try {
-        const responses = await Promise.all(
-          todaySessionIds.map((mealSessionId) =>
-            fetchMealAttendance({
-              apiUrl,
-              mealSessionId,
-              getToken: isSignedIn ? getToken : undefined,
-            }),
-          ),
-        );
-
-        const flattened = responses.flat();
-        if (isMounted) {
-          setApiAttendance(flattened);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setAttendanceError(
-            describeApiFetchFailure(error, 'Failed to load attendance'),
-          );
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingAttendance(false);
-        }
-      }
-    }
-
-    loadAttendance();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [apiUrl, todaySessionIds, getToken, isSignedIn]);
-
-  const summaryMetrics = useMemo(() => {
-    const planned = normalizedTodaySessions.reduce(
-      (sum, row) => sum + Number(row.planned || 0),
-      0,
-    );
-    const served = normalizedTodaySessions.reduce(
-      (sum, row) => sum + Number(row.served || 0),
-      0,
-    );
-    const wastage = Math.max(planned - served, 0);
-    const completionRate =
-      planned > 0 ? Math.round((served / planned) * 100) : 0;
-
-    return { planned, served, wastage, completionRate };
-  }, [normalizedTodaySessions]);
-
-  const summaryCards = [
-    {
-      title: 'Planned Headcount',
-      value: summaryMetrics.planned,
-      subtitle: 'Total expected students',
-      valueClass: 'text-zinc-800',
-      cardClass: 'bg-white',
-      titleClass: 'text-zinc-600',
-      subtitleClass: 'text-zinc-500',
-      icon: Users,
-      iconClass: 'text-zinc-400',
-    },
-    {
-      title: 'Meals Served',
-      value: summaryMetrics.served,
-      subtitle: `${summaryMetrics.completionRate}% completion rate`,
-      valueClass: 'text-[#a83206]',
-      cardClass: 'bg-[#fff2ec]',
-      titleClass: 'text-[#5a2a1a]',
-      subtitleClass: 'text-[#a83206]',
-      icon: UtensilsCrossed,
-      iconClass: 'text-[#f97316]',
-    },
-    {
-      title: 'Absent / No-Show',
-      value: Math.max(summaryMetrics.planned - summaryMetrics.served, 0),
-      subtitle: `Includes ${Math.max(summaryMetrics.planned - summaryMetrics.served, 0)} unexcused`,
-      valueClass: 'text-[#9f0519]',
-      cardClass: 'bg-[#fff1f2]',
-      titleClass: 'text-[#5f0f1b]',
-      subtitleClass: 'text-[#b31b25]',
-      icon: UserX,
-      iconClass: 'text-[#ef4444]',
-    },
-    {
-      title: 'Wastage',
-      value: summaryMetrics.wastage,
-      subtitle: 'Estimated meal units',
-      valueClass: 'text-[#641e7a]',
-      cardClass: 'bg-[#f8edff]',
-      titleClass: 'text-[#5a1171]',
-      subtitleClass: 'text-[#76308c]',
-      icon: Trash2,
-      iconClass: 'text-[#a855f7]',
-    },
-  ];
-
-  const donutMetrics = useMemo(() => {
-    if (apiAttendance.length === 0) {
+  const sessionMixMetrics = useMemo(() => {
+    if (todaySessionDocs.length === 0) {
       return {
-        rate: 92,
-        rows: fallbackDonutData,
+        focusRate: 0,
+        rows: fallbackSessionStatusData,
         isFallback: true,
       };
     }
 
     const counts = {
-      PRESENT: 0,
-      ABSENT: 0,
-      EXCUSED: 0,
-      NO_SHOW: 0,
+      PLANNED: 0,
+      IN_PROGRESS: 0,
+      COMPLETED: 0,
     };
 
-    apiAttendance.forEach((item) => {
-      const status = String(item.status || '').toUpperCase();
+    todaySessionDocs.forEach((session) => {
+      const status = String(session.status || 'PLANNED').toUpperCase();
       if (counts[status] !== undefined) {
         counts[status] += 1;
       }
     });
 
     const total = Object.values(counts).reduce((sum, value) => sum + value, 0);
-    const rate = total > 0 ? Math.round((counts.PRESENT / total) * 100) : 0;
+    const completionRate =
+      total > 0 ? Math.round((counts.COMPLETED / total) * 100) : 0;
 
     return {
-      rate,
+      focusRate: completionRate,
       rows: [
-        { label: 'Present', value: counts.PRESENT, colorClass: 'bg-green-500' },
-        { label: 'Absent', value: counts.ABSENT, colorClass: 'bg-red-500' },
-        { label: 'Excused', value: counts.EXCUSED, colorClass: 'bg-blue-500' },
+        { label: 'Planned', value: counts.PLANNED, colorClass: 'bg-zinc-400' },
         {
-          label: 'No-Show',
-          value: counts.NO_SHOW,
-          colorClass: 'bg-orange-500',
+          label: 'In Progress',
+          value: counts.IN_PROGRESS,
+          colorClass: 'bg-blue-500',
+        },
+        {
+          label: 'Completed',
+          value: counts.COMPLETED,
+          colorClass: 'bg-green-500',
         },
       ],
       isFallback: false,
     };
-  }, [apiAttendance]);
+  }, [todaySessionDocs]);
 
-  const noShowAlertsMetrics = useMemo(() => {
-    if (apiAttendance.length === 0) {
-      return {
-        rows: buildFallbackNoShowAlerts(schoolName),
-        isFallback: true,
-      };
+  const sessionMixConicBackground = useMemo(() => {
+    const rows = sessionMixMetrics.rows;
+    const total = rows.reduce((sum, row) => sum + Number(row.value || 0), 0);
+    if (!total) {
+      return 'conic-gradient(#d4d4d8 0deg 360deg)';
     }
 
-    const sessionMealTypeById = new Map(
-      todaySessionDocs.map((session) => [
-        session.id,
-        formatMealType(session.mealType),
-      ]),
-    );
+    const palette = {
+      Planned: '#a1a1aa',
+      'In Progress': '#3b82f6',
+      Completed: '#22c55e',
+    };
 
-    const grouped = new Map();
+    let cursor = 0;
+    const slices = rows
+      .map((row) => {
+        const angle = (Number(row.value || 0) / total) * 360;
+        const start = cursor;
+        const end = cursor + angle;
+        cursor = end;
+        const color = palette[row.label] || '#d4d4d8';
+        return `${color} ${start}deg ${end}deg`;
+      })
+      .join(', ');
 
-    apiAttendance
-      .filter((item) => String(item.status || '').toUpperCase() === 'NO_SHOW')
-      .forEach((item) => {
-        const studentId = item.studentId || 'Unknown';
-        const period = sessionMealTypeById.get(item.mealSessionId) || '-';
-        const key = `${studentId}::${period}`;
-        const current = grouped.get(key) || 0;
-        grouped.set(key, current + 1);
+    return `conic-gradient(${slices})`;
+  }, [sessionMixMetrics.rows]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadTodayNoShowLogs() {
+      if (!apiUrl || !schoolId) {
+        if (isMounted) {
+          setTodayNoShowRows([]);
+          setIsLoadingNoShowLogs(false);
+          setNoShowLogsError('');
+        }
+        return;
+      }
+
+      setIsLoadingNoShowLogs(true);
+      setNoShowLogsError('');
+      try {
+        const data = await fetchNoShowAlerts({
+          apiUrl,
+          schoolId,
+          getToken: isSignedIn ? getToken : undefined,
+          dateFrom: todayDateKey,
+          dateTo: todayDateKey,
+        });
+        if (isMounted) {
+          setTodayNoShowRows(Array.isArray(data) ? data : []);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setNoShowLogsError(
+            describeApiFetchFailure(error, 'Failed to load today no-show logs'),
+          );
+          setTodayNoShowRows([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingNoShowLogs(false);
+        }
+      }
+    }
+
+    loadTodayNoShowLogs();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [apiUrl, schoolId, todayDateKey, getToken, isSignedIn]);
+
+  const trendRows = useMemo(() => {
+    const rowsByDate = new Map();
+    const now = new Date();
+    for (let i = 6; i >= 0; i -= 1) {
+      const day = new Date(now);
+      day.setDate(now.getDate() - i);
+      const key = toDateKey(day);
+      rowsByDate.set(key, {
+        dateKey: key,
+        label: formatShortDateLabel(day),
+        planned: 0,
+        served: 0,
+        completion: 0,
       });
+    }
 
-    const rows = Array.from(grouped.entries()).map(([key, count]) => {
-      const [studentId, period] = key.split('::');
-      return {
-        id: studentId.startsWith('#') ? studentId : `#${studentId}`,
-        school: schoolName,
-        period,
-        count,
-        notified: false,
-      };
+    apiMealSessions.forEach((session) => {
+      const key = toDateKey(session.date);
+      const row = rowsByDate.get(key);
+      if (!row) return;
+      row.planned += Number(session.plannedHeadcount || 0);
+      row.served += Number(session.actualServedCount || 0);
     });
 
-    if (rows.length > 0) {
-      return {
-        rows,
-        isFallback: false,
-      };
-    }
+    return Array.from(rowsByDate.values()).map((row) => ({
+      ...row,
+      completion:
+        row.planned > 0 ? Math.round((row.served / row.planned) * 100) : 0,
+    }));
+  }, [apiMealSessions]);
 
-    return {
-      rows: buildFallbackNoShowAlerts(schoolName),
-      isFallback: true,
-    };
-  }, [apiAttendance, todaySessionDocs, schoolName]);
+  const trendMaxPlanned = useMemo(
+    () => Math.max(...trendRows.map((row) => row.planned), 1),
+    [trendRows],
+  );
+
+  const handleEditSession = (mealSessionId) => {
+    navigate(`/meal-distribution/attendance?sessionId=${mealSessionId}`);
+  };
+
+  const handleDeleteSession = async (mealSessionId) => {
+    if (!mealSessionId || !apiUrl) return;
+    const shouldDelete = window.confirm(
+      'Delete this meal session? This action cannot be undone.',
+    );
+    if (!shouldDelete) return;
+
+    setDeleteError('');
+    setDeletingSessionId(mealSessionId);
+    try {
+      await deleteMealSession({
+        apiUrl,
+        mealSessionId,
+        getToken: isSignedIn ? getToken : undefined,
+      });
+      await loadMealSessions();
+    } catch (error) {
+      setDeleteError(
+        describeApiFetchFailure(error, 'Failed to delete meal session'),
+      );
+    } finally {
+      setDeletingSessionId('');
+    }
+  };
 
   return (
     <div className="meal-distribution-root min-h-screen bg-[#f6f6f6] text-zinc-900">
@@ -395,33 +319,61 @@ export default function MealDistributionDashboard() {
             searchPlaceholder="Search sessions or students..."
           />
 
-          <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            {summaryCards.map((card) => {
-              const Icon = card.icon;
-              return (
-                <article
-                  key={card.title}
-                  className={`h-40 rounded-[12px] p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] ${card.cardClass}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <p className={`text-xs font-medium ${card.titleClass}`}>
-                      {card.title}
-                    </p>
-                    <Icon className={`h-5 w-5 ${card.iconClass}`} />
-                  </div>
-                  <p
-                    className={`mt-6 text-[34px] leading-none font-bold ${card.valueClass}`}
-                  >
-                    {card.value}
-                  </p>
-                  <p
-                    className={`mt-2 text-xs font-medium ${card.subtitleClass}`}
-                  >
-                    {card.subtitle}
-                  </p>
-                </article>
-              );
-            })}
+          <section className="rounded-[12px] bg-[#f0f1f1] p-8">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
+                School Trends (Last 7 Days)
+              </h2>
+              <span className="text-xs font-medium text-zinc-500">
+                Planned vs served meals by day
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <div className="grid min-w-[680px] grid-cols-7 gap-3">
+                {trendRows.map((row) => {
+                  const plannedHeight = Math.max(
+                    Math.round((row.planned / trendMaxPlanned) * 120),
+                    row.planned > 0 ? 10 : 4,
+                  );
+                  const servedHeight = Math.max(
+                    Math.round((row.served / trendMaxPlanned) * 120),
+                    row.served > 0 ? 8 : 2,
+                  );
+                  return (
+                    <article
+                      key={row.dateKey}
+                      className="rounded-xl bg-white p-3 shadow-[0px_1px_2px_rgba(0,0,0,0.05)]"
+                    >
+                      <p className="text-[11px] font-semibold text-zinc-500">
+                        {row.label}
+                      </p>
+                      <div className="mt-3 flex h-[126px] items-end gap-2">
+                        <div className="flex w-6 items-end rounded bg-zinc-100">
+                          <div
+                            className="w-full rounded bg-zinc-400"
+                            style={{ height: `${plannedHeight}px` }}
+                            title={`Planned: ${row.planned}`}
+                          />
+                        </div>
+                        <div className="flex w-6 items-end rounded bg-green-100">
+                          <div
+                            className="w-full rounded bg-green-500"
+                            style={{ height: `${servedHeight}px` }}
+                            title={`Served: ${row.served}`}
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-3 space-y-1 text-[11px] font-medium">
+                        <p className="text-zinc-600">Planned: {row.planned}</p>
+                        <p className="text-green-700">Served: {row.served}</p>
+                        <p className="text-zinc-700">Rate: {row.completion}%</p>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
           </section>
 
           <section className="mt-6 grid gap-8 xl:grid-cols-10">
@@ -432,7 +384,7 @@ export default function MealDistributionDashboard() {
                 </h2>
                 {isUsingFallbackSessions && (
                   <span className="ml-2 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold text-amber-700">
-                    Using fallback data
+                    No sessions for today
                   </span>
                 )}
                 <button
@@ -453,6 +405,11 @@ export default function MealDistributionDashboard() {
                   {sessionsError}
                 </p>
               )}
+              {deleteError && (
+                <p className="mb-4 text-xs font-medium text-red-600">
+                  {deleteError}
+                </p>
+              )}
 
               <div className="overflow-x-auto">
                 <table className="w-full border-separate border-spacing-y-3">
@@ -466,6 +423,16 @@ export default function MealDistributionDashboard() {
                     </tr>
                   </thead>
                   <tbody>
+                    {normalizedTodaySessions.length === 0 && (
+                      <tr className="rounded-[12px] bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)]">
+                        <td
+                          colSpan={5}
+                          className="rounded-[12px] px-6 py-6 text-center text-sm font-medium text-zinc-500"
+                        >
+                          No meal sessions for today yet.
+                        </td>
+                      </tr>
+                    )}
                     {normalizedTodaySessions.map((row, index) => (
                       <tr
                         key={`${row.mealType}-${row.status}-${index}`}
@@ -493,15 +460,18 @@ export default function MealDistributionDashboard() {
                           <div className="flex items-center justify-end gap-2 text-zinc-400">
                             <button
                               type="button"
+                              onClick={() => handleEditSession(row.id)}
                               className="rounded-md p-1 hover:bg-zinc-100"
                             >
                               <Pencil className="h-3.5 w-3.5" />
                             </button>
                             <button
                               type="button"
-                              className="rounded-md p-1 hover:bg-zinc-100"
+                              onClick={() => handleDeleteSession(row.id)}
+                              disabled={!row.id || deletingSessionId === row.id}
+                              className="rounded-md p-1 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                              <Eye className="h-3.5 w-3.5" />
+                              <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           </div>
                         </td>
@@ -514,37 +484,42 @@ export default function MealDistributionDashboard() {
 
             <article className="rounded-[12px] bg-[#f0f1f1] p-8 xl:col-span-4">
               <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
-                Attendance Breakdown
+                Session Status Mix
               </h2>
-              {donutMetrics.isFallback && (
+              {sessionMixMetrics.isFallback && (
                 <span className="mt-2 inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold text-amber-700">
-                  Using fallback data
+                  No sessions for today
                 </span>
               )}
-              {isLoadingAttendance && (
+              {isLoadingSessions && (
                 <p className="mt-2 text-xs font-medium text-zinc-500">
-                  Loading attendance...
+                  Loading session mix...
                 </p>
               )}
-              {attendanceError && (
+              {sessionsError && (
                 <p className="mt-2 text-xs font-medium text-red-600">
-                  {attendanceError}
+                  {sessionsError}
                 </p>
               )}
 
               <div className="mt-8 flex justify-center">
-                <div className="relative h-48 w-48 rounded-full bg-[conic-gradient(#22c55e_0_300deg,#ef4444_300deg_344deg,#3b82f6_344deg_370deg,#f97316_370deg_392deg)]">
+                <div
+                  className="relative h-48 w-48 rounded-full"
+                  style={{ background: sessionMixConicBackground }}
+                >
                   <div className="absolute inset-4 flex flex-col items-center justify-center rounded-full bg-[#f0f1f1]">
                     <p className="text-[32px] font-semibold text-zinc-800">
-                      {donutMetrics.rate}%
+                      {sessionMixMetrics.focusRate}%
                     </p>
-                    <p className="text-xs font-medium text-zinc-500">Rate</p>
+                    <p className="text-xs font-medium text-zinc-500">
+                      Completed
+                    </p>
                   </div>
                 </div>
               </div>
 
               <div className="mt-8 grid grid-cols-2 gap-4">
-                {donutMetrics.rows.map((item) => (
+                {sessionMixMetrics.rows.map((item) => (
                   <div key={item.label} className="flex items-center gap-3">
                     <span
                       className={`h-3 w-3 rounded-full ${item.colorClass}`}
@@ -568,13 +543,8 @@ export default function MealDistributionDashboard() {
               <div className="flex flex-wrap items-center gap-2">
                 <Bell className="h-5 w-5 text-[#b31b25]" />
                 <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
-                  Recent No-Show Alerts
+                  Today&apos;s No-Show Alerts
                 </h2>
-                {noShowAlertsMetrics.isFallback && (
-                  <span className="ml-2 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold text-amber-700">
-                    Using fallback data
-                  </span>
-                )}
               </div>
               <button
                 type="button"
@@ -584,14 +554,14 @@ export default function MealDistributionDashboard() {
                 View All
               </button>
             </div>
-            {isLoadingAttendance && (
+            {isLoadingNoShowLogs && (
               <p className="mb-4 text-xs font-medium text-zinc-500">
                 Loading no-show alerts...
               </p>
             )}
-            {attendanceError && (
+            {noShowLogsError && (
               <p className="mb-4 text-xs font-medium text-red-600">
-                {attendanceError}
+                {noShowLogsError}
               </p>
             )}
 
@@ -600,45 +570,55 @@ export default function MealDistributionDashboard() {
                 <thead className="bg-[#e7e8e8] text-left text-xs font-medium text-zinc-500">
                   <tr>
                     <th className="px-6 py-4">Student ID</th>
-                    <th className="px-6 py-4">School</th>
-                    <th className="px-6 py-4">Period</th>
-                    <th className="px-6 py-4 text-center">No-Show Count</th>
-                    <th className="px-6 py-4">Notified Status</th>
+                    <th className="px-6 py-4">Meal</th>
+                    <th className="px-6 py-4">Attendance</th>
+                    <th className="px-6 py-4">Guardian email</th>
+                    <th className="px-6 py-4">Email log</th>
+                    <th className="px-6 py-4">Sent at</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100">
-                  {noShowAlertsMetrics.rows.map((row) => (
-                    <tr key={row.id}>
+                  {todayNoShowRows.map((row) => (
+                    <tr
+                      key={
+                        row.attendanceId ||
+                        `${row.mealSessionId}-${row.studentId}`
+                      }
+                    >
                       <td className="px-6 py-5 text-sm text-zinc-800">
-                        {row.id}
+                        {row.studentId}
                       </td>
                       <td className="px-6 py-5 text-sm text-zinc-800">
-                        {row.school}
+                        {formatMealType(row.mealType)}
                       </td>
                       <td className="px-6 py-5 text-sm text-zinc-800">
-                        {row.period}
+                        {String(row.attendanceStatus || '').replace('_', ' ')}
                       </td>
-                      <td className="px-6 py-5 text-center">
-                        <span
-                          className={`inline-flex rounded px-2 py-0.5 text-xs font-medium ${row.count > 2 ? 'bg-red-200 text-red-700' : row.count > 1 ? 'bg-red-100 text-red-700' : 'bg-red-50 text-red-700'}`}
-                        >
-                          {row.count}
-                        </span>
+                      <td className="px-6 py-5 text-sm text-zinc-800">
+                        {row.guardianEmail || '—'}
                       </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium ${row.notified ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
-                        >
-                          {row.notified ? (
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                          ) : (
-                            <XCircle className="h-3.5 w-3.5" />
-                          )}
-                          {row.notified ? 'Notified' : 'Pending'}
-                        </span>
+                      <td className="px-6 py-5 text-sm text-zinc-700">
+                        {row.emailLogStatus
+                          ? `${row.emailLogStatus}${row.emailLogSkipReason ? ` (${row.emailLogSkipReason})` : ''}`
+                          : '—'}
+                      </td>
+                      <td className="px-6 py-5 text-sm text-zinc-700">
+                        {row.emailSentAt
+                          ? new Date(row.emailSentAt).toLocaleString()
+                          : '—'}
                       </td>
                     </tr>
                   ))}
+                  {!isLoadingNoShowLogs && todayNoShowRows.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="px-6 py-6 text-center text-sm text-zinc-500"
+                      >
+                        No no-show alerts for today.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

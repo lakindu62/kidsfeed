@@ -4,6 +4,8 @@ import MealDistributionDashboard from './screens/MealDistributionDashboard';
 import MarkAttendancePage from './screens/MarkAttendancePage';
 import MealSessionsPage from './screens/MealSessionsPage';
 import NoShowAlertsPage from './screens/NoShowAlertsPage';
+import StudentMealHistoryPage from './screens/StudentMealHistoryPage';
+import MealReportsPage from './screens/MealReportsPage';
 import {
   getDefaultMealDistributionSchoolScope,
   MealDistributionSchoolProvider,
@@ -13,6 +15,8 @@ export const mealDistributionPath = '/meal-distribution';
 export const mealSessionsPath = '/meal-distribution/sessions';
 export const mealAttendancePath = '/meal-distribution/attendance';
 export const mealNoShowAlertsPath = '/meal-distribution/no-show-alerts';
+export const mealStudentHistoryPath = '/meal-distribution/student-history';
+export const mealReportsPath = '/meal-distribution/reports';
 
 /** Wraps all meal-distribution pages with one school provider (from env). */
 export function MealDistributionLayoutRoute() {
@@ -40,4 +44,12 @@ export function MealAttendanceRoute() {
 
 export function MealNoShowAlertsRoute() {
   return <NoShowAlertsPage />;
+}
+
+export function MealStudentHistoryRoute() {
+  return <StudentMealHistoryPage />;
+}
+
+export function MealReportsRoute() {
+  return <MealReportsPage />;
 }

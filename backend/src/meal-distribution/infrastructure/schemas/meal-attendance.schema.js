@@ -10,7 +10,7 @@ const mealAttendanceSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['PRESENT', 'ABSENT', 'EXCUSED', 'NO_SHOW'],
+      enum: ['PRESENT', 'EXCUSED', 'NO_SHOW'],
       default: 'PRESENT',
     },
     servedAt: { type: Date, default: Date.now },

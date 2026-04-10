@@ -24,6 +24,24 @@ mealAttendanceRouter.get('/', async (req, res, next) => {
   }
 });
 
+// Session roster: GET /api/meal-attendance/roster?mealSessionId=
+mealAttendanceRouter.get('/roster', async (req, res, next) => {
+  try {
+    const { mealSessionId } = req.query || {};
+    if (!mealSessionId) {
+      return res.status(400).json({ message: 'mealSessionId is required' });
+    }
+
+    const result = await mealAttendanceService.listSessionRoster(mealSessionId);
+    if (result.error === 'MEAL_SESSION_NOT_FOUND') {
+      return res.status(404).json({ message: 'Meal session not found' });
+    }
+    return res.status(200).json(result.roster);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Get one: GET /api/meal-attendance/:id
 mealAttendanceRouter.get('/:id', async (req, res, next) => {
   try {
@@ -49,6 +67,23 @@ mealAttendanceRouter.post(
       if (result.error === 'MEAL_SESSION_NOT_FOUND') {
         return res.status(404).json({ message: 'Meal session not found' });
       }
+      if (result.error === 'MEAL_SESSION_COMPLETED') {
+        return res.status(409).json({
+          message: 'Meal session is completed; attendance is locked',
+        });
+      }
+      if (result.error === 'STUDENT_NOT_IN_SCHOOL') {
+        return res.status(400).json({
+          message:
+            'That student ID is not an active student at this school for this meal session.',
+        });
+      }
+      if (result.error === 'STUDENT_ALREADY_PRESENT') {
+        return res.status(409).json({
+          message:
+            'This student is already marked present for this meal session.',
+        });
+      }
 
       return res.status(201).json(result.attendance);
     } catch (err) {
@@ -69,6 +104,11 @@ mealAttendanceRouter.put('/:id', async (req, res, next) => {
     if (result.notFound) {
       return res.status(404).json({ message: 'Meal attendance not found' });
     }
+    if (result.error === 'MEAL_SESSION_COMPLETED') {
+      return res
+        .status(409)
+        .json({ message: 'Meal session is completed; attendance is locked' });
+    }
 
     return res.status(200).json(result.attendance);
   } catch (err) {
@@ -83,6 +123,11 @@ mealAttendanceRouter.delete('/:id', async (req, res, next) => {
 
     if (result.notFound) {
       return res.status(404).json({ message: 'Meal attendance not found' });
+    }
+    if (result.error === 'MEAL_SESSION_COMPLETED') {
+      return res
+        .status(409)
+        .json({ message: 'Meal session is completed; attendance is locked' });
     }
 
     return res.status(204).send();

@@ -4,12 +4,20 @@
  */
 export class NotificationService {
   constructor(options = {}) {
-    this.resendApiKey =
-      options.resendApiKey ?? process.env.RESEND_API_KEY ?? '';
-    this.from =
-      options.from ??
+    this.resendApiKey = options.resendApiKey;
+    this.from = options.from;
+  }
+
+  getResendApiKey() {
+    return this.resendApiKey ?? process.env.RESEND_API_KEY ?? '';
+  }
+
+  getFromAddress() {
+    return (
+      this.from ??
       process.env.MEAL_DISTRIBUTION_EMAIL_FROM ??
-      'KidsFeed <onboarding@resend.dev>';
+      'KidsFeed <onboarding@resend.dev>'
+    );
   }
 
   async sendGuardianNoShowEmail({
@@ -19,7 +27,8 @@ export class NotificationService {
     sessionDate,
     schoolLabel,
   }) {
-    if (!this.resendApiKey) {
+    const resendApiKey = this.getResendApiKey();
+    if (!resendApiKey) {
       return { ok: false, code: 'NO_EMAIL_PROVIDER' };
     }
 
@@ -36,11 +45,11 @@ If you have questions, please contact the school.
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.resendApiKey}`,
+        Authorization: `Bearer ${resendApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: this.from,
+        from: this.getFromAddress(),
         to: [to],
         subject,
         text,
