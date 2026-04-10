@@ -14,6 +14,8 @@ import {
   mealAttendanceRouter,
   mealScanRouter,
   noShowAlertsRouter,
+  studentMealHistoryRouter,
+  mealReportsRouter,
 } from './meal-distribution/index.js';
 
 // Menu Management imports
@@ -72,6 +74,8 @@ app.use('/api/meal-sessions', mealSessionRouter);
 app.use('/api/meal-attendance', mealAttendanceRouter);
 app.use('/api/meal-scan', mealScanRouter);
 app.use('/api/meal-distribution/no-show-alerts', noShowAlertsRouter);
+app.use('/api/meal-distribution/student-history', studentMealHistoryRouter);
+app.use('/api/meal-distribution/reports', mealReportsRouter);
 
 // Menu Management routes
 const menuManagementRouter = createMenuManagementRouter();
