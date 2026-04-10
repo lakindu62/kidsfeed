@@ -45,9 +45,13 @@ function sumWidths(widths) {
 }
 
 function formatDate(value) {
-  if (!value) {return '—';}
+  if (!value) {
+    return '—';
+  }
   const d = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(d.getTime())) {return '—';}
+  if (Number.isNaN(d.getTime())) {
+    return '—';
+  }
   return d.toLocaleDateString();
 }
 
@@ -219,10 +223,15 @@ function computeRosterStats(roster) {
   };
   roster.forEach((r) => {
     const s = String(r.status || '');
-    if (s === 'PRESENT') {c.PRESENT += 1;}
-    else if (s === 'EXCUSED') {c.EXCUSED += 1;}
-    else if (s === 'NO_SHOW') {c.NO_SHOW += 1;}
-    else {c.NOT_MARKED += 1;}
+    if (s === 'PRESENT') {
+      c.PRESENT += 1;
+    } else if (s === 'EXCUSED') {
+      c.EXCUSED += 1;
+    } else if (s === 'NO_SHOW') {
+      c.NO_SHOW += 1;
+    } else {
+      c.NOT_MARKED += 1;
+    }
   });
   return {
     ...c,

@@ -2,7 +2,7 @@
 // import reactLogo from "./assets/react.svg";
 // import viteLogo from "/vite.svg";
 // import './App.css';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Outlet } from 'react-router-dom';
 import Home from './pages/Home';
 import AuthRedirectPage from './pages/AuthRedirectPage';
 import Unauthorized from './pages/Unauthorized';
@@ -21,6 +21,11 @@ import {
   mealDistributionPath,
 } from './features/meal-distribution';
 import { InventoryRoute, inventoryPath } from './features/inventory';
+import {
+  MenuManagementRoute,
+  menuManagementPath,
+  MenuManagementRecipesRoute,
+} from './features/menu-management';
 
 function App() {
   return (
@@ -67,6 +72,23 @@ function App() {
         <Route path="no-show-alerts" element={<MealNoShowAlertsRoute />} />
         <Route path="student-history" element={<MealStudentHistoryRoute />} />
         <Route path="reports" element={<MealReportsRoute />} />
+      </Route>
+      <Route
+        path={menuManagementPath}
+        element={
+          <RequireAuth>
+            <RequireRole
+              allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.MENU_MANAGER]}
+            >
+              <Outlet />
+            </RequireRole>
+          </RequireAuth>
+        }
+      >
+        <Route index element={<MenuManagementRoute />} />
+        <Route path="recipes" element={<MenuManagementRecipesRoute />} />
+        <Route path="menus" element={<MenuManagementRoute />} />
+        <Route path="calendar" element={<MenuManagementRoute />} />
       </Route>
     </Routes>
   );
