@@ -8,11 +8,22 @@ export function isInvalidObjectIdError(error) {
   return error?.name === 'CastError' && error?.kind === 'ObjectId';
 }
 
+export function isBadRequestError(error) {
+  return error?.statusCode === 400;
+}
+
 export function handleInventoryItemError(res, error, fallbackMessage) {
   if (isInvalidObjectIdError(error)) {
     return res.status(400).json({
       success: false,
       message: 'Invalid inventory item id format',
+    });
+  }
+
+  if (isBadRequestError(error)) {
+    return res.status(400).json({
+      success: false,
+      message: error.message,
     });
   }
 

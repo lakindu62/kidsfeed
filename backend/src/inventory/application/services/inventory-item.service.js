@@ -9,6 +9,12 @@ export class InventoryItemService {
     this.inventoryItemRepository = new InventoryItemRepository();
   }
 
+  _createBadRequestError(message) {
+    const error = new Error(message);
+    error.statusCode = 400;
+    return error;
+  }
+
   /**
    * Calculate and update the status of an inventory item based on quantity and expiry
    * @param {Object} item - Inventory item
@@ -222,5 +228,85 @@ export class InventoryItemService {
       outOfStock,
       expired,
     };
+  }
+
+  /**
+   * Increment inventory item quantity
+   * @param {string} itemId - Item ID
+   * @param {{ amount: number }} payload - Quantity increment payload
+   * @returns {Promise<Object>} Updated inventory item
+   */
+  async incrementInventoryItem(itemId, payload) {
+    const amount = payload?.amount;
+
+    if (typeof amount !== 'number' || Number.isNaN(amount) || amount <= 0) {
+      throw this._createBadRequestError('amount must be greater than 0');
+    }
+
+    const existingItem = await this.inventoryItemRepository.findById(itemId);
+
+    if (!existingItem) {
+      throw new Error(`Inventory item with ID ${itemId} not found`);
+    }
+
+    const incrementedItem =
+      await this.inventoryItemRepository.incrementQuantityById(itemId, amount);
+
+    if (!incrementedItem) {
+      throw new Error(`Inventory item with ID ${itemId} not found`);
+    }
+
+    const status = this._calculateStatus({
+      quantity: incrementedItem.quantity,
+      reorderLevel: incrementedItem.reorderLevel,
+      expiryDate: incrementedItem.expiryDate,
+    });
+
+    if (incrementedItem.status === status) {
+      return incrementedItem;
+    }
+
+    return this.inventoryItemRepository.updateById(itemId, { status });
+  }
+
+  /**
+   * Decrement inventory item quantity
+   * @param {string} itemId - Item ID
+   * @param {{ amount: number }} payload - Quantity decrement payload
+   * @returns {Promise<Object>} Updated inventory item
+   */
+  async decrementInventoryItem(itemId, payload) {
+    const amount = payload?.amount;
+
+    if (typeof amount !== 'number' || Number.isNaN(amount) || amount <= 0) {
+      throw this._createBadRequestError('amount must be greater than 0');
+    }
+
+    const existingItem = await this.inventoryItemRepository.findById(itemId);
+
+    if (!existingItem) {
+      throw new Error(`Inventory item with ID ${itemId} not found`);
+    }
+
+    const decrementedItem =
+      await this.inventoryItemRepository.decrementQuantityById(itemId, amount);
+
+    if (!decrementedItem) {
+      throw this._createBadRequestError(
+        'Insufficient quantity to decrement by requested amount'
+      );
+    }
+
+    const status = this._calculateStatus({
+      quantity: decrementedItem.quantity,
+      reorderLevel: decrementedItem.reorderLevel,
+      expiryDate: decrementedItem.expiryDate,
+    });
+
+    if (decrementedItem.status === status) {
+      return decrementedItem;
+    }
+
+    return this.inventoryItemRepository.updateById(itemId, { status });
   }
 }

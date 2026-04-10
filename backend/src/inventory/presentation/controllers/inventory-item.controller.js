@@ -2,9 +2,11 @@ import express from 'express';
 import { CreateInventoryItemRequestDTO } from '../../application/dtos/requests/create-inventory-item.request.dto.js';
 import { UpdateInventoryItemRequestDTO } from '../../application/dtos/requests/update-inventory-item.request.dto.js';
 import { PatchInventoryItemRequestDTO } from '../../application/dtos/requests/patch-inventory-item.request.dto.js';
+import { AdjustInventoryQuantityRequestDTO } from '../../application/dtos/requests/adjust-inventory-quantity.request.dto.js';
 import { InventoryItemService } from '../../application/services/inventory-item.service.js';
 import { openFoodFactsService } from '../../application/services/open-food-facts.service.js';
 import { inventoryErrorMiddleware } from '../middleware/inventory-error.middleware.js';
+import { validateAdjustInventoryQuantity } from '../validators/adjust-inventory-quantity.validator.js';
 import { validateCreateInventoryItem } from '../validators/create-inventory-item.validator.js';
 import { validateUpdateInventoryItem } from '../validators/update-inventory-item.validator.js';
 import { validatePatchInventoryItem } from '../validators/patch-inventory-item.validator.js';
@@ -200,6 +202,68 @@ inventoryRouter.patch(
       });
     } catch (error) {
       error.fallbackMessage = 'Failed to partially update inventory item';
+      return next(error);
+    }
+  }
+);
+
+/**
+ * PATCH /api/inventory/:id/increment
+ * Increment inventory item quantity
+ */
+inventoryRouter.patch(
+  '/:id/increment',
+  validateAdjustInventoryQuantity,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const adjustmentData = new AdjustInventoryQuantityRequestDTO(
+        req.body
+      ).toObject();
+
+      const updatedItem = await inventoryItemService.incrementInventoryItem(
+        id,
+        adjustmentData
+      );
+
+      res.status(200).json({
+        success: true,
+        message: 'Inventory item quantity increased successfully',
+        data: updatedItem,
+      });
+    } catch (error) {
+      error.fallbackMessage = 'Failed to increment inventory item quantity';
+      return next(error);
+    }
+  }
+);
+
+/**
+ * PATCH /api/inventory/:id/decrement
+ * Decrement inventory item quantity
+ */
+inventoryRouter.patch(
+  '/:id/decrement',
+  validateAdjustInventoryQuantity,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const adjustmentData = new AdjustInventoryQuantityRequestDTO(
+        req.body
+      ).toObject();
+
+      const updatedItem = await inventoryItemService.decrementInventoryItem(
+        id,
+        adjustmentData
+      );
+
+      res.status(200).json({
+        success: true,
+        message: 'Inventory item quantity decreased successfully',
+        data: updatedItem,
+      });
+    } catch (error) {
+      error.fallbackMessage = 'Failed to decrement inventory item quantity';
       return next(error);
     }
   }
