@@ -12,6 +12,7 @@ import {
   mealDistributionPath,
   mealSessionsPath,
 } from './features/meal-distribution';
+import { InventoryRoute, inventoryPath } from './features/inventory';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
       {/* Example routes */}
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<div>About Page</div>} />
+      <Route path={inventoryPath} element={<InventoryRoute />} />
       <Route path={mealDistributionPath} element={<MealDistributionRoute />} />
       <Route path={mealSessionsPath} element={<MealSessionsRoute />} />
       <Route path={mealAttendancePath} element={<MealAttendanceRoute />} />

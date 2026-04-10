@@ -1,6 +1,6 @@
 import { cloneElement, isValidElement } from 'react';
 import { CircleHelp, LogOut } from 'lucide-react';
-import { DEFAULT_FOOTER_ACTIONS } from './configs/defaults';
+import { DEFAULT_FOOTER_ACTIONS } from '../../lib/sidebar/configs/defaults';
 
 // const DEFAULT_FOOTER_ACTIONS = [
 //   { key: 'support', label: 'Support', icon: CircleHelp },
