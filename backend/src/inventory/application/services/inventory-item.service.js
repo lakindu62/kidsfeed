@@ -232,6 +232,10 @@ export class InventoryItemService {
 
   /**
    * Increment inventory item quantity
+   *
+   * Dual purpose:
+   * 1) Used by inventory HTTP endpoints for manual stock adjustments.
+   * 2) Used by internal module integrations (e.g., meal planning release/rollback flows).
    * @param {string} itemId - Item ID
    * @param {{ amount: number }} payload - Quantity increment payload
    * @returns {Promise<Object>} Updated inventory item
@@ -271,6 +275,10 @@ export class InventoryItemService {
 
   /**
    * Decrement inventory item quantity
+   *
+   * Dual purpose:
+   * 1) Used by inventory HTTP endpoints for manual stock adjustments.
+   * 2) Used by internal module integrations (e.g., meal planning allocations/consumption).
    * @param {string} itemId - Item ID
    * @param {{ amount: number }} payload - Quantity decrement payload
    * @returns {Promise<Object>} Updated inventory item

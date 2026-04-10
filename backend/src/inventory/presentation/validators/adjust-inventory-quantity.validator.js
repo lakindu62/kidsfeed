@@ -28,19 +28,5 @@ export function validateAdjustInventoryQuantity(req, res, next) {
     });
   }
 
-  if (body.reason !== undefined && typeof body.reason !== 'string') {
-    return res.status(400).json({
-      success: false,
-      message: 'reason must be a string when provided',
-    });
-  }
-
-  if (body.note !== undefined && typeof body.note !== 'string') {
-    return res.status(400).json({
-      success: false,
-      message: 'note must be a string when provided',
-    });
-  }
-
   next();
 }

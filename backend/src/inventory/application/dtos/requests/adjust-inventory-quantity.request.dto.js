@@ -12,6 +12,8 @@ export class AdjustInventoryQuantityRequestDTO {
       return {};
     }
 
-    return { ...this.payload };
+    return {
+      amount: this.payload.amount,
+    };
   }
 }
