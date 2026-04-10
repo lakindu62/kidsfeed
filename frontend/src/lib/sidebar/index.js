@@ -1,5 +1,5 @@
 export {
-  ROLE_SIDEBAR_PERMISSIONS,
+  // ROLE_SIDEBAR_PERMISSIONS,
   getBaseSidebarConfig,
   buildSidebarConfig,
   listAvailableSidebarFeatures,
