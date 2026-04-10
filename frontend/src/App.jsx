@@ -54,45 +54,10 @@ function App() {
                 USER_ROLES.STAFF,
               ]}
             >
-              <MealDistributionRoute />
+              <MealDistributionLayoutRoute />
             </RequireRole>
           </RequireAuth>
         }
-      />
-      <Route
-        path={mealSessionsPath}
-        element={
-          <RequireAuth>
-            <RequireRole
-              allowedRoles={[
-                USER_ROLES.ADMIN,
-                USER_ROLES.MEAL_PLANNER,
-                USER_ROLES.STAFF,
-              ]}
-            >
-              <MealSessionsRoute />
-            </RequireRole>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path={mealAttendancePath}
-        element={
-          <RequireAuth>
-            <RequireRole
-              allowedRoles={[
-                USER_ROLES.ADMIN,
-                USER_ROLES.MEAL_PLANNER,
-                USER_ROLES.STAFF,
-              ]}
-            >
-              <MealAttendanceRoute />
-            </RequireRole>
-          </RequireAuth>
-        }
-      />
-        path={mealDistributionPath}
-        element={<MealDistributionLayoutRoute />}
       >
         <Route index element={<MealDistributionDashboardRoute />} />
         <Route path="sessions" element={<MealSessionsRoute />} />
