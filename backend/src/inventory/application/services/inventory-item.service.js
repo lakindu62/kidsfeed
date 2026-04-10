@@ -40,15 +40,18 @@ export class InventoryItemService {
    * @returns {Promise<Object>} Created inventory item
    */
   async createInventoryItem(itemData) {
+    const safeCreateData = { ...itemData };
+    delete safeCreateData.status;
+
     // Calculate initial status
     const status = this._calculateStatus({
-      quantity: itemData.quantity || 0,
-      reorderLevel: itemData.reorderLevel || 10,
-      expiryDate: itemData.expiryDate,
+      quantity: safeCreateData.quantity ?? 0,
+      reorderLevel: safeCreateData.reorderLevel ?? 10,
+      expiryDate: safeCreateData.expiryDate,
     });
 
     const item = await this.inventoryItemRepository.create({
-      ...itemData,
+      ...safeCreateData,
       status,
     });
 
@@ -108,15 +111,20 @@ export class InventoryItemService {
       throw new Error(`Inventory item with ID ${itemId} not found`);
     }
 
-    // Calculate new status
-    const status = this._calculateStatus({
-      quantity: updateData.quantity,
-      reorderLevel: updateData.reorderLevel,
-      expiryDate: updateData.expiryDate,
-    });
+    const safeUpdateData = { ...updateData };
+    delete safeUpdateData.status;
+
+    // Merge with existing data so omitted optional fields do not skew status.
+    const mergedData = {
+      quantity: safeUpdateData.quantity ?? existingItem.quantity,
+      reorderLevel: safeUpdateData.reorderLevel ?? existingItem.reorderLevel,
+      expiryDate: safeUpdateData.expiryDate ?? existingItem.expiryDate,
+    };
+
+    const status = this._calculateStatus(mergedData);
 
     const updatedItem = await this.inventoryItemRepository.updateById(itemId, {
-      ...updateData,
+      ...safeUpdateData,
       status,
     });
 
@@ -137,17 +145,20 @@ export class InventoryItemService {
       throw new Error(`Inventory item with ID ${itemId} not found`);
     }
 
+    const safePartialData = { ...partialData };
+    delete safePartialData.status;
+
     // Merge with existing data to calculate status
     const mergedData = {
-      quantity: partialData.quantity ?? existingItem.quantity,
-      reorderLevel: partialData.reorderLevel ?? existingItem.reorderLevel,
-      expiryDate: partialData.expiryDate ?? existingItem.expiryDate,
+      quantity: safePartialData.quantity ?? existingItem.quantity,
+      reorderLevel: safePartialData.reorderLevel ?? existingItem.reorderLevel,
+      expiryDate: safePartialData.expiryDate ?? existingItem.expiryDate,
     };
 
     const status = this._calculateStatus(mergedData);
 
     const updatedItem = await this.inventoryItemRepository.updateById(itemId, {
-      ...partialData,
+      ...safePartialData,
       status,
     });
 
