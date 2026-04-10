@@ -1,6 +1,6 @@
 import { APP_FEATURES } from '../app-features';
 import { SIDEBAR_CONFIG_BY_FEATURE } from './configs';
-import { ROLE_SIDEBAR_PERMISSIONS } from './configs/role-sidebar-permissions';
+// import { ROLE_SIDEBAR_PERMISSIONS } from './configs/role-sidebar-permissions';
 
 function cloneSection(section) {
   return {
@@ -20,42 +20,33 @@ function cloneSidebarConfig(config) {
   };
 }
 
-function filterSectionsByAllowedKeys(sections, allowedItemKeys) {
-  if (!Array.isArray(allowedItemKeys)) {
-    return sections;
-  }
+// function filterSectionsByAllowedKeys(sections, allowedItemKeys) {
+//   if (!Array.isArray(allowedItemKeys)) {
+//     return sections;
+//   }
+//
+//   const allowedSet = new Set(allowedItemKeys);
+//
+//   return sections
+//     .map((section) => ({
+//       ...section,
+//       items: (section.items || []).filter((item) => allowedSet.has(item.key)),
+//     }))
+//     .filter((section) => section.items.length > 0);
+// }
 
-  const allowedSet = new Set(allowedItemKeys);
+// function filterActionsByAllowedKeys(actions, allowedActionKeys) {
+//   if (!Array.isArray(allowedActionKeys)) {
+//     return actions;
+//   }
+//
+//   const allowedSet = new Set(allowedActionKeys);
+//   return actions.filter((action) => allowedSet.has(action.key));
+// }
 
-  return sections
-    .map((section) => ({
-      ...section,
-      items: (section.items || []).filter((item) => allowedSet.has(item.key)),
-    }))
-    .filter((section) => section.items.length > 0);
-}
-
-function filterActionsByAllowedKeys(actions, allowedActionKeys) {
-  if (!Array.isArray(allowedActionKeys)) {
-    return actions;
-  }
-
-  const allowedSet = new Set(allowedActionKeys);
-  return actions.filter((action) => allowedSet.has(action.key));
-}
-
-function resolveRolePermission(role, feature) {
-  if (!role) {
-    return null;
-  }
-
-  const rolePermissions = ROLE_SIDEBAR_PERMISSIONS[role];
-  if (!rolePermissions) {
-    return null;
-  }
-
-  return rolePermissions[feature] || rolePermissions['*'] || null;
-}
+// Role-based sidebar filtering is intentionally disabled for now.
+// Keep the legacy matrix available in src/lib/sidebar/configs/role-sidebar-permissions.js
+// if we need to restore it later.
 
 export function getBaseSidebarConfig(feature) {
   const config = SIDEBAR_CONFIG_BY_FEATURE[feature];
@@ -68,9 +59,9 @@ export function getBaseSidebarConfig(feature) {
 
 export function buildSidebarConfig({
   feature,
-  role,
-  allowedItemKeys,
-  allowedFooterActionKeys,
+  // role,
+  // allowedItemKeys,
+  // allowedFooterActionKeys,
   includePrimaryCta = true,
 } = {}) {
   const config = getBaseSidebarConfig(feature);
@@ -78,27 +69,12 @@ export function buildSidebarConfig({
     return null;
   }
 
-  const rolePermission = resolveRolePermission(role, feature);
-
-  const effectiveAllowedItemKeys =
-    allowedItemKeys !== undefined
-      ? allowedItemKeys
-      : rolePermission?.allowedItemKeys;
-
-  const effectiveAllowedFooterActionKeys =
-    allowedFooterActionKeys !== undefined
-      ? allowedFooterActionKeys
-      : rolePermission?.allowedFooterActionKeys;
-
-  config.sections = filterSectionsByAllowedKeys(
-    config.sections,
-    effectiveAllowedItemKeys,
-  );
-
-  config.footerActions = filterActionsByAllowedKeys(
-    config.footerActions || [],
-    effectiveAllowedFooterActionKeys,
-  );
+  // Legacy key-based filtering remains below as a reference only.
+  // config.sections = filterSectionsByAllowedKeys(config.sections, allowedItemKeys);
+  // config.footerActions = filterActionsByAllowedKeys(
+  //   config.footerActions || [],
+  //   allowedFooterActionKeys,
+  // );
 
   if (!includePrimaryCta) {
     config.primaryCta = null;
@@ -111,4 +87,4 @@ export function listAvailableSidebarFeatures() {
   return Object.values(APP_FEATURES);
 }
 
-export { ROLE_SIDEBAR_PERMISSIONS };
+// export { ROLE_SIDEBAR_PERMISSIONS };
