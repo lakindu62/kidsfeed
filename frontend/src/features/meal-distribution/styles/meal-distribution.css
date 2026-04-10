@@ -2,17 +2,20 @@
   min-height: 100vh;
 }
 
-.meal-distribution-root button {
+/*
+  Light reset only: do not zero padding — that fights Tailwind and makes labels feel clipped.
+  :where() keeps specificity 0 so utilities (px-*, py-*, bg-*) always win.
+*/
+.meal-distribution-root :where(button) {
   border: 0;
-  padding: 0;
   font: inherit;
   color: inherit;
   background-color: transparent;
   cursor: pointer;
 }
 
-.meal-distribution-root button:focus,
-.meal-distribution-root button:focus-visible {
+.meal-distribution-root :where(button):focus,
+.meal-distribution-root :where(button):focus-visible {
   outline: none;
 }
 

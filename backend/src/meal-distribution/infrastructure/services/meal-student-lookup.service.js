@@ -23,3 +23,18 @@ export async function findActiveStudentsWithGuardianForMealSession(schoolId) {
     .select('studentId firstName lastName guardian')
     .lean();
 }
+
+/**
+ * True if an active student with this business studentId belongs to the school.
+ */
+export async function isActiveStudentInSchool(studentId, schoolId) {
+  const match = buildSchoolMatchForMealSession(schoolId);
+  const doc = await Student.findOne({
+    ...match,
+    status: 'active',
+    studentId: String(studentId).trim(),
+  })
+    .select('_id')
+    .lean();
+  return Boolean(doc);
+}

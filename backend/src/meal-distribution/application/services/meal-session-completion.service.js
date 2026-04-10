@@ -1,10 +1,16 @@
 import { MealAttendance } from '../../infrastructure/schemas/meal-attendance.schema.js';
 import { findActiveStudentsWithGuardianForMealSession } from '../../infrastructure/services/meal-student-lookup.service.js';
+import { pickLatestAttendanceByStudentId } from '../../infrastructure/utils/latest-attendance-by-student.util.js';
+import { findSchoolById } from '../../../school-management/infrastructure/repositories/school.repository.js';
 
 function formatSessionDateForEmail(date) {
-  if (!date) {return '';}
+  if (!date) {
+    return '';
+  }
   const d = date instanceof Date ? date : new Date(date);
-  if (Number.isNaN(d.getTime())) {return '';}
+  if (Number.isNaN(d.getTime())) {
+    return '';
+  }
   return d.toISOString().slice(0, 10);
 }
 
@@ -47,16 +53,17 @@ export class MealSessionCompletionService {
     const schoolId = mealSessionDoc.schoolId;
     const mealType = mealSessionDoc.mealType || 'meal';
     const sessionDateLabel = formatSessionDateForEmail(mealSessionDoc.date);
-    const schoolLabel = String(schoolId);
+    const schoolDoc = await findSchoolById(schoolId);
+    const schoolLabel =
+      (schoolDoc?.schoolName && String(schoolDoc.schoolName).trim()) ||
+      String(schoolId);
 
     const students =
       await findActiveStudentsWithGuardianForMealSession(schoolId);
     const attendanceDocs = await this.mealAttendanceRepository.findMany({
       mealSessionId,
     });
-    const byStudentId = new Map(
-      attendanceDocs.map((doc) => [String(doc.studentId), doc])
-    );
+    const byStudentId = pickLatestAttendanceByStudentId(attendanceDocs);
 
     for (const student of students) {
       const sid = String(student.studentId);

@@ -52,6 +52,23 @@ mealScanRouter.post('/', validateScanQr, async (req, res, next) => {
     if (result.error === 'MEAL_SESSION_NOT_FOUND') {
       return res.status(404).json({ message: 'Meal session not found' });
     }
+    if (result.error === 'MEAL_SESSION_COMPLETED') {
+      return res.status(409).json({
+        message: 'Meal session is completed; attendance is locked',
+      });
+    }
+    if (result.error === 'STUDENT_NOT_IN_SCHOOL') {
+      return res.status(400).json({
+        message:
+          'That student ID is not an active student at this school for this meal session.',
+      });
+    }
+    if (result.error === 'STUDENT_ALREADY_PRESENT') {
+      return res.status(409).json({
+        message:
+          'This student is already marked present for this meal session.',
+      });
+    }
 
     return res.status(201).json(result.attendance);
   } catch (err) {
