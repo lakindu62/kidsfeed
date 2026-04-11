@@ -17,20 +17,15 @@ import {
 import {
   formatMealDistributionSchoolSubtitle,
   useMealDistributionSchool,
+  useCountUp,
 } from '../hooks';
-import '../styles/meal-distribution.css';
+import { mealDistributionRootClassName } from '../utils/meal-distribution-layout-classes';
 
 const statusClasses = {
   COMPLETED: 'bg-green-100 text-green-700',
   PLANNED: 'bg-zinc-100 text-zinc-500',
   IN_PROGRESS: 'bg-blue-100 text-blue-600',
 };
-
-const fallbackSessionStatusData = [
-  { label: 'Planned', value: 1, colorClass: 'bg-zinc-400' },
-  { label: 'In Progress', value: 1, colorClass: 'bg-blue-500' },
-  { label: 'Completed', value: 1, colorClass: 'bg-green-500' },
-];
 
 function toDateKey(value) {
   if (!value) return '';
@@ -47,10 +42,22 @@ function formatMealType(mealType) {
     .replace(/^\w/, (match) => match.toUpperCase());
 }
 
-function formatShortDateLabel(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '-';
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+/** Inclusive calendar range for the last 7 days ending today (local). */
+function getRollingWeekDateKeys() {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 6);
+  return { dateFrom: toDateKey(start), dateTo: toDateKey(end) };
+}
+
+function formatWeekRangeSubtitle(dateFrom, dateTo) {
+  const a = new Date(`${dateFrom}T12:00:00`);
+  const b = new Date(`${dateTo}T12:00:00`);
+  if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return '';
+  const opts = { month: 'short', day: 'numeric' };
+  const left = a.toLocaleDateString(undefined, opts);
+  const right = b.toLocaleDateString(undefined, opts);
+  return `${left} – ${right}`;
 }
 
 export default function MealDistributionDashboard() {
@@ -65,6 +72,8 @@ export default function MealDistributionDashboard() {
   const [noShowLogsError, setNoShowLogsError] = useState('');
   const [deleteError, setDeleteError] = useState('');
   const [deletingSessionId, setDeletingSessionId] = useState('');
+  const [weekNoShowCount, setWeekNoShowCount] = useState(null);
+  const [weekNoShowError, setWeekNoShowError] = useState('');
   const apiUrl = resolveApiBaseUrl();
 
   const loadMealSessions = useCallback(async () => {
@@ -114,6 +123,7 @@ export default function MealDistributionDashboard() {
       planned: Number(session.plannedHeadcount || 0),
       served: Number(session.actualServedCount || 0),
       status: session.status || 'PLANNED',
+      recipeName: session.recipeName || null,
     }));
   }, [todaySessionDocs]);
   const isUsingFallbackSessions = todaySessionDocs.length === 0;
@@ -122,7 +132,19 @@ export default function MealDistributionDashboard() {
     if (todaySessionDocs.length === 0) {
       return {
         focusRate: 0,
-        rows: fallbackSessionStatusData,
+        rows: [
+          { label: 'Planned', value: 0, colorClass: 'bg-zinc-400' },
+          {
+            label: 'In Progress',
+            value: 0,
+            colorClass: 'bg-blue-500',
+          },
+          {
+            label: 'Completed',
+            value: 0,
+            colorClass: 'bg-green-500',
+          },
+        ],
         isFallback: true,
       };
     }
@@ -238,41 +260,112 @@ export default function MealDistributionDashboard() {
     };
   }, [apiUrl, schoolId, todayDateKey, getToken, isSignedIn]);
 
-  const trendRows = useMemo(() => {
-    const rowsByDate = new Map();
-    const now = new Date();
-    for (let i = 6; i >= 0; i -= 1) {
-      const day = new Date(now);
-      day.setDate(now.getDate() - i);
-      const key = toDateKey(day);
-      rowsByDate.set(key, {
-        dateKey: key,
-        label: formatShortDateLabel(day),
-        planned: 0,
-        served: 0,
-        completion: 0,
-      });
-    }
+  const rollingWeek = useMemo(() => getRollingWeekDateKeys(), [todayDateKey]);
+
+  const weeklyKpis = useMemo(() => {
+    const { dateFrom, dateTo } = rollingWeek;
+    let sessionCount = 0;
+    let plannedTotal = 0;
+    let servedTotal = 0;
+    let completedCount = 0;
 
     apiMealSessions.forEach((session) => {
-      const key = toDateKey(session.date);
-      const row = rowsByDate.get(key);
-      if (!row) return;
-      row.planned += Number(session.plannedHeadcount || 0);
-      row.served += Number(session.actualServedCount || 0);
+      const k = toDateKey(session.date);
+      if (!k || k < dateFrom || k > dateTo) return;
+      sessionCount += 1;
+      plannedTotal += Number(session.plannedHeadcount || 0);
+      servedTotal += Number(session.actualServedCount || 0);
+      if (String(session.status || '').toUpperCase() === 'COMPLETED') {
+        completedCount += 1;
+      }
     });
 
-    return Array.from(rowsByDate.values()).map((row) => ({
-      ...row,
-      completion:
-        row.planned > 0 ? Math.round((row.served / row.planned) * 100) : 0,
-    }));
-  }, [apiMealSessions]);
+    const serveRatePct =
+      plannedTotal > 0 ? Math.round((servedTotal / plannedTotal) * 100) : null;
+    const completedPct =
+      sessionCount > 0
+        ? Math.round((completedCount / sessionCount) * 100)
+        : null;
 
-  const trendMaxPlanned = useMemo(
-    () => Math.max(...trendRows.map((row) => row.planned), 1),
-    [trendRows],
-  );
+    return {
+      dateFrom,
+      dateTo,
+      rangeSubtitle: formatWeekRangeSubtitle(dateFrom, dateTo),
+      sessionCount,
+      plannedTotal,
+      servedTotal,
+      completedCount,
+      serveRatePct,
+      completedPct,
+    };
+  }, [apiMealSessions, rollingWeek]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadWeekNoShows() {
+      if (!apiUrl || !schoolId) {
+        if (isMounted) {
+          setWeekNoShowCount(0);
+          setWeekNoShowError('');
+        }
+        return;
+      }
+
+      setWeekNoShowError('');
+      setWeekNoShowCount(null);
+
+      try {
+        const data = await fetchNoShowAlerts({
+          apiUrl,
+          schoolId,
+          getToken: isSignedIn ? getToken : undefined,
+          dateFrom: rollingWeek.dateFrom,
+          dateTo: rollingWeek.dateTo,
+        });
+        if (isMounted) {
+          setWeekNoShowCount(Array.isArray(data) ? data.length : 0);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setWeekNoShowError(
+            describeApiFetchFailure(
+              error,
+              'Could not load no-show count for this week',
+            ),
+          );
+          setWeekNoShowCount(null);
+        }
+      }
+    }
+
+    loadWeekNoShows();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    apiUrl,
+    schoolId,
+    rollingWeek.dateFrom,
+    rollingWeek.dateTo,
+    getToken,
+    isSignedIn,
+  ]);
+
+  const kpiSessions = useCountUp(weeklyKpis.sessionCount);
+  const kpiCompleted = useCountUp(weeklyKpis.completedCount);
+  const kpiCompletedPct = useCountUp(weeklyKpis.completedPct ?? 0, {
+    enabled: weeklyKpis.completedPct != null,
+  });
+  const kpiPlanned = useCountUp(weeklyKpis.plannedTotal);
+  const kpiServed = useCountUp(weeklyKpis.servedTotal);
+  const kpiServeRate = useCountUp(weeklyKpis.serveRatePct ?? 0, {
+    enabled: weeklyKpis.serveRatePct != null,
+  });
+  const kpiNoShow = useCountUp(weekNoShowCount ?? 0, {
+    enabled: weekNoShowCount !== null,
+  });
 
   const handleEditSession = (mealSessionId) => {
     navigate(`/meal-distribution/attendance?sessionId=${mealSessionId}`);
@@ -304,7 +397,7 @@ export default function MealDistributionDashboard() {
   };
 
   return (
-    <div className="meal-distribution-root min-h-screen bg-[#f6f6f6] text-zinc-900">
+    <div className={mealDistributionRootClassName}>
       <div className="mx-auto flex w-full max-w-[1536px]">
         <FeatureSidebar
           schoolName={schoolName}
@@ -320,59 +413,95 @@ export default function MealDistributionDashboard() {
           />
 
           <section className="rounded-[12px] bg-[#f0f1f1] p-8">
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
-                School Trends (Last 7 Days)
-              </h2>
-              <span className="text-xs font-medium text-zinc-500">
-                Planned vs served meals by day
-              </span>
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
+                  Last 7 days at a glance
+                </h2>
+                <p className="mt-1 max-w-xl text-xs font-medium text-zinc-500">
+                  {weeklyKpis.rangeSubtitle
+                    ? `${weeklyKpis.rangeSubtitle} · meal sessions for this school`
+                    : 'Rolling week summary'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/meal-distribution/reports')}
+                className="shrink-0 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
+              >
+                Open reports
+              </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <div className="grid min-w-[680px] grid-cols-7 gap-3">
-                {trendRows.map((row) => {
-                  const plannedHeight = Math.max(
-                    Math.round((row.planned / trendMaxPlanned) * 120),
-                    row.planned > 0 ? 10 : 4,
-                  );
-                  const servedHeight = Math.max(
-                    Math.round((row.served / trendMaxPlanned) * 120),
-                    row.served > 0 ? 8 : 2,
-                  );
-                  return (
-                    <article
-                      key={row.dateKey}
-                      className="rounded-xl bg-white p-3 shadow-[0px_1px_2px_rgba(0,0,0,0.05)]"
-                    >
-                      <p className="text-[11px] font-semibold text-zinc-500">
-                        {row.label}
-                      </p>
-                      <div className="mt-3 flex h-[126px] items-end gap-2">
-                        <div className="flex w-6 items-end rounded bg-zinc-100">
-                          <div
-                            className="w-full rounded bg-zinc-400"
-                            style={{ height: `${plannedHeight}px` }}
-                            title={`Planned: ${row.planned}`}
-                          />
-                        </div>
-                        <div className="flex w-6 items-end rounded bg-green-100">
-                          <div
-                            className="w-full rounded bg-green-500"
-                            style={{ height: `${servedHeight}px` }}
-                            title={`Served: ${row.served}`}
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-3 space-y-1 text-[11px] font-medium">
-                        <p className="text-zinc-600">Planned: {row.planned}</p>
-                        <p className="text-green-700">Served: {row.served}</p>
-                        <p className="text-zinc-700">Rate: {row.completion}%</p>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
+            {weekNoShowError && (
+              <p className="mb-4 text-xs font-medium text-amber-700">
+                {weekNoShowError}
+              </p>
+            )}
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-0 motion-reduce:animate-none">
+                <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
+                  Sessions
+                </p>
+                <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
+                  {kpiSessions}
+                </p>
+                <p className="mt-2 text-xs font-medium text-zinc-500">
+                  {kpiCompleted} completed
+                  {weeklyKpis.completedPct != null
+                    ? ` · ${kpiCompletedPct}%`
+                    : ''}
+                </p>
+              </article>
+
+              <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[55ms] motion-reduce:animate-none">
+                <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
+                  Planned headcount
+                </p>
+                <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
+                  {kpiPlanned}
+                </p>
+                <p className="mt-2 text-xs font-medium text-zinc-500">
+                  Sum across sessions
+                </p>
+              </article>
+
+              <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[110ms] motion-reduce:animate-none">
+                <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
+                  Recorded served
+                </p>
+                <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-[#14532d] tabular-nums">
+                  {kpiServed}
+                </p>
+                <p className="mt-2 text-xs font-medium text-zinc-500">
+                  From session &quot;actual served&quot; field
+                </p>
+              </article>
+
+              <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[165ms] motion-reduce:animate-none">
+                <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
+                  Served vs planned
+                </p>
+                <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
+                  {weeklyKpis.serveRatePct != null ? `${kpiServeRate}%` : '—'}
+                </p>
+                <p className="mt-2 text-xs font-medium text-zinc-500">
+                  Aggregate for the week
+                </p>
+              </article>
+
+              <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[220ms] motion-reduce:animate-none">
+                <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
+                  No-show records
+                </p>
+                <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
+                  {weekNoShowCount === null ? '…' : kpiNoShow}
+                </p>
+                <p className="mt-2 text-xs font-medium text-zinc-500">
+                  Same date range as above
+                </p>
+              </article>
             </div>
           </section>
 
@@ -416,6 +545,7 @@ export default function MealDistributionDashboard() {
                   <thead>
                     <tr className="text-left text-xs font-medium text-zinc-500">
                       <th className="px-6 pb-2">Meal Type</th>
+                      <th className="px-2 pb-2">Menu</th>
                       <th className="px-2 pb-2">Planned</th>
                       <th className="px-2 pb-2">Served</th>
                       <th className="px-2 pb-2 text-center">Status</th>
@@ -426,7 +556,7 @@ export default function MealDistributionDashboard() {
                     {normalizedTodaySessions.length === 0 && (
                       <tr className="rounded-[12px] bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)]">
                         <td
-                          colSpan={5}
+                          colSpan={6}
                           className="rounded-[12px] px-6 py-6 text-center text-sm font-medium text-zinc-500"
                         >
                           No meal sessions for today yet.
@@ -440,6 +570,15 @@ export default function MealDistributionDashboard() {
                       >
                         <td className="rounded-l-[12px] px-6 py-4 text-xs font-medium text-zinc-800">
                           {row.mealType}
+                        </td>
+                        <td className="max-w-[160px] px-2 py-4">
+                          {row.recipeName ? (
+                            <span className="truncate text-xs font-medium text-zinc-700">
+                              {row.recipeName}
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-zinc-400">—</span>
+                          )}
                         </td>
                         <td className="px-2 py-4 text-xs font-medium text-zinc-800">
                           {row.planned}
