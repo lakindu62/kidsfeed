@@ -26,7 +26,7 @@ class CreateMealPlanUseCase {
       weekStartDate: mealPlanData.weekStartDate,
       weekEndDate: mealPlanData.weekEndDate,
       meals: meals,
-      status: 'planned',
+      status: mealPlanData.status || 'planned',
       createdBy: mealPlanData.createdBy,
       inventoryChecked: false,
     });

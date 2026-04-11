@@ -22,7 +22,19 @@ class MealPlanController {
   /** POST /api/meal-plans */
   async createMealPlan(req, res, next) {
     try {
-      const mealPlanRequest = new CreateMealPlanRequest(req.body);
+      const createdBy = req.body.createdBy;
+
+      if (!createdBy || String(createdBy).trim().length === 0) {
+        return res.status(401).json({
+          success: false,
+          message: 'createdBy is required',
+        });
+      }
+
+      const mealPlanRequest = new CreateMealPlanRequest({
+        ...req.body,
+        createdBy: String(createdBy).trim(),
+      });
 
       const validationErrors = mealPlanRequest.validate();
       if (validationErrors.length > 0) {

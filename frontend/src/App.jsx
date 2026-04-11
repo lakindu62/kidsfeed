@@ -16,6 +16,14 @@ import {
   MenuManagementRoute,
   menuManagementPath,
 } from './features/menu-management';
+import {
+  MealPlanDetailsRoute,
+  MealPlanningNewRoute,
+  MealPlanningRoute,
+  mealPlanningDetailsPath,
+  mealPlanningNewPath,
+  mealPlanningPath,
+} from './features/meal-planning';
 import AuthRedirectPage from './pages/AuthRedirectPage';
 import Home from './pages/Home';
 import RolePendingAssignment from './pages/RolePendingAssignment';
@@ -109,8 +117,43 @@ function App() {
             element={<MenuManagementRecipeDetailsRoute />}
           />
           <Route path="menus" element={<MenuManagementRoute />} />
-          <Route path="calendar" element={<MenuManagementRoute />} />
         </Route>
+        <Route
+          path={mealPlanningPath}
+          element={
+            <RequireAuth>
+              <RequireRole
+                allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.MENU_MANAGER]}
+              >
+                <MealPlanningRoute />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path={mealPlanningDetailsPath}
+          element={
+            <RequireAuth>
+              <RequireRole
+                allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.MENU_MANAGER]}
+              >
+                <MealPlanDetailsRoute />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path={mealPlanningNewPath}
+          element={
+            <RequireAuth>
+              <RequireRole
+                allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.MENU_MANAGER]}
+              >
+                <MealPlanningNewRoute />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
       </Routes>
     </>
   );
