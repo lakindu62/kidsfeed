@@ -4,14 +4,9 @@ import RequireAuth from './components/common/guards/RequireAuth';
 import RequireRole from './components/common/guards/RequireRole';
 import { InventoryRoute, inventoryPath } from './features/inventory';
 import {
-  MealAttendanceRoute,
-  MealDistributionDashboardRoute,
-  MealDistributionLayoutRoute,
-  MealNoShowAlertsRoute,
-  MealReportsRoute,
-  MealSessionsRoute,
-  MealStudentHistoryRoute,
+  MealDistributionLayout,
   mealDistributionPath,
+  mealDistributionRoutes,
 } from './features/meal-distribution';
 import {
   MenuManagementNewRecipeRoute,
@@ -39,6 +34,7 @@ function ScrollToTop() {
 
 function App() {
   return (
+
     <>
       <ScrollToTop />
       <Routes>
@@ -62,29 +58,24 @@ function App() {
             </RequireAuth>
           }
         />
-        <Route
-          path={mealDistributionPath}
-          element={
-            <RequireAuth>
-              <RequireRole
-                allowedRoles={[
-                  USER_ROLES.ADMIN,
-                  USER_ROLES.SCHOOL_STAFF,
-                  USER_ROLES.SCHOOL_ADMIN,
-                ]}
-              >
-                <MealDistributionLayoutRoute />
-              </RequireRole>
-            </RequireAuth>
-          }
-        >
-          <Route index element={<MealDistributionDashboardRoute />} />
-          <Route path="sessions" element={<MealSessionsRoute />} />
-          <Route path="attendance" element={<MealAttendanceRoute />} />
-          <Route path="no-show-alerts" element={<MealNoShowAlertsRoute />} />
-          <Route path="student-history" element={<MealStudentHistoryRoute />} />
-          <Route path="reports" element={<MealReportsRoute />} />
-        </Route>
+         <Route
+        path={mealDistributionPath}
+        element={
+          <RequireAuth>
+            <RequireRole
+              allowedRoles={[
+                USER_ROLES.ADMIN,
+                USER_ROLES.SCHOOL_STAFF,
+                USER_ROLES.SCHOOL_ADMIN,
+              ]}
+            >
+              <MealDistributionLayout />
+            </RequireRole>
+          </RequireAuth>
+        }
+      >
+        {mealDistributionRoutes()}
+      </Route>
         <Route
           path={menuManagementPath}
           element={
@@ -116,6 +107,7 @@ function App() {
         </Route>
       </Routes>
     </>
+
   );
 }
 

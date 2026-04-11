@@ -13,3 +13,9 @@ export const mealPrimaryButtonCompactClass = cn(
   mealPrimaryButtonClass,
   'h-9 min-h-9 rounded-lg px-4 py-2 text-xs leading-tight shadow-sm hover:translate-y-0',
 );
+
+/** Active half of Manual / QR segmented control — same fill as primary CTAs. */
+export const mealPrimarySegmentActiveClass = cn(
+  'bg-gradient-to-br from-[#116e20] to-[#006117] text-white shadow-[0px_6px_16px_-6px_rgba(0,97,23,0.45)]',
+  'no-underline decoration-transparent',
+);

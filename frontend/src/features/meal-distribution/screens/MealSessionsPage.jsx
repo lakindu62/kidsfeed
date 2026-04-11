@@ -14,7 +14,10 @@ import {
   formatMealDistributionSchoolSubtitle,
   useMealDistributionSchool,
 } from '../hooks';
-import '../styles/meal-distribution.css';
+import {
+  mealDistributionDateInputOverlayClassName,
+  mealDistributionRootClassName,
+} from '../utils/meal-distribution-layout-classes';
 
 function formatMealType(mealType) {
   if (!mealType) return '-';
@@ -219,7 +222,7 @@ export default function MealSessionsPage() {
   }, [searchParams, openCreateModal]);
 
   return (
-    <div className="meal-distribution-root min-h-screen bg-[#f6f6f6] text-zinc-900">
+    <div className={mealDistributionRootClassName}>
       <div className="mx-auto flex w-full max-w-[1536px]">
         <FeatureSidebar
           schoolName={schoolName}
@@ -261,7 +264,7 @@ export default function MealSessionsPage() {
                       setWeekStartDate(startDate);
                       setWeekEndDate(addDaysToDateInputValue(startDate, 7));
                     }}
-                    className="md-date-input absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    className={mealDistributionDateInputOverlayClassName}
                     aria-label="Week start date"
                   />
                 </button>
@@ -278,7 +281,7 @@ export default function MealSessionsPage() {
                     type="date"
                     value={weekEndDate}
                     onChange={(event) => setWeekEndDate(event.target.value)}
-                    className="md-date-input absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    className={mealDistributionDateInputOverlayClassName}
                     aria-label="Week end date"
                   />
                 </button>
@@ -369,6 +372,7 @@ export default function MealSessionsPage() {
                   <tr className="text-left text-xs font-medium text-zinc-500">
                     <th className="px-6 pb-2">Meal Type</th>
                     <th className="px-2 pb-2">Date</th>
+                    <th className="px-2 pb-2">Menu</th>
                     <th className="px-2 pb-2">Planned</th>
                     <th className="px-2 pb-2">Served</th>
                     <th className="px-2 pb-2">Wastage</th>
@@ -388,6 +392,29 @@ export default function MealSessionsPage() {
                         {item.date
                           ? new Date(item.date).toLocaleDateString()
                           : '-'}
+                      </td>
+                      <td className="max-w-[200px] px-2 py-4">
+                        {item.recipeName ? (
+                          <div>
+                            <p className="truncate text-xs font-semibold text-zinc-800">
+                              {item.recipeName}
+                            </p>
+                            {item.recipeDescription && (
+                              <p className="mt-0.5 truncate text-[11px] text-zinc-500">
+                                {item.recipeDescription}
+                              </p>
+                            )}
+                            {item.mealNotes && (
+                              <p className="mt-0.5 truncate text-[11px] text-zinc-400 italic">
+                                {item.mealNotes}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-zinc-400">
+                            No menu assigned
+                          </span>
+                        )}
                       </td>
                       <td className="px-2 py-4 text-xs font-medium text-zinc-800">
                         {item.plannedHeadcount ?? 0}

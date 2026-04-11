@@ -11,7 +11,7 @@ import {
   formatMealDistributionSchoolSubtitle,
   useMealDistributionSchool,
 } from '../hooks';
-import '../styles/meal-distribution.css';
+import { mealDistributionRootClassName } from '../utils/meal-distribution-layout-classes';
 import { mealPrimaryButtonClass } from '../utils/meal-primary-button-classes';
 
 function shiftDateIso(isoDate, days) {
@@ -112,7 +112,7 @@ export default function MealReportsPage() {
   };
 
   return (
-    <div className="meal-distribution-root min-h-screen bg-[#f6f6f6] text-zinc-900">
+    <div className={mealDistributionRootClassName}>
       <div className="mx-auto flex w-full max-w-[1536px]">
         <FeatureSidebar
           schoolName={schoolName}

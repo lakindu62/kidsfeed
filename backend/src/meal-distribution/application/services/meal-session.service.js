@@ -14,6 +14,20 @@ export class MealSessionService {
     this.completionService = deps.completionService ?? null;
     this.mealGuardianNotificationRepository =
       deps.mealGuardianNotificationRepository ?? null;
+    this.mealPlanLookupService = deps.mealPlanLookupService ?? null;
+  }
+
+  async _lookupMealDescription(session) {
+    if (!this.mealPlanLookupService) {return undefined;}
+    try {
+      return await this.mealPlanLookupService.getMealDescription(
+        session.schoolId,
+        session.date,
+        session.mealType
+      );
+    } catch {
+      return undefined;
+    }
   }
 
   async createMealSession(dto) {
@@ -79,12 +93,15 @@ export class MealSessionService {
     };
 
     const created = await this.mealSessionRepository.create(data);
-    return toMealSessionResponse(created);
+    const mealDesc = await this._lookupMealDescription(created);
+    return toMealSessionResponse(created, mealDesc);
   }
 
   async getMealSessionById(mealSessionId) {
     const session = await this.mealSessionRepository.findById(mealSessionId);
-    return session ? toMealSessionResponse(session) : null;
+    if (!session) {return null;}
+    const mealDesc = await this._lookupMealDescription(session);
+    return toMealSessionResponse(session, mealDesc);
   }
 
   async listMealSessions(filters = {}) {
@@ -108,7 +125,13 @@ export class MealSessionService {
     }
 
     const sessions = await this.mealSessionRepository.findMany(filter);
-    return sessions.map(toMealSessionResponse);
+    const enriched = await Promise.all(
+      sessions.map(async (s) => {
+        const mealDesc = await this._lookupMealDescription(s);
+        return toMealSessionResponse(s, mealDesc);
+      })
+    );
+    return enriched;
   }
 
   async updateMealSession(mealSessionId, dto) {
@@ -173,7 +196,8 @@ export class MealSessionService {
       await this.completionService.finalizeOnSessionCompleted(updated);
     }
 
-    return toMealSessionResponse(updated);
+    const mealDesc = await this._lookupMealDescription(updated);
+    return toMealSessionResponse(updated, mealDesc);
   }
 
   async deleteMealSession(mealSessionId) {

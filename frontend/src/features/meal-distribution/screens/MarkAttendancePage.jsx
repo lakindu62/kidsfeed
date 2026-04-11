@@ -19,10 +19,11 @@ import {
   formatMealDistributionSchoolSubtitle,
   useMealDistributionSchool,
 } from '../hooks';
-import '../styles/meal-distribution.css';
+import { mealDistributionRootClassName } from '../utils/meal-distribution-layout-classes';
 import {
   mealPrimaryButtonClass,
   mealPrimaryButtonCompactClass,
+  mealPrimarySegmentActiveClass,
 } from '../utils/meal-primary-button-classes';
 
 function formatMealType(mealType) {
@@ -600,7 +601,7 @@ export default function MarkAttendancePage() {
   }, [sessionRosterRows]);
 
   return (
-    <div className="meal-distribution-root min-h-screen bg-[#f6f6f6] text-zinc-900">
+    <div className={mealDistributionRootClassName}>
       <div className="mx-auto flex w-full max-w-[1536px]">
         <FeatureSidebar
           schoolName={schoolName}
@@ -629,7 +630,9 @@ export default function MarkAttendancePage() {
                   {todaysSessions.map((session) => (
                     <option key={session.id} value={session.id}>
                       {new Date(session.date).toLocaleDateString()} -{' '}
-                      {formatMealType(session.mealType)} ({session.status})
+                      {formatMealType(session.mealType)}
+                      {session.recipeName ? ` · ${session.recipeName}` : ''} (
+                      {session.status})
                     </option>
                   ))}
                 </select>
@@ -637,6 +640,23 @@ export default function MarkAttendancePage() {
                   <p className="mt-2 text-xs font-medium text-amber-700">
                     No meal sessions found for today.
                   </p>
+                )}
+                {selectedSession?.recipeName && (
+                  <div className="mt-2 rounded-lg border border-green-100 bg-green-50 px-3 py-2">
+                    <p className="text-xs font-semibold text-green-800">
+                      {selectedSession.recipeName}
+                    </p>
+                    {selectedSession.recipeDescription && (
+                      <p className="mt-0.5 text-[11px] text-green-700">
+                        {selectedSession.recipeDescription}
+                      </p>
+                    )}
+                    {selectedSession.mealNotes && (
+                      <p className="mt-0.5 text-[11px] text-green-600 italic">
+                        {selectedSession.mealNotes}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
               <div className="flex items-start md:pt-6">
@@ -658,39 +678,45 @@ export default function MarkAttendancePage() {
             </div>
 
             <div className="mt-6">
-              <div className="mb-4 inline-flex rounded-xl bg-white p-1 shadow-sm">
-                <div className="relative grid h-9 w-[220px] grid-cols-2 items-center">
-                  <span
-                    className={[
-                      'absolute top-0 left-0 z-0 h-9 w-1/2 rounded-lg bg-[#116e20] transition-transform duration-300 ease-out',
-                      attendanceMode === 'qr'
-                        ? 'translate-x-full'
-                        : 'translate-x-0',
-                    ].join(' ')}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setAttendanceMode('manual')}
-                    className={[
-                      'relative z-10 h-9 rounded-lg text-xs font-semibold transition-colors',
-                      attendanceMode === 'manual'
-                        ? 'text-white'
-                        : 'text-zinc-600',
-                    ].join(' ')}
-                  >
-                    Manual
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAttendanceMode('qr')}
-                    className={[
-                      'relative z-10 h-9 rounded-lg text-xs font-semibold transition-colors',
-                      attendanceMode === 'qr' ? 'text-white' : 'text-zinc-600',
-                    ].join(' ')}
-                  >
-                    QR Code
-                  </button>
-                </div>
+              <div
+                className="mb-4 inline-flex min-w-[220px] items-stretch rounded-xl bg-zinc-100 p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] ring-1 ring-zinc-200/90"
+                role="tablist"
+                aria-label="Attendance entry mode"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={attendanceMode === 'manual'}
+                  onClick={() => setAttendanceMode('manual')}
+                  className={cn(
+                    'box-border inline-flex min-h-9 flex-1 items-center justify-center rounded-lg border-0 px-3 py-0',
+                    'text-center text-xs leading-none font-semibold tracking-normal no-underline antialiased',
+                    'transition-all duration-200',
+                    'focus-visible:ring-2 focus-visible:ring-[#116e20]/50 focus-visible:ring-offset-2 focus-visible:outline-none',
+                    attendanceMode === 'manual'
+                      ? mealPrimarySegmentActiveClass
+                      : 'bg-transparent text-zinc-600 hover:bg-white/90 hover:text-zinc-800',
+                  )}
+                >
+                  Manual
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={attendanceMode === 'qr'}
+                  onClick={() => setAttendanceMode('qr')}
+                  className={cn(
+                    'box-border inline-flex min-h-9 flex-1 items-center justify-center rounded-lg border-0 px-3 py-0',
+                    'text-center text-xs leading-none font-semibold tracking-normal no-underline antialiased',
+                    'transition-all duration-200',
+                    'focus-visible:ring-2 focus-visible:ring-[#116e20]/50 focus-visible:ring-offset-2 focus-visible:outline-none',
+                    attendanceMode === 'qr'
+                      ? mealPrimarySegmentActiveClass
+                      : 'bg-transparent text-zinc-600 hover:bg-white/90 hover:text-zinc-800',
+                  )}
+                >
+                  QR Code
+                </button>
               </div>
 
               {attendanceMode === 'manual' && (
@@ -825,9 +851,8 @@ export default function MarkAttendancePage() {
                           isSelectedSessionCompleted
                         }
                         className={cn(
-                          'inline-flex h-9 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-700',
-                          'hover:bg-zinc-50 disabled:pointer-events-none disabled:opacity-60',
-                          'focus-visible:ring-2 focus-visible:ring-zinc-300 focus-visible:ring-offset-1 focus-visible:outline-none',
+                          mealPrimaryButtonCompactClass,
+                          'min-w-[140px]',
                         )}
                       >
                         {isCameraActive ? 'Stop Camera' : 'Start Camera'}
@@ -838,7 +863,7 @@ export default function MarkAttendancePage() {
                           setSelectedCameraId(event.target.value)
                         }
                         aria-label="Camera device"
-                        className="h-9 rounded-lg border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-700 outline-none"
+                        className="h-9 min-h-9 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-700 shadow-sm outline-none focus-visible:border-green-600 focus-visible:ring-2 focus-visible:ring-[#116e20]/25"
                       >
                         <option value="">Default Camera</option>
                         {cameraDevices.map((device) => (
@@ -886,7 +911,12 @@ export default function MarkAttendancePage() {
                         isBusy ||
                         isSelectedSessionCompleted
                       }
-                      className="block w-full text-xs text-zinc-600 file:mr-3 file:rounded-lg file:border file:border-zinc-200 file:bg-white file:px-4 file:py-2.5 file:text-xs file:font-semibold file:text-zinc-800 hover:file:border-zinc-300 hover:file:bg-zinc-50 disabled:opacity-60"
+                      className={cn(
+                        'block w-full text-xs text-zinc-600 disabled:opacity-60',
+                        'file:mr-3 file:cursor-pointer file:rounded-xl file:border-0 file:bg-gradient-to-br file:from-[#116e20] file:to-[#006117] file:px-6 file:py-2.5 file:text-xs file:font-semibold file:text-white file:shadow-[0px_8px_20px_-8px_rgba(0,97,23,0.45)] file:transition-all',
+                        'hover:file:-translate-y-px hover:file:shadow-[0px_12px_24px_-8px_rgba(0,97,23,0.55)]',
+                        'file:focus-visible:ring-2 file:focus-visible:ring-[#116e20]/50 file:focus-visible:ring-offset-2 file:focus-visible:outline-none',
+                      )}
                     />
                   </div>
                 </div>

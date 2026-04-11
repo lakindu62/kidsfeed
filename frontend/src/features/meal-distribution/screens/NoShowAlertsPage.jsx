@@ -10,7 +10,10 @@ import {
   formatMealDistributionSchoolSubtitle,
   useMealDistributionSchool,
 } from '../hooks';
-import '../styles/meal-distribution.css';
+import {
+  mealDistributionDateInputOverlayClassName,
+  mealDistributionRootClassName,
+} from '../utils/meal-distribution-layout-classes';
 
 function formatMealType(mealType) {
   if (!mealType) return '-';
@@ -114,7 +117,7 @@ export default function NoShowAlertsPage() {
   }, [rows, query]);
 
   return (
-    <div className="meal-distribution-root min-h-screen bg-[#f6f6f6] text-zinc-900">
+    <div className={mealDistributionRootClassName}>
       <div className="mx-auto flex w-full max-w-[1536px]">
         <FeatureSidebar
           schoolName={schoolName}
@@ -156,7 +159,7 @@ export default function NoShowAlertsPage() {
                       setWeekStartDate(startDate);
                       setWeekEndDate(addDaysToDateInputValue(startDate, 7));
                     }}
-                    className="md-date-input absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    className={mealDistributionDateInputOverlayClassName}
                     aria-label="Range start date"
                   />
                 </button>
@@ -173,7 +176,7 @@ export default function NoShowAlertsPage() {
                     type="date"
                     value={weekEndDate}
                     onChange={(event) => setWeekEndDate(event.target.value)}
-                    className="md-date-input absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    className={mealDistributionDateInputOverlayClassName}
                     aria-label="Range end date"
                   />
                 </button>

@@ -10,7 +10,7 @@ import {
   formatMealDistributionSchoolSubtitle,
   useMealDistributionSchool,
 } from '../hooks';
-import '../styles/meal-distribution.css';
+import { mealDistributionRootClassName } from '../utils/meal-distribution-layout-classes';
 
 function formatMealType(mealType) {
   if (!mealType) return '-';
@@ -128,7 +128,7 @@ export default function StudentMealHistoryPage() {
   }, [filteredRows]);
 
   return (
-    <div className="meal-distribution-root min-h-screen bg-[#f6f6f6] text-zinc-900">
+    <div className={mealDistributionRootClassName}>
       <div className="mx-auto flex w-full max-w-[1536px]">
         <FeatureSidebar
           schoolName={schoolName}
