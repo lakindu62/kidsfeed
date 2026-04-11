@@ -65,7 +65,7 @@ import {
 function BatchField({ label, required, children, className }) {
   return (
     <label className={cn('flex flex-col gap-2', className)}>
-      <span className="text-sm font-semibold text-[#202421]">
+      <span className="typography-body-sm text-[#202421]">
         {label}
         {required ? <span className="ml-1 text-[#ba1a1a]">*</span> : null}
       </span>
@@ -338,10 +338,10 @@ function InventoryItemDetailsPage() {
           <CardContent className="space-y-6 p-6">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-1">
-                <p className="text-xs font-semibold tracking-[0.2em] text-[#005412] uppercase">
+                <p className="typography-body-sm tracking-[0.2em] text-[#005412] uppercase">
                   Item summary
                 </p>
-                <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-[#181c1b]">
+                <h2 className="typography-h1 text-[#181c1b]">
                   Overview and metadata
                 </h2>
               </div>
@@ -349,20 +349,20 @@ function InventoryItemDetailsPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   className={cn(
-                    'rounded-full px-3 py-1 text-[10px] font-bold tracking-widest uppercase hover:bg-inherit',
+                    'typography-body-sm rounded-full px-3 py-1 tracking-widest uppercase hover:bg-inherit',
                     statusTone(item?.status),
                   )}
                 >
                   {formatStatusLabel(item?.status)}
                 </Badge>
-                <Badge className="rounded-full bg-[#f3f4f0] px-3 py-1 text-[10px] font-bold tracking-widest text-[#4e544c] uppercase hover:bg-[#f3f4f0]">
+                <Badge className="typography-body-sm rounded-full bg-[#f3f4f0] px-3 py-1 tracking-widest text-[#4e544c] uppercase hover:bg-[#f3f4f0]">
                   {formatCategoryLabel(item?.category)}
                 </Badge>
                 {item?.expiryStatus !== undefined &&
                 item?.expiryStatus !== null ? (
                   <Badge
                     className={cn(
-                      'rounded-full px-3 py-1 text-[10px] font-bold tracking-widest uppercase hover:bg-inherit',
+                      'typography-body-sm rounded-full px-3 py-1 tracking-widest uppercase hover:bg-inherit',
                       getExpiryStatusTone(item?.expiryStatus),
                     )}
                   >
@@ -389,7 +389,7 @@ function InventoryItemDetailsPage() {
 
                 <Button
                   type="button"
-                  className="rounded-full bg-[#005412] text-white hover:bg-[#00460f]"
+                  className="typography-body-sm rounded-full bg-[#005412] text-white hover:bg-[#00460f]"
                   onClick={openBatchSheet}
                 >
                   <Plus className="mr-2 h-4 w-4" />
@@ -411,10 +411,10 @@ function InventoryItemDetailsPage() {
                         <TableBody>
                           {overviewRows.map((row) => (
                             <TableRow key={row.label}>
-                              <TableCell className="font-semibold text-[#40493d]">
+                              <TableCell className="typography-body-sm text-[#40493d]">
                                 {row.label}
                               </TableCell>
-                              <TableCell className="text-[#181c1b]">
+                              <TableCell className="typography-body text-[#181c1b]">
                                 {row.value}
                               </TableCell>
                             </TableRow>
@@ -427,21 +427,21 @@ function InventoryItemDetailsPage() {
                   <Card className="rounded-[24px] border border-[#e6e9e5] bg-[#fbfcfb]">
                     <CardContent className="space-y-4 p-5">
                       <div className="space-y-1">
-                        <p className="text-xs font-semibold tracking-[0.2em] text-[#005412] uppercase">
+                        <p className="typography-body-sm tracking-[0.2em] text-[#005412] uppercase">
                           Batch summary
                         </p>
-                        <h3 className="text-lg font-bold text-[#181c1b]">
+                        <h3 className="typography-body-lg text-[#181c1b]">
                           Live stock snapshot
                         </h3>
                       </div>
 
-                      <div className="space-y-3 text-sm text-[#40493d]">
+                      <div className="typography-body space-y-3 text-[#40493d]">
                         <div className="flex items-center justify-between gap-3">
                           <span className="inline-flex items-center gap-2">
                             <ClipboardList className="h-4 w-4 text-[#005412]" />
                             Batches recorded
                           </span>
-                          <span className="font-semibold text-[#181c1b]">
+                          <span className="typography-body-sm text-[#181c1b]">
                             {batches.length}
                           </span>
                         </div>
@@ -450,7 +450,7 @@ function InventoryItemDetailsPage() {
                             <Package className="h-4 w-4 text-[#005412]" />
                             Quantity across batches
                           </span>
-                          <span className="font-semibold text-[#181c1b]">
+                          <span className="typography-body-sm text-[#181c1b]">
                             {formatQuantityLabel(
                               totalBatchQuantity,
                               item?.unit,
@@ -462,7 +462,7 @@ function InventoryItemDetailsPage() {
                             <CalendarClock className="h-4 w-4 text-[#005412]" />
                             Latest received batch
                           </span>
-                          <span className="font-semibold text-[#181c1b]">
+                          <span className="typography-body-sm text-[#181c1b]">
                             {batches[0]?.receivedAt
                               ? formatDate(batches[0].receivedAt)
                               : 'Not set'}
@@ -494,16 +494,16 @@ function InventoryItemDetailsPage() {
                         <CardContent className="space-y-4 p-5">
                           <div className="flex items-start justify-between gap-3">
                             <div>
-                              <p className="text-xs font-semibold tracking-[0.2em] text-[#005412] uppercase">
+                              <p className="typography-body-sm tracking-[0.2em] text-[#005412] uppercase">
                                 Batch {index + 1}
                               </p>
-                              <h3 className="mt-1 text-lg font-bold text-[#181c1b]">
+                              <h3 className="typography-body-lg mt-1 text-[#181c1b]">
                                 {batchTitle(batch, index)}
                               </h3>
                             </div>
                             <Badge
                               className={cn(
-                                'rounded-full px-3 py-1 text-[10px] font-bold tracking-widest uppercase hover:bg-inherit',
+                                'typography-body-sm rounded-full px-3 py-1 tracking-widest uppercase hover:bg-inherit',
                                 statusTone(batch?.status || item?.status),
                               )}
                             >
@@ -511,13 +511,13 @@ function InventoryItemDetailsPage() {
                             </Badge>
                           </div>
 
-                          <div className="grid gap-3 text-sm text-[#40493d]">
+                          <div className="typography-body grid gap-3 text-[#40493d]">
                             <div className="flex items-center justify-between gap-3">
                               <span className="inline-flex items-center gap-2">
                                 <Package className="h-4 w-4 text-[#005412]" />
                                 Quantity
                               </span>
-                              <span className="font-semibold text-[#181c1b]">
+                              <span className="typography-body-sm text-[#181c1b]">
                                 {formatQuantityLabel(
                                   batch?.quantity,
                                   item?.unit,
@@ -529,7 +529,7 @@ function InventoryItemDetailsPage() {
                                 <Truck className="h-4 w-4 text-[#005412]" />
                                 Supplier
                               </span>
-                              <span className="font-semibold text-[#181c1b]">
+                              <span className="typography-body-sm text-[#181c1b]">
                                 {batch?.supplier || 'Not set'}
                               </span>
                             </div>
@@ -538,7 +538,7 @@ function InventoryItemDetailsPage() {
                                 <Weight className="h-4 w-4 text-[#005412]" />
                                 Unit price
                               </span>
-                              <span className="font-semibold text-[#181c1b]">
+                              <span className="typography-body-sm text-[#181c1b]">
                                 {formatCurrency(batch?.unitPrice)}
                               </span>
                             </div>
@@ -547,7 +547,7 @@ function InventoryItemDetailsPage() {
                                 <MapPin className="h-4 w-4 text-[#005412]" />
                                 Location
                               </span>
-                              <span className="font-semibold text-[#181c1b]">
+                              <span className="typography-body-sm text-[#181c1b]">
                                 {batch?.location || 'Not set'}
                               </span>
                             </div>
@@ -556,7 +556,7 @@ function InventoryItemDetailsPage() {
                                 <CalendarClock className="h-4 w-4 text-[#005412]" />
                                 Expiry date
                               </span>
-                              <span className="font-semibold text-[#181c1b]">
+                              <span className="typography-body-sm text-[#181c1b]">
                                 {formatDate(batch?.expiryDate)}
                               </span>
                             </div>
@@ -564,7 +564,7 @@ function InventoryItemDetailsPage() {
 
                           <Separator />
 
-                          <p className="text-sm leading-6 text-[#5f665f]">
+                          <p className="typography-body text-[#5f665f]">
                             {batch?.batchNote || 'No batch note recorded.'}
                           </p>
                         </CardContent>
@@ -581,8 +581,8 @@ function InventoryItemDetailsPage() {
       <Sheet open={isAddBatchOpen} onOpenChange={setIsAddBatchOpen}>
         <SheetContent side="right" className="sm:max-w-xl">
           <SheetHeader>
-            <SheetTitle>Add batch</SheetTitle>
-            <SheetDescription>
+            <SheetTitle className="typography-h2">Add batch</SheetTitle>
+            <SheetDescription className="typography-body">
               Create a new stock batch for this inventory item. Status and
               expiry state stay server-managed.
             </SheetDescription>
@@ -613,7 +613,7 @@ function InventoryItemDetailsPage() {
                   }
                   compact
                   placeholder="Pick a date"
-                  buttonClassName="h-10 rounded-[12px] px-3 text-sm"
+                  buttonClassName="h-10 rounded-[12px] px-3 typography-body-sm"
                 />
               </BatchField>
             </div>
@@ -666,7 +666,7 @@ function InventoryItemDetailsPage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button
                   type="submit"
-                  className="h-11 flex-1 rounded-full bg-[#005412] text-white hover:bg-[#00460f]"
+                  className="typography-body-sm h-11 flex-1 rounded-full bg-[#005412] text-white hover:bg-[#00460f]"
                   disabled={isSavingBatch}
                 >
                   {isSavingBatch ? 'Saving...' : 'Save batch'}
@@ -674,7 +674,7 @@ function InventoryItemDetailsPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-11 flex-1 rounded-full"
+                  className="typography-body-sm h-11 flex-1 rounded-full"
                   onClick={() => setIsAddBatchOpen(false)}
                   disabled={isSavingBatch}
                 >

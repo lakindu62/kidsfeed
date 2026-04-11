@@ -66,14 +66,14 @@ function InventoryGridCard({ item, onOpen }) {
 
       <CardContent className="space-y-3 p-4">
         <div className="space-y-1">
-          <p className="text-[10px] font-semibold tracking-[0.16em] text-[#005412] uppercase">
+          <p className="typography-body-sm tracking-[0.16em] text-[#005412] uppercase">
             {categoryLabel}
           </p>
-          <h3 className="text-[1.05rem] leading-tight font-extrabold tracking-[-0.02em] text-[#181c1b]">
+          <h3 className="typography-h2 text-[#181c1b]">
             {item?.name || 'Unnamed item'}
           </h3>
           {item?.description ? (
-            <p className="line-clamp-2 text-sm leading-6 text-[#5f665f]">
+            <p className="typography-body line-clamp-2 text-[#5f665f]">
               {item.description}
             </p>
           ) : null}
@@ -81,17 +81,17 @@ function InventoryGridCard({ item, onOpen }) {
 
         <div className="flex flex-wrap gap-2">
           {item?.brand ? (
-            <Badge className="rounded-full bg-[#f3f4f0] px-2.5 py-1 text-[10px] font-bold tracking-widest text-[#4e544c] uppercase hover:bg-[#f3f4f0]">
+            <Badge className="typography-body-sm rounded-full bg-[#f3f4f0] px-2.5 py-1 tracking-widest text-[#4e544c] uppercase hover:bg-[#f3f4f0]">
               {item.brand}
             </Badge>
           ) : null}
           {item?.reorderLevel !== undefined ? (
-            <Badge className="rounded-full bg-[#f3f4f0] px-2.5 py-1 text-[10px] font-bold tracking-widest text-[#4e544c] uppercase hover:bg-[#f3f4f0]">
+            <Badge className="typography-body-sm rounded-full bg-[#f3f4f0] px-2.5 py-1 tracking-widest text-[#4e544c] uppercase hover:bg-[#f3f4f0]">
               Reorder at {item.reorderLevel}
             </Badge>
           ) : null}
           {packageSummary ? (
-            <Badge className="rounded-full bg-[#f3f4f0] px-2.5 py-1 text-[10px] font-bold tracking-widest text-[#4e544c] uppercase hover:bg-[#f3f4f0]">
+            <Badge className="typography-body-sm rounded-full bg-[#f3f4f0] px-2.5 py-1 tracking-widest text-[#4e544c] uppercase hover:bg-[#f3f4f0]">
               {packageSummary}
             </Badge>
           ) : null}
@@ -99,14 +99,14 @@ function InventoryGridCard({ item, onOpen }) {
 
         <div className="flex items-center justify-between border-t border-[#f3f4f0] pt-3">
           <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#40493d]">
+            <div className="typography-body flex items-center gap-2 text-[#40493d]">
               <span>{formatQuantity(item)}</span>
             </div>
             {item?.expiryStatus !== undefined && item?.expiryStatus !== null ? (
               <div className="flex flex-wrap gap-2">
                 <div
                   className={cn(
-                    'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase',
+                    'typography-body-sm inline-flex items-center gap-1 rounded-full px-2.5 py-1 tracking-widest uppercase',
                     getExpiryStatusTone(item?.expiryStatus),
                   )}
                 >
@@ -119,7 +119,7 @@ function InventoryGridCard({ item, onOpen }) {
           <div className="flex flex-col items-end gap-2">
             <div
               className={cn(
-                'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase',
+                'typography-body-sm inline-flex items-center gap-1 rounded-full px-2.5 py-1 tracking-widest uppercase',
                 getStatusTone(item?.status),
               )}
             >
@@ -282,7 +282,7 @@ function InventoryItemsPage() {
           />
 
           <div className="flex items-center gap-3 self-start lg:self-auto">
-            <p className="text-sm text-[#7b8079]">{countLabel}</p>
+            <p className="typography-body-sm text-[#7b8079]">{countLabel}</p>
           </div>
         </section>
 

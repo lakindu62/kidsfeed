@@ -44,14 +44,14 @@ function Field({ label, required, rightNode, className, ...inputProps }) {
         className ? `flex flex-col gap-2 ${className}` : 'flex flex-col gap-2'
       }
     >
-      <span className="text-sm font-semibold text-[#202421]">
+      <span className="typography-body-sm text-[#202421]">
         {label}
         {required ? <span className="ml-1 text-[#ba1a1a]">*</span> : null}
       </span>
       <div className="flex items-center gap-3">
         <input
           {...inputProps}
-          className="h-11 flex-1 rounded-[14px] border border-[#dfe5dc] bg-white px-4 text-sm text-[#202421] transition-colors outline-none placeholder:text-[#8a9187] focus:border-[#005412] focus:ring-2 focus:ring-[#005412]/10"
+          className="typography-body h-11 flex-1 rounded-[14px] border border-[#dfe5dc] bg-white px-4 text-[#202421] transition-colors outline-none placeholder:text-[#8a9187] focus:border-[#005412] focus:ring-2 focus:ring-[#005412]/10"
         />
         {rightNode ? <div className="shrink-0">{rightNode}</div> : null}
       </div>
@@ -66,13 +66,13 @@ function TextareaField({ label, required, className, ...textareaProps }) {
         className ? `flex flex-col gap-2 ${className}` : 'flex flex-col gap-2'
       }
     >
-      <span className="text-sm font-semibold text-[#202421]">
+      <span className="typography-body-sm text-[#202421]">
         {label}
         {required ? <span className="ml-1 text-[#ba1a1a]">*</span> : null}
       </span>
       <textarea
         {...textareaProps}
-        className="min-h-28 rounded-[14px] border border-[#dfe5dc] bg-white px-4 py-3 text-sm text-[#202421] transition-colors outline-none placeholder:text-[#8a9187] focus:border-[#005412] focus:ring-2 focus:ring-[#005412]/10"
+        className="typography-body min-h-28 rounded-[14px] border border-[#dfe5dc] bg-white px-4 py-3 text-[#202421] transition-colors outline-none placeholder:text-[#8a9187] focus:border-[#005412] focus:ring-2 focus:ring-[#005412]/10"
       />
     </label>
   );
@@ -96,7 +96,7 @@ function SelectField({ label, required, options, className, ...selectProps }) {
         className ? `flex flex-col gap-2 ${className}` : 'flex flex-col gap-2'
       }
     >
-      <span className="text-sm font-semibold text-[#202421]">
+      <span className="typography-body-sm text-[#202421]">
         {label}
         {required ? <span className="ml-1 text-[#ba1a1a]">*</span> : null}
       </span>
@@ -107,7 +107,7 @@ function SelectField({ label, required, options, className, ...selectProps }) {
         }
         {...restSelectProps}
       >
-        <SelectTrigger className="h-11 w-full rounded-[14px] border border-[#dfe5dc] bg-white px-4 text-sm text-[#202421] transition-colors outline-none focus:border-[#005412] focus:ring-2 focus:ring-[#005412]/10">
+        <SelectTrigger className="typography-body h-11 w-full rounded-[14px] border border-[#dfe5dc] bg-white px-4 text-[#202421] transition-colors outline-none focus:border-[#005412] focus:ring-2 focus:ring-[#005412]/10">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
@@ -142,7 +142,7 @@ function DatePickerField({
         className ? `flex flex-col gap-2 ${className}` : 'flex flex-col gap-2'
       }
     >
-      <span className="text-sm font-semibold text-[#202421]">
+      <span className="typography-body-sm text-[#202421]">
         {label}
         {required ? <span className="ml-1 text-[#ba1a1a]">*</span> : null}
       </span>
@@ -157,7 +157,7 @@ function DatePickerField({
         <Button
           type="button"
           variant="ghost"
-          className="h-8 rounded-full px-2 text-xs font-semibold text-[#40493d]"
+          className="typography-body-sm h-8 rounded-full px-2 text-[#40493d]"
           onClick={onClear}
           disabled={clearDisabled}
         >
@@ -419,13 +419,11 @@ function InventoryNewItemPage() {
             <Card className="rounded-[28px] border border-[#e6e9e5] bg-white shadow-[0px_12px_28px_rgba(47,51,49,0.05)]">
               <CardContent className="space-y-5 p-6">
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold tracking-[0.2em] text-[#005412] uppercase">
+                  <p className="typography-body-sm tracking-[0.2em] text-[#005412] uppercase">
                     Core Details
                   </p>
-                  <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-[#181c1b]">
-                    Item profile
-                  </h2>
-                  <p className="text-sm text-[#646b63]">
+                  <h2 className="typography-h1 text-[#181c1b]">Item profile</h2>
+                  <p className="typography-body text-[#646b63]">
                     These fields describe the inventory item itself. Status and
                     expiry state are derived by the backend.
                   </p>
@@ -483,13 +481,13 @@ function InventoryNewItemPage() {
             <Card className="rounded-[28px] border border-[#e6e9e5] bg-white shadow-[0px_12px_28px_rgba(47,51,49,0.05)]">
               <CardContent className="space-y-5 p-6">
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold tracking-[0.2em] text-[#005412] uppercase">
+                  <p className="typography-body-sm tracking-[0.2em] text-[#005412] uppercase">
                     Dietary & Nutrition
                   </p>
-                  <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-[#181c1b]">
+                  <h2 className="typography-h1 text-[#181c1b]">
                     Product context
                   </h2>
-                  <p className="text-sm text-[#646b63]">
+                  <p className="typography-body text-[#646b63]">
                     These fields help with sourcing, packaging, and food safety
                     checks.
                   </p>
@@ -545,13 +543,13 @@ function InventoryNewItemPage() {
             <Card className="rounded-[28px] border border-[#e6e9e5] bg-white shadow-[0px_12px_28px_rgba(47,51,49,0.05)]">
               <CardContent className="space-y-5 p-6">
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold tracking-[0.2em] text-[#005412] uppercase">
+                  <p className="typography-body-sm tracking-[0.2em] text-[#005412] uppercase">
                     Logistics & Packaging
                   </p>
-                  <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-[#181c1b]">
+                  <h2 className="typography-h1 text-[#181c1b]">
                     Initial batch details
                   </h2>
-                  <p className="text-sm text-[#646b63]">
+                  <p className="typography-body text-[#646b63]">
                     This block creates the first batch together with the item
                     record.
                   </p>
@@ -637,24 +635,24 @@ function InventoryNewItemPage() {
             <Card className="rounded-[28px] border border-[#e6e9e5] bg-white shadow-[0px_12px_28px_rgba(47,51,49,0.05)]">
               <CardContent className="space-y-4 p-6">
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold tracking-[0.2em] text-[#005412] uppercase">
+                  <p className="typography-body-sm tracking-[0.2em] text-[#005412] uppercase">
                     Identification
                   </p>
-                  <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-[#181c1b]">
+                  <h2 className="typography-h1 text-[#181c1b]">
                     Barcode lookup
                   </h2>
                 </div>
 
-                <p className="text-sm text-[#646b63]">
+                <p className="typography-body text-[#646b63]">
                   Check for an existing inventory item first, then use Open Food
                   Facts only when no duplicate is found.
                 </p>
 
-                <div className="rounded-[20px] border border-[#e6e9e5] bg-[#f7faf6] p-4 text-sm text-[#40493d]">
-                  <p className="text-xs font-semibold tracking-[0.16em] text-[#005412] uppercase">
+                <div className="typography-body rounded-[20px] border border-[#e6e9e5] bg-[#f7faf6] p-4 text-[#40493d]">
+                  <p className="typography-body-sm tracking-[0.16em] text-[#005412] uppercase">
                     Current barcode
                   </p>
-                  <p className="mt-1 font-medium break-all text-[#181c1b]">
+                  <p className="typography-body mt-1 break-all text-[#181c1b]">
                     {form.barcode.trim() ||
                       'Enter a barcode in Core Details to begin.'}
                   </p>
@@ -673,12 +671,12 @@ function InventoryNewItemPage() {
 
                 {barcodeDuplicateLookup ? (
                   <Card className="rounded-[20px] border border-[#e6d9b8] bg-[#fff9ec] shadow-none">
-                    <CardContent className="space-y-3 p-4 text-sm text-[#5b4a1d]">
+                    <CardContent className="typography-body space-y-3 p-4 text-[#5b4a1d]">
                       <div className="space-y-1">
-                        <p className="text-xs font-semibold tracking-[0.16em] text-[#8a5b00] uppercase">
+                        <p className="typography-body-sm tracking-[0.16em] text-[#8a5b00] uppercase">
                           Duplicate check
                         </p>
-                        <h3 className="text-lg font-bold text-[#2f2610]">
+                        <h3 className="typography-body-lg text-[#2f2610]">
                           {getDuplicateMatchLabel(
                             barcodeDuplicateLookup.matchType,
                           )}
@@ -694,13 +692,13 @@ function InventoryNewItemPage() {
 
                       {barcodeDuplicateLookup.existingItem ? (
                         <div className="rounded-[16px] border border-[#edd9a8] bg-white p-3 text-[#40493d]">
-                          <p className="text-xs font-semibold tracking-[0.16em] text-[#8a5b00] uppercase">
+                          <p className="typography-body-sm tracking-[0.16em] text-[#8a5b00] uppercase">
                             Existing item
                           </p>
-                          <p className="mt-1 text-base font-bold text-[#181c1b]">
+                          <p className="typography-body-lg mt-1 text-[#181c1b]">
                             {barcodeDuplicateLookup.existingItem.name}
                           </p>
-                          <p className="text-sm">
+                          <p className="typography-body text-[#40493d]">
                             {barcodeDuplicateLookup.existingItem.brand ||
                               'No brand recorded'}
                           </p>
@@ -710,7 +708,7 @@ function InventoryNewItemPage() {
                       {Array.isArray(barcodeDuplicateLookup.candidates) &&
                       barcodeDuplicateLookup.candidates.length > 0 ? (
                         <div className="space-y-2">
-                          <p className="text-xs font-semibold tracking-[0.16em] text-[#8a5b00] uppercase">
+                          <p className="typography-body-sm tracking-[0.16em] text-[#8a5b00] uppercase">
                             Candidate matches
                           </p>
                           <div className="space-y-2">
@@ -724,10 +722,10 @@ function InventoryNewItemPage() {
                                   }
                                   className="rounded-[14px] border border-[#edd9a8] bg-white px-3 py-2"
                                 >
-                                  <p className="font-semibold text-[#181c1b]">
+                                  <p className="typography-body text-[#181c1b]">
                                     {candidate.name || 'Unnamed item'}
                                   </p>
-                                  <p className="text-xs text-[#646b63]">
+                                  <p className="typography-body-sm text-[#646b63]">
                                     {candidate.barcode || 'No barcode'} ·{' '}
                                     {candidate.status || 'Unknown status'}
                                   </p>
@@ -756,13 +754,13 @@ function InventoryNewItemPage() {
                 ) : null}
 
                 {barcodeLookupSummary ? (
-                  <div className="rounded-[20px] border border-[#e6e9e5] bg-[#f7faf6] p-4 text-sm text-[#40493d]">
+                  <div className="typography-body rounded-[20px] border border-[#e6e9e5] bg-[#f7faf6] p-4 text-[#40493d]">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold tracking-[0.16em] text-[#005412] uppercase">
+                        <p className="typography-body-sm tracking-[0.16em] text-[#005412] uppercase">
                           Lookup result
                         </p>
-                        <h3 className="mt-1 text-lg font-bold text-[#181c1b]">
+                        <h3 className="typography-body-lg mt-1 text-[#181c1b]">
                           {barcodeLookupSummary.name || 'Product found'}
                         </h3>
                       </div>
@@ -778,18 +776,18 @@ function InventoryNewItemPage() {
 
                     <div className="mt-3 flex flex-wrap gap-2">
                       {barcodeLookupSummary.brand ? (
-                        <Badge className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold tracking-widest text-[#4e544c] uppercase hover:bg-white">
+                        <Badge className="typography-body-sm rounded-full bg-white px-2.5 py-1 tracking-widest text-[#4e544c] uppercase hover:bg-white">
                           {barcodeLookupSummary.brand}
                         </Badge>
                       ) : null}
                       {barcodeLookupSummary.nutritionalGrade ? (
-                        <Badge className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold tracking-widest text-[#4e544c] uppercase hover:bg-white">
+                        <Badge className="typography-body-sm rounded-full bg-white px-2.5 py-1 tracking-widest text-[#4e544c] uppercase hover:bg-white">
                           Grade{' '}
                           {barcodeLookupSummary.nutritionalGrade.toUpperCase()}
                         </Badge>
                       ) : null}
                       {barcodeLookupSummary.packageType ? (
-                        <Badge className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold tracking-widest text-[#4e544c] uppercase hover:bg-white">
+                        <Badge className="typography-body-sm rounded-full bg-white px-2.5 py-1 tracking-widest text-[#4e544c] uppercase hover:bg-white">
                           {barcodeLookupSummary.packageType}
                         </Badge>
                       ) : null}
@@ -812,19 +810,19 @@ function InventoryNewItemPage() {
             <Card className="rounded-[28px] border border-[#e6e9e5] bg-white shadow-[0px_12px_28px_rgba(47,51,49,0.05)]">
               <CardContent className="space-y-4 p-6">
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold tracking-[0.2em] text-[#005412] uppercase">
+                  <p className="typography-body-sm tracking-[0.2em] text-[#005412] uppercase">
                     Actions
                   </p>
-                  <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-[#181c1b]">
+                  <h2 className="typography-h1 text-[#181c1b]">
                     Save or cancel
                   </h2>
                 </div>
 
-                <p className="text-sm text-[#646b63]">
+                <p className="typography-body text-[#646b63]">
                   This submission creates the item and the first batch.
                 </p>
 
-                <div className="space-y-3 rounded-[20px] border border-[#e6e9e5] bg-[#f7faf6] p-4 text-sm text-[#40493d]">
+                <div className="typography-body space-y-3 rounded-[20px] border border-[#e6e9e5] bg-[#f7faf6] p-4 text-[#40493d]">
                   <div className="flex items-start gap-3">
                     <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[#005412]" />
                     <p>
@@ -844,7 +842,7 @@ function InventoryNewItemPage() {
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <Button
                     type="submit"
-                    className="h-11 flex-1 rounded-full bg-[#005412] px-5 text-white hover:bg-[#00460f]"
+                    className="typography-body-sm h-11 flex-1 rounded-full bg-[#005412] px-5 text-white hover:bg-[#00460f]"
                     disabled={isSaving}
                   >
                     {isSaving ? 'Saving...' : 'Save inventory item'}
@@ -852,7 +850,7 @@ function InventoryNewItemPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-11 flex-1 rounded-full px-5"
+                    className="typography-body-sm h-11 flex-1 rounded-full px-5"
                     onClick={handleReset}
                     disabled={isSaving}
                   >

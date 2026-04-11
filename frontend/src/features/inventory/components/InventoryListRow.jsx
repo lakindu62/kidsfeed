@@ -59,29 +59,29 @@ export default function InventoryListRow({ item, onOpen }) {
         </div>
 
         <div className="min-w-0 space-y-1">
-          <p className="text-[10px] font-semibold tracking-[0.16em] text-[#005412] uppercase">
+          <p className="typography-body-sm tracking-[0.16em] text-[#005412] uppercase">
             {categoryLabel}
           </p>
           <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
-            <h3 className="truncate text-[1.05rem] font-extrabold tracking-[-0.02em] text-[#181c1b]">
+            <h3 className="typography-h2 truncate text-[#181c1b]">
               {item?.name || 'Unnamed item'}
             </h3>
             <span className="hidden h-1 w-1 rounded-full bg-[#cfd5cc] sm:inline-flex" />
-            <span className="truncate text-sm text-[#5f665f]">
+            <span className="typography-body truncate text-[#5f665f]">
               {formatQuantity(item)}
             </span>
           </div>
           {item?.description ? (
-            <p className="line-clamp-1 max-w-3xl text-sm leading-5 text-[#5f665f]">
+            <p className="typography-body line-clamp-1 max-w-3xl text-[#5f665f]">
               {item.description}
             </p>
           ) : null}
           {metaParts.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2 text-xs text-[#40493d]">
+            <div className="typography-body-sm flex flex-wrap items-center gap-2 text-[#40493d]">
               {metaParts.map((part) => (
                 <span
                   key={part}
-                  className="inline-flex max-w-full items-center rounded-full bg-[#f3f4f0] px-2.5 py-1 font-medium"
+                  className="inline-flex max-w-full items-center rounded-full bg-[#f3f4f0] px-2.5 py-1"
                 >
                   {part}
                 </span>
@@ -94,7 +94,7 @@ export default function InventoryListRow({ item, onOpen }) {
           <div className="flex flex-col items-end gap-2">
             <Badge
               className={cn(
-                'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase hover:bg-inherit',
+                'typography-body-sm inline-flex items-center gap-1 rounded-full px-2.5 py-1 tracking-widest uppercase hover:bg-inherit',
                 getStatusTone(item?.status),
               )}
             >
@@ -104,7 +104,7 @@ export default function InventoryListRow({ item, onOpen }) {
             {item?.expiryStatus !== undefined && item?.expiryStatus !== null ? (
               <Badge
                 className={cn(
-                  'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase hover:bg-inherit',
+                  'typography-body-sm inline-flex items-center gap-1 rounded-full px-2.5 py-1 tracking-widest uppercase hover:bg-inherit',
                   getExpiryStatusTone(item?.expiryStatus),
                 )}
               >
@@ -116,7 +116,7 @@ export default function InventoryListRow({ item, onOpen }) {
           <Button
             variant="outline"
             size="sm"
-            className="h-8 rounded-full px-3 text-xs font-semibold"
+            className="typography-body-sm h-8 rounded-full px-3"
             onClick={() => onOpen(itemId)}
             disabled={!itemId}
           >

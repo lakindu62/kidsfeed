@@ -35,7 +35,7 @@ function FilterBar({
             variant={filter.active ? 'default' : 'outline'}
             size="sm"
             className={cn(
-              'rounded-full text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-[#1f8a35] focus-visible:ring-offset-2 focus-visible:outline-none',
+              'typography-body-sm rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-[#1f8a35] focus-visible:ring-offset-2 focus-visible:outline-none',
               filter.active
                 ? 'border-[#1f8a35] bg-[#e6f3e6] text-[#16602a] hover:bg-[#d7ecd8]'
                 : 'border-[#dde3dd] bg-[#f4f4f2] text-[#556] hover:bg-[#ecece9]',
@@ -51,7 +51,7 @@ function FilterBar({
       {selectOptions.length > 0 && onSelectChange ? (
         <Select value={selectValue} onValueChange={onSelectChange}>
           <SelectTrigger
-            className="ml-auto min-w-40 rounded-[10px] border border-[#dde3dd] bg-[#f4f4f2] text-sm text-[#484]"
+            className="typography-body-sm ml-auto min-w-40 rounded-[10px] border border-[#dde3dd] bg-[#f4f4f2] text-[#484]"
             aria-label={selectLabel}
           >
             <SelectValue placeholder={selectLabel || 'Select an option'} />
@@ -70,7 +70,7 @@ function FilterBar({
         <Button
           type="button"
           variant="outline"
-          className="inline-flex items-center gap-2 rounded-[10px] border border-[#dde3dd] bg-[#f4f4f2] px-3 py-2 text-sm font-medium text-[#595] transition-colors hover:bg-[#ecece9] focus-visible:ring-2 focus-visible:ring-[#1f8a35] focus-visible:ring-offset-2 focus-visible:outline-none"
+          className="typography-body-sm inline-flex items-center gap-2 rounded-[10px] border border-[#dde3dd] bg-[#f4f4f2] px-3 py-2 text-[#595] transition-colors hover:bg-[#ecece9] focus-visible:ring-2 focus-visible:ring-[#1f8a35] focus-visible:ring-offset-2 focus-visible:outline-none"
           onClick={onReset}
         >
           <RotateCcw size={14} />

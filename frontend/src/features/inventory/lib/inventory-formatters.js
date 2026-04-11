@@ -117,9 +117,11 @@ export function getExpiryStatusIcon(expiryStatus) {
 }
 
 export function formatQuantity(item) {
-  const quantity = Number.isFinite(item?.quantity) ? item.quantity : 0;
+  const quantity = Number.isFinite(Number(item?.quantity))
+    ? Number(item.quantity)
+    : 0;
   const unit = item?.unit || 'units';
-  return `${quantity} ${unit}`;
+  return `${formatQuantityValue(quantity)} ${unit}`;
 }
 
 export function formatPackageSummary(item) {
@@ -179,9 +181,22 @@ export function formatCurrency(value) {
   }).format(numberValue);
 }
 
+function formatQuantityValue(value) {
+  const numberValue = Number(value);
+
+  if (!Number.isFinite(numberValue)) {
+    return '0';
+  }
+
+  return new Intl.NumberFormat(undefined, {
+    useGrouping: false,
+    maximumFractionDigits: 3,
+  }).format(numberValue);
+}
+
 export function formatQuantityLabel(quantity, unit) {
   const safeQuantity = Number.isFinite(Number(quantity)) ? Number(quantity) : 0;
-  return `${safeQuantity} ${unit || 'units'}`;
+  return `${formatQuantityValue(safeQuantity)} ${unit || 'units'}`;
 }
 
 export function batchTitle(batch, index) {

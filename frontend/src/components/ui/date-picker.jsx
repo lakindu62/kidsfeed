@@ -32,10 +32,10 @@ export function DatePicker({
           variant="outline"
           data-empty={!date}
           className={cn(
-            'data-[empty=true]:text-muted-foreground flex w-full min-w-0 items-center justify-start gap-2 overflow-hidden text-left font-normal',
+            'data-[empty=true]:text-muted-foreground flex w-full min-w-0 items-center justify-start gap-2 overflow-hidden text-left',
             compactMode
-              ? 'h-10 rounded-[12px] px-3 text-sm'
-              : 'h-11 rounded-[14px] px-4',
+              ? 'typography-body-sm h-10 rounded-[12px] px-3'
+              : 'typography-body h-11 rounded-[14px] px-4',
             buttonClassName,
           )}
         >

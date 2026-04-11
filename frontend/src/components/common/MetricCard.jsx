@@ -19,10 +19,8 @@ function MetricCard({
     >
       <CardContent className="flex min-h-44 flex-col justify-center gap-1 p-5">
         {icon ? <span className="text-[#17602b]">{icon}</span> : null}
-        <p className="m-0 text-[2rem] leading-none font-bold tracking-[-0.04em] text-[#1c1c1c]">
-          {value}
-        </p>
-        <p className="m-0 text-sm text-[#666]">{label}</p>
+        <p className="typography-h1 m-0 text-[#1c1c1c]">{value}</p>
+        <p className="typography-body-sm m-0 text-[#666]">{label}</p>
         {footer ? <div className="mt-2">{footer}</div> : null}
       </CardContent>
     </Card>

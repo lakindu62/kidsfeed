@@ -20,16 +20,16 @@ function InventoryDashboardPage() {
           <CardContent className="space-y-4 p-6">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-1">
-                <Badge className="rounded-full bg-[#f3f4f0] px-3 py-1 text-[10px] font-bold tracking-widest text-[#4e544c] uppercase hover:bg-[#f3f4f0]">
+                <Badge className="typography-body-sm rounded-full bg-[#f3f4f0] px-3 py-1 tracking-widest text-[#4e544c] uppercase hover:bg-[#f3f4f0]">
                   Coming soon
                 </Badge>
-                <h2 className="text-2xl font-extrabold tracking-[-0.03em] text-[#181c1b]">
+                <h2 className="typography-h1 text-[#181c1b]">
                   Inventory landing dashboard scaffold
                 </h2>
               </div>
             </div>
 
-            <p className="max-w-3xl text-sm leading-6 text-[#5f665f]">
+            <p className="typography-body max-w-3xl text-[#5f665f]">
               This route is reserved for the dashboard view in the next
               implementation step. It is kept in the same visual language as the
               rest of the inventory module so the final dashboard can slot in
