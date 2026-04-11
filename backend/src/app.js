@@ -91,11 +91,23 @@ app.use('/api/meal-attendance', mealAttendanceRouter);
 app.use('/api/meal-scan', mealScanRouter);
 
 // Inventory routes
-app.use('/api/inventory', inventoryRouter);
+app.use(
+  '/api/inventory',
+  apiRequireAuth,
+  attachUser,
+  requireRole([ROLES.ADMIN, ROLES.INVENTORY_MANAGER]),
+  inventoryRouter
+);
 
-// User Management routes (unguarded for now by request)
+// User Management routes (admin-only; Clerk webhook remains public for user sync)
 const userManagementRouter = createUserManagementRouter();
-app.use('/api', userManagementRouter);
+app.use(
+  '/api',
+  apiRequireAuth,
+  attachUser,
+  requireRole([ROLES.ADMIN]),
+  userManagementRouter
+);
 
 const PORT = process.env.PORT || 3000;
 

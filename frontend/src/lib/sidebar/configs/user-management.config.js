@@ -8,24 +8,24 @@ export const USER_MANAGEMENT_SIDEBAR_CONFIG = {
     {
       key: 'main',
       items: [
-        {
-          key: 'dashboard',
-          label: 'Dashboard',
-          to: '/user-management',
-          icon: LayoutGrid,
-        },
+        // {
+        //   key: 'dashboard',
+        //   label: 'Dashboard',
+        //   to: '/user-management',
+        //   icon: LayoutGrid,
+        // },
         {
           key: 'users',
           label: 'Users',
-          to: '/user-management/users',
+          to: '/user-management',
           icon: Users,
         },
-        {
-          key: 'roles',
-          label: 'Roles & Permissions',
-          to: '/user-management/roles',
-          icon: Shield,
-        },
+        // {
+        //   key: 'roles',
+        //   label: 'Roles & Permissions',
+        //   to: '/user-management/roles',
+        //   icon: Shield,
+        // },
       ],
     },
   ],

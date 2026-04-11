@@ -20,6 +20,10 @@ import {
   SchoolManagementRoute,
   schoolManagementPath,
 } from './features/school-management';
+import {
+  userManagementChildren,
+  userManagementPath,
+} from './features/user-management';
 import AuthRedirectPage from './pages/AuthRedirectPage';
 import Home from './pages/Home';
 import RolePendingAssignment from './pages/RolePendingAssignment';
@@ -143,6 +147,27 @@ function App() {
           />
           <Route path="menus" element={<MenuManagementRoute />} />
           <Route path="calendar" element={<MenuManagementRoute />} />
+        </Route>
+
+        {/* User Management Routes */}
+        <Route
+          path={userManagementPath}
+          element={
+            <RequireAuth>
+              <RequireRole allowedRoles={[USER_ROLES.ADMIN]}>
+                <Outlet />
+              </RequireRole>
+            </RequireAuth>
+          }
+        >
+          {userManagementChildren.map((route) => (
+            <Route
+              key={route.path ?? 'index'}
+              path={route.path}
+              index={route.index}
+              element={<route.Component />}
+            />
+          ))}
         </Route>
       </Routes>
     </>
