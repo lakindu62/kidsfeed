@@ -42,6 +42,14 @@ export function validatePatchInventoryItem(req, res, next) {
     });
   }
 
+  if (body.expiryStatus !== undefined) {
+    return res.status(400).json({
+      success: false,
+      message:
+        'expiryStatus is derived by the server and cannot be set manually',
+    });
+  }
+
   // For PATCH, no fields are required, but validate those that are present
   if (
     body.name !== undefined &&
@@ -63,13 +71,38 @@ export function validatePatchInventoryItem(req, res, next) {
     });
   }
 
-  if (
-    body.quantity !== undefined &&
-    (typeof body.quantity !== 'number' || body.quantity < 0)
-  ) {
+  if (body.expiryDate !== undefined) {
     return res.status(400).json({
       success: false,
-      message: 'quantity must be a non-negative number if provided',
+      message: 'expiryDate cannot be set on item-level patch requests',
+    });
+  }
+
+  if (body.supplier !== undefined) {
+    return res.status(400).json({
+      success: false,
+      message: 'supplier cannot be set on item-level patch requests',
+    });
+  }
+
+  if (body.unitPrice !== undefined) {
+    return res.status(400).json({
+      success: false,
+      message: 'unitPrice cannot be set on item-level patch requests',
+    });
+  }
+
+  if (body.location !== undefined) {
+    return res.status(400).json({
+      success: false,
+      message: 'location cannot be set on item-level patch requests',
+    });
+  }
+
+  if (body.batchNote !== undefined) {
+    return res.status(400).json({
+      success: false,
+      message: 'batchNote cannot be set on item-level patch requests',
     });
   }
 
