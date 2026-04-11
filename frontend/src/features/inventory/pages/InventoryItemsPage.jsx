@@ -13,7 +13,7 @@ import StatusMessage from '@/components/common/StatusMessage';
 import { describeApiFetchFailure } from '@/lib/describe-api-fetch-failure';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base';
 import { cn } from '@/lib/utils';
-import { LayoutGrid, ListFilter, Package } from 'lucide-react';
+import { Package } from 'lucide-react';
 
 import InventoryLayout from '../layouts/InventoryLayout';
 import { fetchInventoryItems } from '../api';
@@ -220,6 +220,11 @@ function InventoryItemsPage() {
     filteredItems.length,
   )} of ${filteredItems.length} items`;
 
+  const viewModeOptions = [
+    { value: 'grid', label: 'Grid view' },
+    { value: 'list', label: 'List view' },
+  ];
+
   const resolvedCategoryFilters = categoryFilters.map((filter) => ({
     ...filter,
     active: activeCategory === filter.key,
@@ -245,43 +250,18 @@ function InventoryItemsPage() {
               setActiveCategory(key);
               setPage(1);
             }}
+            selectValue={viewMode}
+            onSelectChange={(value) => {
+              setViewMode(value);
+              setPage(1);
+            }}
+            selectOptions={viewModeOptions}
+            selectLabel="View mode"
             className="mb-0 rounded-none border-0 bg-transparent p-0 shadow-none"
           />
 
           <div className="flex items-center gap-3 self-start lg:self-auto">
             <p className="text-sm text-[#7b8079]">{countLabel}</p>
-            <div className="inline-flex rounded-full border border-[#e6e9e5] bg-[#f3f4f0] p-1 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <Button
-                type="button"
-                size="sm"
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                className={cn(
-                  'rounded-full px-4 text-xs font-semibold',
-                  viewMode === 'grid'
-                    ? 'bg-[#005412] text-white hover:bg-[#005412]'
-                    : 'text-[#40493d]',
-                )}
-                onClick={() => setViewMode('grid')}
-              >
-                <LayoutGrid className="mr-2 h-4 w-4" />
-                Grid
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                className={cn(
-                  'rounded-full px-4 text-xs font-semibold',
-                  viewMode === 'list'
-                    ? 'bg-[#005412] text-white hover:bg-[#005412]'
-                    : 'text-[#40493d]',
-                )}
-                onClick={() => setViewMode('list')}
-              >
-                <ListFilter className="mr-2 h-4 w-4" />
-                List
-              </Button>
-            </div>
           </div>
         </section>
 

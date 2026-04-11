@@ -1,10 +1,19 @@
 import { useAuth } from '@clerk/clerk-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { format, parseISO } from 'date-fns';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { DatePicker } from '@/components/ui/date-picker';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import PageHero from '@/components/common/PageHero';
 import StatusMessage from '@/components/common/StatusMessage';
 import { describeApiFetchFailure } from '@/lib/describe-api-fetch-failure';
@@ -22,6 +31,8 @@ import {
   splitListValue,
   toOptionalNumber,
 } from '../lib';
+
+const EMPTY_SELECT_VALUE = '__empty__';
 
 function Field({ label, required, rightNode, className, ...inputProps }) {
   return (
@@ -65,8 +76,19 @@ function TextareaField({ label, required, className, ...textareaProps }) {
 }
 
 function SelectField({ label, required, options, className, ...selectProps }) {
+  const {
+    value,
+    onValueChange,
+    placeholder = 'Select an option',
+    allowEmptyOption = false,
+    emptyOptionLabel = 'Not set',
+    ...restSelectProps
+  } = selectProps;
+  const normalizedValue =
+    allowEmptyOption && value === '' ? EMPTY_SELECT_VALUE : value;
+
   return (
-    <label
+    <div
       className={
         className ? `flex flex-col gap-2 ${className}` : 'flex flex-col gap-2'
       }
@@ -75,18 +97,80 @@ function SelectField({ label, required, options, className, ...selectProps }) {
         {label}
         {required ? <span className="ml-1 text-[#ba1a1a]">*</span> : null}
       </span>
-      <select
-        {...selectProps}
-        className="h-11 rounded-[14px] border border-[#dfe5dc] bg-white px-4 text-sm text-[#202421] transition-colors outline-none focus:border-[#005412] focus:ring-2 focus:ring-[#005412]/10"
+      <Select
+        value={normalizedValue}
+        onValueChange={(nextValue) =>
+          onValueChange?.(nextValue === EMPTY_SELECT_VALUE ? '' : nextValue)
+        }
+        {...restSelectProps}
       >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
+        <SelectTrigger className="h-11 w-full rounded-[14px] border border-[#dfe5dc] bg-white px-4 text-sm text-[#202421] transition-colors outline-none focus:border-[#005412] focus:ring-2 focus:ring-[#005412]/10">
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {allowEmptyOption ? (
+            <SelectItem value={EMPTY_SELECT_VALUE}>
+              {emptyOptionLabel}
+            </SelectItem>
+          ) : null}
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
+}
+
+function DatePickerField({
+  label,
+  required,
+  className,
+  date,
+  onDateChange,
+  onClear,
+  clearDisabled,
+}) {
+  return (
+    <div
+      className={
+        className ? `flex flex-col gap-2 ${className}` : 'flex flex-col gap-2'
+      }
+    >
+      <span className="text-sm font-semibold text-[#202421]">
+        {label}
+        {required ? <span className="ml-1 text-[#ba1a1a]">*</span> : null}
+      </span>
+      <DatePicker
+        date={date}
+        setDate={onDateChange}
+        placeholder="Pick expiry date"
+        buttonClassName="h-11 rounded-[14px]"
+      />
+      <div className="flex justify-end">
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-8 rounded-full px-2 text-xs font-semibold text-[#40493d]"
+          onClick={onClear}
+          disabled={clearDisabled}
+        >
+          Clear
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function formatPickerDate(dateValue) {
+  if (!dateValue) {
+    return undefined;
+  }
+
+  const parsedDate = parseISO(dateValue);
+  return Number.isNaN(parsedDate.getTime()) ? undefined : parsedDate;
 }
 
 function InventoryNewItemPage() {
@@ -102,9 +186,14 @@ function InventoryNewItemPage() {
   const [barcodeLookupMessage, setBarcodeLookupMessage] = useState('');
   const [isBarcodeLookupLoading, setIsBarcodeLookupLoading] = useState(false);
   const [barcodeLookupSummary, setBarcodeLookupSummary] = useState(null);
+  const expiryDateValue = formatPickerDate(form.expiryDate);
 
   const handleFieldChange = (field) => (event) => {
     const { value } = event.target;
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleSelectChange = (field) => (value) => {
     setForm((current) => ({ ...current, [field]: value }));
   };
 
@@ -326,14 +415,14 @@ function InventoryNewItemPage() {
                     label="Category"
                     required
                     value={form.category}
-                    onChange={handleFieldChange('category')}
+                    onValueChange={handleSelectChange('category')}
                     options={CATEGORY_OPTIONS}
                   />
                   <SelectField
                     label="Unit"
                     required
                     value={form.unit}
-                    onChange={handleFieldChange('unit')}
+                    onValueChange={handleSelectChange('unit')}
                     options={UNIT_OPTIONS}
                   />
                   <Field
@@ -373,7 +462,10 @@ function InventoryNewItemPage() {
                   <SelectField
                     label="Nutritional grade"
                     value={form.nutritionalGrade}
-                    onChange={handleFieldChange('nutritionalGrade')}
+                    onValueChange={handleSelectChange('nutritionalGrade')}
+                    allowEmptyOption
+                    emptyOptionLabel="Not set"
+                    placeholder="Not set"
                     options={NUTRITIONAL_GRADE_OPTIONS}
                   />
                   <Field
@@ -438,11 +530,20 @@ function InventoryNewItemPage() {
                     onChange={handleFieldChange('quantity')}
                     placeholder="0"
                   />
-                  <Field
+                  <DatePickerField
                     label="Expiry date"
-                    type="date"
-                    value={form.expiryDate}
-                    onChange={handleFieldChange('expiryDate')}
+                    className="md:col-span-2"
+                    date={expiryDateValue}
+                    onDateChange={(date) =>
+                      setForm((current) => ({
+                        ...current,
+                        expiryDate: date ? format(date, 'yyyy-MM-dd') : '',
+                      }))
+                    }
+                    onClear={() =>
+                      setForm((current) => ({ ...current, expiryDate: '' }))
+                    }
+                    clearDisabled={!form.expiryDate}
                   />
                   <Field
                     label="Supplier"
@@ -495,7 +596,10 @@ function InventoryNewItemPage() {
                   <SelectField
                     label="Weight unit"
                     value={form.packageWeightUnit}
-                    onChange={handleFieldChange('packageWeightUnit')}
+                    onValueChange={handleSelectChange('packageWeightUnit')}
+                    allowEmptyOption
+                    emptyOptionLabel="Select unit"
+                    placeholder="Select unit"
                     options={PACKAGE_WEIGHT_UNIT_OPTIONS}
                   />
                 </div>

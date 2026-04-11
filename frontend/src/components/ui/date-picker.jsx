@@ -13,17 +13,26 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 
-export function DatePicker({ date, setDate }) {
+export function DatePicker({
+  date,
+  setDate,
+  className,
+  buttonClassName,
+  placeholder = 'Pick a date',
+}) {
   return (
-    <Popover>
+    <Popover className={className}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           data-empty={!date}
-          className="data-[empty=true]:text-muted-foreground w-[280px] justify-start text-left font-normal"
+          className={cn(
+            'data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal',
+            buttonClassName,
+          )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, 'PPP') : <span>Pick a date</span>}
+          {date ? format(date, 'PPP') : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
