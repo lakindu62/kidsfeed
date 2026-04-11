@@ -34,7 +34,6 @@ function ScrollToTop() {
 
 function App() {
   return (
-
     <>
       <ScrollToTop />
       <Routes>
@@ -114,7 +113,6 @@ function App() {
         </Route>
       </Routes>
     </>
-
   );
 }
 
