@@ -10,129 +10,25 @@ import FilterBar from '@/components/common/FilterBar';
 import NewSessionFloatingButton from '@/components/common/NewSessionFloatingButton';
 import PaginationControls from '@/components/common/PaginationControls';
 import StatusMessage from '@/components/common/StatusMessage';
-import { fetchApi } from '@/lib/api-client';
 import { describeApiFetchFailure } from '@/lib/describe-api-fetch-failure';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base';
 import { cn } from '@/lib/utils';
-import {
-  AlertTriangle,
-  LayoutGrid,
-  ListFilter,
-  Package,
-  ShieldCheck,
-} from 'lucide-react';
+import { LayoutGrid, ListFilter, Package } from 'lucide-react';
 
 import InventoryLayout from '../layouts/InventoryLayout';
-
-const categoryFilters = [
-  { key: 'all', label: 'All Items' },
-  { key: 'FOOD', label: 'Food' },
-  { key: 'SUPPLIES', label: 'Supplies' },
-  { key: 'EQUIPMENT', label: 'Equipment' },
-  { key: 'OTHER', label: 'Other' },
-];
-
-function getItemId(item) {
-  return item?.id ?? item?._id ?? '';
-}
-
-function getCategoryLabel(category) {
-  switch ((category || '').toUpperCase()) {
-    case 'FOOD':
-      return 'Food';
-    case 'SUPPLIES':
-      return 'Supplies';
-    case 'EQUIPMENT':
-      return 'Equipment';
-    case 'OTHER':
-      return 'Other';
-    default:
-      return 'Uncategorized';
-  }
-}
-
-function getStatusLabel(status) {
-  switch ((status || '').toUpperCase()) {
-    case 'ACTIVE':
-      return 'Active';
-    case 'LOW_STOCK':
-      return 'Low stock';
-    case 'OUT_OF_STOCK':
-      return 'Out of stock';
-    case 'EXPIRED':
-      return 'Expired';
-    default:
-      return 'Unknown';
-  }
-}
-
-function getStatusTone(status) {
-  switch ((status || '').toUpperCase()) {
-    case 'ACTIVE':
-      return 'text-[#17602b] bg-[#edf8ef]';
-    case 'LOW_STOCK':
-    case 'EXPIRED':
-      return 'text-[#ba1a1a] bg-[#fdecec]';
-    case 'OUT_OF_STOCK':
-      return 'text-[#8a4b00] bg-[#fff4e5]';
-    default:
-      return 'text-[#40493d] bg-[#f3f4f0]';
-  }
-}
-
-function getStatusIcon(status) {
-  switch ((status || '').toUpperCase()) {
-    case 'ACTIVE':
-      return <ShieldCheck className="h-3.5 w-3.5" />;
-    case 'LOW_STOCK':
-    case 'EXPIRED':
-      return <AlertTriangle className="h-3.5 w-3.5" />;
-    case 'OUT_OF_STOCK':
-    default:
-      return <Package className="h-3.5 w-3.5" />;
-  }
-}
-
-function formatQuantity(item) {
-  const quantity = Number.isFinite(item?.quantity) ? item.quantity : 0;
-  const unit = item?.unit || 'units';
-  return `${quantity} ${unit}`;
-}
-
-function formatPackageSummary(item) {
-  const parts = [];
-
-  if (Number.isFinite(item?.packageWeight) && item.packageWeight > 0) {
-    parts.push(String(item.packageWeight));
-  }
-
-  if (item?.packageWeightUnit) {
-    parts.push(item.packageWeightUnit);
-  }
-
-  if (item?.packageType) {
-    parts.push(item.packageType);
-  }
-
-  return parts.join(' ').trim();
-}
-
-function buildSearchText(item) {
-  return [
-    item?.name,
-    item?.description,
-    item?.brand,
-    item?.barcode,
-    item?.category,
-    item?.status,
-    item?.expiryStatus,
-    item?.ingredients,
-    item?.unit,
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-}
+import { fetchInventoryItems } from '../api';
+import {
+  CATEGORY_FILTERS as categoryFilters,
+  buildSearchText,
+  formatPackageSummary,
+  formatQuantity,
+  getCategoryLabel,
+  getItemId,
+  getStatusIcon,
+  getStatusLabel,
+  getStatusTone,
+} from '../lib';
+import InventoryListRow from '../components/InventoryListRow';
 
 function InventoryMedia({ item }) {
   if (item?.imageUrl) {
@@ -227,78 +123,6 @@ function InventoryGridCard({ item, onOpen }) {
   );
 }
 
-function InventoryListRow({ item, onOpen }) {
-  const itemId = getItemId(item);
-  const categoryLabel = getCategoryLabel(item?.category);
-  const statusLabel = getStatusLabel(item?.status);
-  const packageSummary = formatPackageSummary(item);
-
-  return (
-    <Card className="overflow-hidden rounded-[28px] border border-[#ecefe8] bg-white shadow-[0px_10px_24px_rgba(47,51,49,0.05)]">
-      <CardContent className="grid gap-4 p-4 md:grid-cols-[200px_1fr_auto] md:items-center">
-        <div className="overflow-hidden rounded-[24px] bg-[#f4f5f1]">
-          <InventoryMedia item={item} />
-        </div>
-
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <p className="text-[10px] font-semibold tracking-[0.16em] text-[#005412] uppercase">
-              {categoryLabel}
-            </p>
-            <h3 className="text-2xl font-extrabold tracking-[-0.03em] text-[#181c1b]">
-              {item?.name || 'Unnamed item'}
-            </h3>
-            {item?.description ? (
-              <p className="max-w-2xl text-sm leading-6 text-[#5f665f]">
-                {item.description}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 text-sm text-[#40493d]">
-            {item?.brand ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#f3f4f0] px-3 py-1.5 font-medium">
-                {item.brand}
-              </span>
-            ) : null}
-            {item?.barcode ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#f3f4f0] px-3 py-1.5 font-medium">
-                Barcode: {item.barcode}
-              </span>
-            ) : null}
-            {packageSummary ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#f3f4f0] px-3 py-1.5 font-medium">
-                {packageSummary}
-              </span>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between gap-4 md:flex-col md:items-end md:justify-center">
-          <div
-            className={cn(
-              'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold tracking-widest uppercase',
-              getStatusTone(item?.status),
-            )}
-          >
-            {getStatusIcon(item?.status)}
-            {statusLabel}
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full px-4"
-            onClick={() => onOpen(itemId)}
-            disabled={!itemId}
-          >
-            View
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 function InventoryItemsPage() {
   const navigate = useNavigate();
   const { isSignedIn, getToken } = useAuth();
@@ -326,20 +150,10 @@ function InventoryItemsPage() {
       setLoadError('');
 
       try {
-        const response = await fetchApi({
-          url: `${apiUrl}/api/inventory`,
+        const items = await fetchInventoryItems({
+          apiUrl,
           getToken: isSignedIn ? getToken : undefined,
         });
-
-        if (!response.ok) {
-          const payload = await response.json().catch(() => null);
-          throw new Error(
-            payload?.message || `Request failed with status ${response.status}`,
-          );
-        }
-
-        const payload = await response.json();
-        const items = Array.isArray(payload?.data) ? payload.data : [];
 
         if (isActive) {
           setInventoryItems(items);
