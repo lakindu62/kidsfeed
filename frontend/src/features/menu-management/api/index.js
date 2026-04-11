@@ -18,9 +18,12 @@ function normalizeRecipe(recipe = {}) {
     id: recipe.id,
     name: recipe.name || 'Untitled Recipe',
     description: recipe.description || 'No description available.',
+    imageUrl: recipe.imageUrl || '',
+    instructions: recipe.instructions || '',
     ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
     servingSize: Number(recipe.servingSize) || 0,
     prepTime: Number(recipe.prepTime) || 0,
+    seasonal: Array.isArray(recipe.seasonal) ? recipe.seasonal : [],
     allergens: Array.isArray(recipe.allergens) ? recipe.allergens : [],
     dietaryFlags: recipe.dietaryFlags || {},
     nutritionalInfo: recipe.nutritionalInfo || null,
@@ -39,6 +42,24 @@ function buildDietaryQuery(flags = {}) {
     }
   });
   return params.toString();
+}
+
+function matchesRecipeQuery(recipe, query) {
+  const normalizedQuery = String(query || '')
+    .trim()
+    .toLowerCase();
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  const name = String(recipe.name || '').toLowerCase();
+  const ingredientNames = (recipe.ingredients || [])
+    .map((ingredient) => String(ingredient.name || '').toLowerCase())
+    .join(' ');
+
+  return (
+    name.includes(normalizedQuery) || ingredientNames.includes(normalizedQuery)
+  );
 }
 
 function inferCourse(recipe) {
@@ -67,8 +88,8 @@ function filterByCourse(recipes, course) {
   });
 }
 
-async function fetchMenuApi({ url, getToken }) {
-  const response = await fetchApi({ url, getToken });
+async function fetchMenuApi({ url, getToken, options }) {
+  const response = await fetchApi({ url, getToken, options });
 
   let payload = null;
   try {
@@ -105,8 +126,9 @@ export async function fetchRecipeCatalog({
   let payload;
 
   if (query) {
-    const endpoint = new URL('/api/recipes/search/ingredient', apiUrl);
-    endpoint.searchParams.set('name', query);
+    const endpoint = new URL('/api/recipes', apiUrl);
+    endpoint.searchParams.set('page', '1');
+    endpoint.searchParams.set('limit', '100');
     payload = await fetchMenuApi({ url: endpoint.toString(), getToken });
   } else if (hasAnyDietaryFlag(dietaryFlags)) {
     const endpoint = new URL('/api/recipes/search/dietary', apiUrl);
@@ -126,7 +148,11 @@ export async function fetchRecipeCatalog({
     ? payload.data.map(normalizeRecipe)
     : [];
 
-  const courseFilteredRecipes = filterByCourse(normalizedRecipes, course);
+  const searchFilteredRecipes = query
+    ? normalizedRecipes.filter((recipe) => matchesRecipeQuery(recipe, query))
+    : normalizedRecipes;
+
+  const courseFilteredRecipes = filterByCourse(searchFilteredRecipes, course);
   const total = courseFilteredRecipes.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(Math.max(page, 1), totalPages);
@@ -139,4 +165,151 @@ export async function fetchRecipeCatalog({
     page: safePage,
     totalPages,
   };
+}
+
+export async function fetchRecipeById({ apiUrl, recipeId, getToken }) {
+  if (!apiUrl) {
+    throw new Error('API base URL is not configured.');
+  }
+
+  if (!recipeId) {
+    throw new Error('Recipe id is required.');
+  }
+
+  const endpoint = new URL(`/api/recipes/${recipeId}`, apiUrl);
+  const payload = await fetchMenuApi({ url: endpoint.toString(), getToken });
+
+  return normalizeRecipe(payload?.data || {});
+}
+
+export async function updateRecipeServingSize({
+  apiUrl,
+  recipeId,
+  servingSize,
+  getToken,
+}) {
+  if (!apiUrl) {
+    throw new Error('API base URL is not configured.');
+  }
+
+  if (!recipeId) {
+    throw new Error('Recipe id is required.');
+  }
+
+  if (!Number.isFinite(servingSize) || servingSize <= 0) {
+    throw new Error('Serving size must be greater than 0.');
+  }
+
+  const endpoint = new URL(`/api/recipes/${recipeId}`, apiUrl);
+  const payload = await fetchMenuApi({
+    url: endpoint.toString(),
+    getToken,
+    options: {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ servingSize }),
+    },
+  });
+
+  return normalizeRecipe(payload?.data || {});
+}
+
+export async function updateRecipe({ apiUrl, recipeId, payload, getToken }) {
+  if (!apiUrl) {
+    throw new Error('API base URL is not configured.');
+  }
+
+  if (!recipeId) {
+    throw new Error('Recipe id is required.');
+  }
+
+  const endpoint = new URL(`/api/recipes/${recipeId}`, apiUrl);
+  const responsePayload = await fetchMenuApi({
+    url: endpoint.toString(),
+    getToken,
+    options: {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+  });
+
+  return normalizeRecipe(responsePayload?.data || {});
+}
+
+export async function deleteRecipe({ apiUrl, recipeId, getToken }) {
+  if (!apiUrl) {
+    throw new Error('API base URL is not configured.');
+  }
+
+  if (!recipeId) {
+    throw new Error('Recipe id is required.');
+  }
+
+  const endpoint = new URL(`/api/recipes/${recipeId}`, apiUrl);
+  await fetchMenuApi({
+    url: endpoint.toString(),
+    getToken,
+    options: {
+      method: 'DELETE',
+    },
+  });
+
+  return true;
+}
+
+export async function createRecipe({ apiUrl, payload, getToken }) {
+  if (!apiUrl) {
+    throw new Error('API base URL is not configured.');
+  }
+
+  const endpoint = new URL('/api/recipes', apiUrl);
+  const responsePayload = await fetchMenuApi({
+    url: endpoint.toString(),
+    getToken,
+    options: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+  });
+
+  return normalizeRecipe(responsePayload?.data || {});
+}
+
+export async function calculateRecipeNutrition({
+  apiUrl,
+  ingredients,
+  getToken,
+}) {
+  if (!apiUrl) {
+    throw new Error('API base URL is not configured.');
+  }
+
+  if (!Array.isArray(ingredients) || ingredients.length === 0) {
+    throw new Error(
+      'At least one ingredient is required to calculate nutrition.',
+    );
+  }
+
+  const endpoint = new URL('/api/nutrition/calculate', apiUrl);
+  const responsePayload = await fetchMenuApi({
+    url: endpoint.toString(),
+    getToken,
+    options: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ingredients }),
+    },
+  });
+
+  return responsePayload?.data || null;
 }

@@ -9,10 +9,15 @@ function InventoryLayout({
   activeItemKey = 'inventory',
   title = 'Inventory Grid',
   subtitle = 'Manage school meal ingredients and supplies',
+  query: controlledQuery,
+  onQueryChange,
+  searchPlaceholder = 'Search inventory...',
   children,
 }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
+  const resolvedQuery = controlledQuery ?? query;
+  const handleQueryChange = onQueryChange ?? setQuery;
 
   const sideBarConfig = buildSidebarConfig({
     feature: APP_FEATURES.INVENTORY_MANAGEMENT,
@@ -30,9 +35,9 @@ function InventoryLayout({
         <FeatureTopBar
           title={title}
           subtitle={subtitle}
-          query={query}
-          onQueryChange={setQuery}
-          searchPlaceholder="Search inventory..."
+          query={resolvedQuery}
+          onQueryChange={handleQueryChange}
+          searchPlaceholder={searchPlaceholder}
         />
         {children}
       </main>

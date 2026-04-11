@@ -7,11 +7,21 @@ function RecipeFilters({
   onCourseChange,
   courseOptions,
   onReset,
+  chips,
+  selectedOption,
+  onOptionChange,
+  options,
+  resetLabel = 'Reset Filters',
 }) {
+  const activeChips = chips || filters || [];
+  const activeOptions = options || courseOptions || [];
+  const currentOption = selectedOption ?? course ?? '';
+  const handleOptionChange = onOptionChange || onCourseChange;
+
   return (
     <section className="mb-4 flex flex-wrap items-center gap-3 rounded-[20px] border border-[#e6e9e5] bg-[#f7f7f7] p-3 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
       <div className="flex flex-wrap gap-2">
-        {filters.map((filter) => (
+        {activeChips.map((filter) => (
           <button
             key={filter.key}
             type="button"
@@ -27,17 +37,19 @@ function RecipeFilters({
         ))}
       </div>
 
-      <select
-        className="ml-auto rounded-[10px] border border-[#dde3dd] bg-[#f4f4f2] px-3 py-2 text-sm text-[#484] focus-visible:ring-2 focus-visible:ring-[#1f8a35] focus-visible:ring-offset-2 focus-visible:outline-none"
-        value={course}
-        onChange={(event) => onCourseChange(event.target.value)}
-      >
-        {courseOptions.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      {activeOptions.length > 0 && handleOptionChange ? (
+        <select
+          className="ml-auto rounded-[10px] border border-[#dde3dd] bg-[#f4f4f2] px-3 py-2 text-sm text-[#484] focus-visible:ring-2 focus-visible:ring-[#1f8a35] focus-visible:ring-offset-2 focus-visible:outline-none"
+          value={currentOption}
+          onChange={(event) => handleOptionChange(event.target.value)}
+        >
+          {activeOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      ) : null}
 
       <button
         type="button"
@@ -45,7 +57,7 @@ function RecipeFilters({
         onClick={onReset}
       >
         <RotateCcw size={14} />
-        Reset Filters
+        {resetLabel}
       </button>
     </section>
   );

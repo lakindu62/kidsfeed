@@ -1,6 +1,7 @@
 import { useAuth } from '@clerk/clerk-react';
 import { Leaf } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { describeApiFetchFailure } from '@/lib/describe-api-fetch-failure';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base';
 import { useAuthRole } from '@/lib/auth/use-auth-role';
@@ -8,6 +9,7 @@ import { fetchRecipeCatalog } from '../api';
 import {
   MenuHero,
   MenuStatCard,
+  PageLoadingScreen,
   RecipeFilters,
   RecipeGrid,
   RecipePagination,
@@ -15,20 +17,14 @@ import {
   WeeklyGoalCard,
 } from '../components';
 import MenuManagementLayout from '../layouts/MenuManagementLayout';
-import useDebouncedValue from '../hooks/useDebouncedValue';
 
 const DIETARY_FILTERS = [
   { key: 'vegetarian', label: 'Vegetarian' },
   { key: 'vegan', label: 'Vegan' },
   { key: 'halal', label: 'Halal' },
   { key: 'glutenFree', label: 'Gluten-Free' },
-];
-
-const COURSE_OPTIONS = [
-  { value: 'all', label: 'Course: All' },
-  { value: 'breakfast', label: 'Course: Breakfast' },
-  { value: 'lunch', label: 'Course: Lunch' },
-  { value: 'dinner', label: 'Course: Dinner' },
+  { key: 'dairyFree', label: 'Dairy-Free' },
+  { key: 'nutFree', label: 'Nut-Free' },
 ];
 
 const PAGE_SIZE = 8;
@@ -36,16 +32,19 @@ const PAGE_SIZE = 8;
 function RecipeManagementPage() {
   const { role } = useAuthRole();
   const { isSignedIn, getToken } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const apiBaseUrl = resolveApiBaseUrl();
 
   const [search, setSearch] = useState('');
-  const [course, setCourse] = useState('all');
   const [dietaryFilters, setDietaryFilters] = useState({
     vegetarian: false,
     vegan: false,
     halal: false,
     glutenFree: false,
+    dairyFree: false,
+    nutFree: false,
   });
   const [page, setPage] = useState(1);
 
@@ -56,12 +55,30 @@ function RecipeManagementPage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
 
-  const debouncedSearch = useDebouncedValue(search);
+  useEffect(() => {
+    const message = location.state?.toastMessage;
+    if (!message) {
+      return;
+    }
+
+    setToastMessage(message);
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [location.pathname, location.state, navigate]);
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => setToastMessage(''), 2400);
+    return () => window.clearTimeout(timer);
+  }, [toastMessage]);
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, course, dietaryFilters]);
+  }, [dietaryFilters]);
 
   useEffect(() => {
     if (!apiBaseUrl) {
@@ -81,9 +98,8 @@ function RecipeManagementPage() {
           getToken: isSignedIn ? getToken : undefined,
           page,
           pageSize: PAGE_SIZE,
-          searchTerm: debouncedSearch,
+          searchTerm: '',
           dietaryFlags: dietaryFilters,
-          course,
         });
 
         if (!active) {
@@ -116,15 +132,7 @@ function RecipeManagementPage() {
     return () => {
       active = false;
     };
-  }, [
-    apiBaseUrl,
-    isSignedIn,
-    getToken,
-    page,
-    debouncedSearch,
-    course,
-    dietaryFilters,
-  ]);
+  }, [apiBaseUrl, isSignedIn, getToken, page, dietaryFilters]);
 
   const vegetarianCount = useMemo(
     () =>
@@ -160,13 +168,23 @@ function RecipeManagementPage() {
 
   const resetFilters = () => {
     setSearch('');
-    setCourse('all');
     setDietaryFilters({
       vegetarian: false,
       vegan: false,
       halal: false,
       glutenFree: false,
+      dairyFree: false,
+      nutFree: false,
     });
+  };
+
+  const handleSearchSubmit = (value) => {
+    const submittedQuery = String(value || '').trim();
+    const endpoint = submittedQuery
+      ? `/menu-management/recipes?query=${encodeURIComponent(submittedQuery)}`
+      : '/menu-management/recipes';
+
+    navigate(endpoint);
   };
 
   return (
@@ -177,14 +195,24 @@ function RecipeManagementPage() {
       subtitle="Create and curate nutritious institutional meal plans"
       query={search}
       onQueryChange={setSearch}
-      searchPlaceholder="Search ingredients..."
+      onQuerySubmit={handleSearchSubmit}
+      searchPlaceholder="Search by recipe name or ingredient..."
     >
+      {isLoading ? <PageLoadingScreen message="Loading recipes..." /> : null}
+
+      {toastMessage ? (
+        <p className="mb-4 rounded-xl border border-[#cce8d0] bg-[#edf8ef] px-4 py-3 text-sm font-semibold text-[#1f7a34] shadow-sm">
+          {toastMessage}
+        </p>
+      ) : null}
+
       <section className="mb-4 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] xl:grid-rows-[auto_auto] xl:items-stretch">
         <div className="xl:col-start-1 xl:row-span-2 xl:row-start-1 xl:h-full">
           <MenuHero
             title="Nutritional Excellence"
             description="Manage institutional recipes with precision. Ensure every meal meets the highest dietary standards for student vitality."
             ctaLabel="+ New Recipe"
+            onCtaClick={() => navigate('/menu-management/recipes/new')}
           />
         </div>
 
@@ -214,9 +242,6 @@ function RecipeManagementPage() {
           active: dietaryFilters[filter.key],
         }))}
         onToggleFilter={toggleDietaryFilter}
-        course={course}
-        onCourseChange={setCourse}
-        courseOptions={COURSE_OPTIONS}
         onReset={resetFilters}
       />
 

@@ -1,4 +1,5 @@
-export * from './routes';
-export * from './api';
-export * from './hooks';
-export { default as MealDistributionDashboard } from './screens';
+export {
+  default as MealDistributionLayout,
+  mealDistributionPath,
+} from './routes';
+export { mealDistributionChildren } from './route-config';

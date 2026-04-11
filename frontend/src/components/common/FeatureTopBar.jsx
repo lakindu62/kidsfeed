@@ -7,6 +7,7 @@ export default function FeatureTopBar({
   subtitle,
   query,
   onQueryChange,
+  onQuerySubmit,
   searchPlaceholder = 'Search...',
   breadcrumbItems,
 }) {
@@ -33,6 +34,11 @@ export default function FeatureTopBar({
                 type="text"
                 value={query}
                 onChange={(event) => onQueryChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    onQuerySubmit?.(event.target.value);
+                  }
+                }}
                 className="ml-3 w-full bg-transparent text-xs font-medium text-zinc-600 placeholder:text-zinc-500 focus:outline-none"
                 placeholder={searchPlaceholder}
               />

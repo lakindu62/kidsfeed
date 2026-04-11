@@ -7,6 +7,7 @@ class RecipeResponse {
     this.id = recipe.id;
     this.name = recipe.name;
     this.description = recipe.description;
+    this.imageUrl = recipe.imageUrl || '';
     this.ingredients = recipe.ingredients;
     this.instructions = recipe.instructions;
     this.servingSize = recipe.servingSize;
@@ -47,6 +48,7 @@ class RecipeResponse {
       id: this.id,
       name: this.name,
       description: this.description,
+      imageUrl: this.imageUrl,
       ingredients: this.ingredients,
       instructions: this.instructions,
       servingSize: this.servingSize,
