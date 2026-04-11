@@ -57,31 +57,31 @@ function App() {
             </RequireAuth>
           }
         />
-         <Route
-        path={mealDistributionPath}
-        element={
-          <RequireAuth>
-            <RequireRole
-              allowedRoles={[
-                USER_ROLES.ADMIN,
-                USER_ROLES.SCHOOL_STAFF,
-                USER_ROLES.SCHOOL_ADMIN,
-              ]}
-            >
-              <MealDistributionLayout />
-            </RequireRole>
-          </RequireAuth>
-        }
-      >
-        {mealDistributionChildren.map((route) => (
-          <Route
-            key={route.path ?? 'index'}
-            path={route.path}
-            index={route.index}
-            element={<route.Component />}
-          />
-        ))}
-      </Route>
+        <Route
+          path={mealDistributionPath}
+          element={
+            <RequireAuth>
+              <RequireRole
+                allowedRoles={[
+                  USER_ROLES.ADMIN,
+                  USER_ROLES.SCHOOL_STAFF,
+                  USER_ROLES.SCHOOL_ADMIN,
+                ]}
+              >
+                <MealDistributionLayout />
+              </RequireRole>
+            </RequireAuth>
+          }
+        >
+          {mealDistributionChildren.map((route) => (
+            <Route
+              key={route.path ?? 'index'}
+              path={route.path}
+              index={route.index}
+              element={<route.Component />}
+            />
+          ))}
+        </Route>
         <Route
           path={menuManagementPath}
           element={

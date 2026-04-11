@@ -1,4 +1,5 @@
-import { LayoutGrid, LogOut, Package, Settings } from 'lucide-react';
+import { LayoutGrid, LogOut, Package } from 'lucide-react';
+import { DEFAULT_FOOTER_ACTIONS } from './defaults';
 
 export const INVENTORY_MANAGEMENT_SIDEBAR_CONFIG = {
   brandTitle: 'Kidsfeed',
@@ -19,19 +20,8 @@ export const INVENTORY_MANAGEMENT_SIDEBAR_CONFIG = {
           to: '/inventory/items',
           icon: Package,
         },
-        {
-          key: 'settings',
-          label: 'Settings',
-          to: '/inventory/settings',
-          icon: Settings,
-        },
       ],
     },
   ],
-  primaryCta: {
-    key: 'new-stock',
-    label: 'Add New Stock',
-    to: '/inventory/new-stock',
-  },
-  footerActions: [{ key: 'logout', label: 'Logout', icon: LogOut }],
+  footerActions: DEFAULT_FOOTER_ACTIONS,
 };
