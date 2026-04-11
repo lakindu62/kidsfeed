@@ -9,17 +9,13 @@ import {
   fetchNoShowAlerts,
   fetchMealSessions,
 } from '../api';
-import {
-  FeatureSidebar,
-  FeatureTopBar,
-  NewSessionFloatingButton,
-} from '../components';
+import NewSessionFloatingButton from '@/components/common/NewSessionFloatingButton';
+import MealDistributionLayout from '../layouts/MealDistributionLayout';
 import {
   formatMealDistributionSchoolSubtitle,
   useMealDistributionSchool,
   useCountUp,
 } from '../hooks';
-import { mealDistributionRootClassName } from '../utils/meal-distribution-layout-classes';
 
 const statusClasses = {
   COMPLETED: 'bg-green-100 text-green-700',
@@ -397,377 +393,358 @@ export default function MealDistributionDashboard() {
   };
 
   return (
-    <div className={mealDistributionRootClassName}>
-      <div className="mx-auto flex w-full max-w-[1536px]">
-        <FeatureSidebar
-          schoolName={schoolName}
-          activeItem="dashboard"
-          navigate={navigate}
-        />
+    <MealDistributionLayout
+      activeItemKey="dashboard"
+      title="Dashboard"
+      subtitle={`${formatMealDistributionSchoolSubtitle(schoolName)} · Today's overview`}
+      searchPlaceholder="Search sessions or students..."
+    >
+      <section className="rounded-[12px] bg-[#f0f1f1] p-8">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
+              Last 7 days at a glance
+            </h2>
+            <p className="mt-1 max-w-xl text-xs font-medium text-zinc-500">
+              {weeklyKpis.rangeSubtitle
+                ? `${weeklyKpis.rangeSubtitle} · meal sessions for this school`
+                : 'Rolling week summary'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/meal-distribution/reports')}
+            className="shrink-0 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
+          >
+            Open reports
+          </button>
+        </div>
 
-        <main className="w-[1280px] shrink-0 pt-3 pr-10 pb-8 pl-6">
-          <FeatureTopBar
-            title="Dashboard"
-            subtitle={`${formatMealDistributionSchoolSubtitle(schoolName)} · Today's overview`}
-            searchPlaceholder="Search sessions or students..."
-          />
+        {weekNoShowError && (
+          <p className="mb-4 text-xs font-medium text-amber-700">
+            {weekNoShowError}
+          </p>
+        )}
 
-          <section className="rounded-[12px] bg-[#f0f1f1] p-8">
-            <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
-                  Last 7 days at a glance
-                </h2>
-                <p className="mt-1 max-w-xl text-xs font-medium text-zinc-500">
-                  {weeklyKpis.rangeSubtitle
-                    ? `${weeklyKpis.rangeSubtitle} · meal sessions for this school`
-                    : 'Rolling week summary'}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate('/meal-distribution/reports')}
-                className="shrink-0 rounded-lg border border-zinc-300 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
-              >
-                Open reports
-              </button>
-            </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-0 motion-reduce:animate-none">
+            <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
+              Sessions
+            </p>
+            <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
+              {kpiSessions}
+            </p>
+            <p className="mt-2 text-xs font-medium text-zinc-500">
+              {kpiCompleted} completed
+              {weeklyKpis.completedPct != null ? ` · ${kpiCompletedPct}%` : ''}
+            </p>
+          </article>
 
-            {weekNoShowError && (
-              <p className="mb-4 text-xs font-medium text-amber-700">
-                {weekNoShowError}
-              </p>
+          <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[55ms] motion-reduce:animate-none">
+            <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
+              Planned headcount
+            </p>
+            <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
+              {kpiPlanned}
+            </p>
+            <p className="mt-2 text-xs font-medium text-zinc-500">
+              Sum across sessions
+            </p>
+          </article>
+
+          <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[110ms] motion-reduce:animate-none">
+            <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
+              Recorded served
+            </p>
+            <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-[#14532d] tabular-nums">
+              {kpiServed}
+            </p>
+            <p className="mt-2 text-xs font-medium text-zinc-500">
+              From session &quot;actual served&quot; field
+            </p>
+          </article>
+
+          <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[165ms] motion-reduce:animate-none">
+            <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
+              Served vs planned
+            </p>
+            <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
+              {weeklyKpis.serveRatePct != null ? `${kpiServeRate}%` : '—'}
+            </p>
+            <p className="mt-2 text-xs font-medium text-zinc-500">
+              Aggregate for the week
+            </p>
+          </article>
+
+          <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[220ms] motion-reduce:animate-none">
+            <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
+              No-show records
+            </p>
+            <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
+              {weekNoShowCount === null ? '…' : kpiNoShow}
+            </p>
+            <p className="mt-2 text-xs font-medium text-zinc-500">
+              Same date range as above
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section className="mt-6 grid gap-8 xl:grid-cols-10">
+        <article className="rounded-[12px] bg-[#f0f1f1] p-8 xl:col-span-6">
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
+              Today&apos;s Meal Sessions
+            </h2>
+            {isUsingFallbackSessions && (
+              <span className="ml-2 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold text-amber-700">
+                No sessions for today
+              </span>
             )}
+            <button
+              type="button"
+              onClick={() => navigate('/meal-distribution/sessions')}
+              className="text-xs font-medium text-[#a83206]"
+            >
+              View All
+            </button>
+          </div>
+          {isLoadingSessions && (
+            <p className="mb-4 text-xs font-medium text-zinc-500">
+              Loading sessions...
+            </p>
+          )}
+          {sessionsError && (
+            <p className="mb-4 text-xs font-medium text-red-600">
+              {sessionsError}
+            </p>
+          )}
+          {deleteError && (
+            <p className="mb-4 text-xs font-medium text-red-600">
+              {deleteError}
+            </p>
+          )}
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-              <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-0 motion-reduce:animate-none">
-                <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
-                  Sessions
-                </p>
-                <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
-                  {kpiSessions}
-                </p>
-                <p className="mt-2 text-xs font-medium text-zinc-500">
-                  {kpiCompleted} completed
-                  {weeklyKpis.completedPct != null
-                    ? ` · ${kpiCompletedPct}%`
-                    : ''}
-                </p>
-              </article>
-
-              <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[55ms] motion-reduce:animate-none">
-                <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
-                  Planned headcount
-                </p>
-                <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
-                  {kpiPlanned}
-                </p>
-                <p className="mt-2 text-xs font-medium text-zinc-500">
-                  Sum across sessions
-                </p>
-              </article>
-
-              <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[110ms] motion-reduce:animate-none">
-                <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
-                  Recorded served
-                </p>
-                <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-[#14532d] tabular-nums">
-                  {kpiServed}
-                </p>
-                <p className="mt-2 text-xs font-medium text-zinc-500">
-                  From session &quot;actual served&quot; field
-                </p>
-              </article>
-
-              <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[165ms] motion-reduce:animate-none">
-                <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
-                  Served vs planned
-                </p>
-                <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
-                  {weeklyKpis.serveRatePct != null ? `${kpiServeRate}%` : '—'}
-                </p>
-                <p className="mt-2 text-xs font-medium text-zinc-500">
-                  Aggregate for the week
-                </p>
-              </article>
-
-              <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[220ms] motion-reduce:animate-none">
-                <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
-                  No-show records
-                </p>
-                <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
-                  {weekNoShowCount === null ? '…' : kpiNoShow}
-                </p>
-                <p className="mt-2 text-xs font-medium text-zinc-500">
-                  Same date range as above
-                </p>
-              </article>
-            </div>
-          </section>
-
-          <section className="mt-6 grid gap-8 xl:grid-cols-10">
-            <article className="rounded-[12px] bg-[#f0f1f1] p-8 xl:col-span-6">
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
-                  Today&apos;s Meal Sessions
-                </h2>
-                {isUsingFallbackSessions && (
-                  <span className="ml-2 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold text-amber-700">
-                    No sessions for today
-                  </span>
+          <div className="overflow-x-auto">
+            <table className="w-full border-separate border-spacing-y-3">
+              <thead>
+                <tr className="text-left text-xs font-medium text-zinc-500">
+                  <th className="px-6 pb-2">Meal Type</th>
+                  <th className="px-2 pb-2">Menu</th>
+                  <th className="px-2 pb-2">Planned</th>
+                  <th className="px-2 pb-2">Served</th>
+                  <th className="px-2 pb-2 text-center">Status</th>
+                  <th className="px-4 pb-2" />
+                </tr>
+              </thead>
+              <tbody>
+                {normalizedTodaySessions.length === 0 && (
+                  <tr className="rounded-[12px] bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)]">
+                    <td
+                      colSpan={6}
+                      className="rounded-[12px] px-6 py-6 text-center text-sm font-medium text-zinc-500"
+                    >
+                      No meal sessions for today yet.
+                    </td>
+                  </tr>
                 )}
-                <button
-                  type="button"
-                  onClick={() => navigate('/meal-distribution/sessions')}
-                  className="text-xs font-medium text-[#a83206]"
-                >
-                  View All
-                </button>
-              </div>
-              {isLoadingSessions && (
-                <p className="mb-4 text-xs font-medium text-zinc-500">
-                  Loading sessions...
-                </p>
-              )}
-              {sessionsError && (
-                <p className="mb-4 text-xs font-medium text-red-600">
-                  {sessionsError}
-                </p>
-              )}
-              {deleteError && (
-                <p className="mb-4 text-xs font-medium text-red-600">
-                  {deleteError}
-                </p>
-              )}
-
-              <div className="overflow-x-auto">
-                <table className="w-full border-separate border-spacing-y-3">
-                  <thead>
-                    <tr className="text-left text-xs font-medium text-zinc-500">
-                      <th className="px-6 pb-2">Meal Type</th>
-                      <th className="px-2 pb-2">Menu</th>
-                      <th className="px-2 pb-2">Planned</th>
-                      <th className="px-2 pb-2">Served</th>
-                      <th className="px-2 pb-2 text-center">Status</th>
-                      <th className="px-4 pb-2" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {normalizedTodaySessions.length === 0 && (
-                      <tr className="rounded-[12px] bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)]">
-                        <td
-                          colSpan={6}
-                          className="rounded-[12px] px-6 py-6 text-center text-sm font-medium text-zinc-500"
-                        >
-                          No meal sessions for today yet.
-                        </td>
-                      </tr>
-                    )}
-                    {normalizedTodaySessions.map((row, index) => (
-                      <tr
-                        key={`${row.mealType}-${row.status}-${index}`}
-                        className="rounded-[12px] bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)]"
+                {normalizedTodaySessions.map((row, index) => (
+                  <tr
+                    key={`${row.mealType}-${row.status}-${index}`}
+                    className="rounded-[12px] bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)]"
+                  >
+                    <td className="rounded-l-[12px] px-6 py-4 text-xs font-medium text-zinc-800">
+                      {row.mealType}
+                    </td>
+                    <td className="max-w-[160px] px-2 py-4">
+                      {row.recipeName ? (
+                        <span className="truncate text-xs font-medium text-zinc-700">
+                          {row.recipeName}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-zinc-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-2 py-4 text-xs font-medium text-zinc-800">
+                      {row.planned}
+                    </td>
+                    <td
+                      className={`px-2 py-4 text-xs font-medium ${row.served > 0 ? 'text-[#a83206]' : 'text-zinc-400'}`}
+                    >
+                      {row.served}
+                    </td>
+                    <td className="px-2 py-4 text-center">
+                      <span
+                        className={`inline-flex rounded-full px-3 py-1 text-[10px] font-semibold ${statusClasses[row.status]}`}
                       >
-                        <td className="rounded-l-[12px] px-6 py-4 text-xs font-medium text-zinc-800">
-                          {row.mealType}
-                        </td>
-                        <td className="max-w-[160px] px-2 py-4">
-                          {row.recipeName ? (
-                            <span className="truncate text-xs font-medium text-zinc-700">
-                              {row.recipeName}
-                            </span>
-                          ) : (
-                            <span className="text-[11px] text-zinc-400">—</span>
-                          )}
-                        </td>
-                        <td className="px-2 py-4 text-xs font-medium text-zinc-800">
-                          {row.planned}
-                        </td>
-                        <td
-                          className={`px-2 py-4 text-xs font-medium ${row.served > 0 ? 'text-[#a83206]' : 'text-zinc-400'}`}
+                        {row.status.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="rounded-r-[12px] px-4 py-4">
+                      <div className="flex items-center justify-end gap-2 text-zinc-400">
+                        <button
+                          type="button"
+                          onClick={() => handleEditSession(row.id)}
+                          className="rounded-md p-1 hover:bg-zinc-100"
                         >
-                          {row.served}
-                        </td>
-                        <td className="px-2 py-4 text-center">
-                          <span
-                            className={`inline-flex rounded-full px-3 py-1 text-[10px] font-semibold ${statusClasses[row.status]}`}
-                          >
-                            {row.status.replace('_', ' ')}
-                          </span>
-                        </td>
-                        <td className="rounded-r-[12px] px-4 py-4">
-                          <div className="flex items-center justify-end gap-2 text-zinc-400">
-                            <button
-                              type="button"
-                              onClick={() => handleEditSession(row.id)}
-                              className="rounded-md p-1 hover:bg-zinc-100"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteSession(row.id)}
-                              disabled={!row.id || deletingSessionId === row.id}
-                              className="rounded-md p-1 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSession(row.id)}
+                          disabled={!row.id || deletingSessionId === row.id}
+                          className="rounded-md p-1 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article className="rounded-[12px] bg-[#f0f1f1] p-8 xl:col-span-4">
+          <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
+            Session Status Mix
+          </h2>
+          {sessionMixMetrics.isFallback && (
+            <span className="mt-2 inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold text-amber-700">
+              No sessions for today
+            </span>
+          )}
+          {isLoadingSessions && (
+            <p className="mt-2 text-xs font-medium text-zinc-500">
+              Loading session mix...
+            </p>
+          )}
+          {sessionsError && (
+            <p className="mt-2 text-xs font-medium text-red-600">
+              {sessionsError}
+            </p>
+          )}
+
+          <div className="mt-8 flex justify-center">
+            <div
+              className="relative h-48 w-48 rounded-full"
+              style={{ background: sessionMixConicBackground }}
+            >
+              <div className="absolute inset-4 flex flex-col items-center justify-center rounded-full bg-[#f0f1f1]">
+                <p className="text-[32px] font-semibold text-zinc-800">
+                  {sessionMixMetrics.focusRate}%
+                </p>
+                <p className="text-xs font-medium text-zinc-500">Completed</p>
               </div>
-            </article>
+            </div>
+          </div>
 
-            <article className="rounded-[12px] bg-[#f0f1f1] p-8 xl:col-span-4">
-              <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
-                Session Status Mix
-              </h2>
-              {sessionMixMetrics.isFallback && (
-                <span className="mt-2 inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold text-amber-700">
-                  No sessions for today
-                </span>
-              )}
-              {isLoadingSessions && (
-                <p className="mt-2 text-xs font-medium text-zinc-500">
-                  Loading session mix...
-                </p>
-              )}
-              {sessionsError && (
-                <p className="mt-2 text-xs font-medium text-red-600">
-                  {sessionsError}
-                </p>
-              )}
-
-              <div className="mt-8 flex justify-center">
-                <div
-                  className="relative h-48 w-48 rounded-full"
-                  style={{ background: sessionMixConicBackground }}
-                >
-                  <div className="absolute inset-4 flex flex-col items-center justify-center rounded-full bg-[#f0f1f1]">
-                    <p className="text-[32px] font-semibold text-zinc-800">
-                      {sessionMixMetrics.focusRate}%
-                    </p>
-                    <p className="text-xs font-medium text-zinc-500">
-                      Completed
-                    </p>
-                  </div>
+          <div className="mt-8 grid grid-cols-2 gap-4">
+            {sessionMixMetrics.rows.map((item) => (
+              <div key={item.label} className="flex items-center gap-3">
+                <span className={`h-3 w-3 rounded-full ${item.colorClass}`} />
+                <div>
+                  <p className="text-xs font-medium text-zinc-500">
+                    {item.label}
+                  </p>
+                  <p className="text-xs font-medium text-zinc-800">
+                    {item.value}
+                  </p>
                 </div>
               </div>
+            ))}
+          </div>
+        </article>
+      </section>
 
-              <div className="mt-8 grid grid-cols-2 gap-4">
-                {sessionMixMetrics.rows.map((item) => (
-                  <div key={item.label} className="flex items-center gap-3">
-                    <span
-                      className={`h-3 w-3 rounded-full ${item.colorClass}`}
-                    />
-                    <div>
-                      <p className="text-xs font-medium text-zinc-500">
-                        {item.label}
-                      </p>
-                      <p className="text-xs font-medium text-zinc-800">
-                        {item.value}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </article>
-          </section>
+      <section className="mt-6 rounded-[12px] bg-[#f0f1f1] p-8">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Bell className="h-5 w-5 text-[#b31b25]" />
+            <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
+              Today&apos;s No-Show Alerts
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/meal-distribution/no-show-alerts')}
+            className="text-xs font-medium text-[#a83206]"
+          >
+            View All
+          </button>
+        </div>
+        {isLoadingNoShowLogs && (
+          <p className="mb-4 text-xs font-medium text-zinc-500">
+            Loading no-show alerts...
+          </p>
+        )}
+        {noShowLogsError && (
+          <p className="mb-4 text-xs font-medium text-red-600">
+            {noShowLogsError}
+          </p>
+        )}
 
-          <section className="mt-6 rounded-[12px] bg-[#f0f1f1] p-8">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <Bell className="h-5 w-5 text-[#b31b25]" />
-                <h2 className="font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-[20px] font-bold tracking-[-0.4px] text-zinc-800">
-                  Today&apos;s No-Show Alerts
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate('/meal-distribution/no-show-alerts')}
-                className="text-xs font-medium text-[#a83206]"
-              >
-                View All
-              </button>
-            </div>
-            {isLoadingNoShowLogs && (
-              <p className="mb-4 text-xs font-medium text-zinc-500">
-                Loading no-show alerts...
-              </p>
-            )}
-            {noShowLogsError && (
-              <p className="mb-4 text-xs font-medium text-red-600">
-                {noShowLogsError}
-              </p>
-            )}
-
-            <div className="overflow-hidden rounded-[12px] bg-white">
-              <table className="w-full">
-                <thead className="bg-[#e7e8e8] text-left text-xs font-medium text-zinc-500">
-                  <tr>
-                    <th className="px-6 py-4">Student ID</th>
-                    <th className="px-6 py-4">Meal</th>
-                    <th className="px-6 py-4">Attendance</th>
-                    <th className="px-6 py-4">Guardian email</th>
-                    <th className="px-6 py-4">Email log</th>
-                    <th className="px-6 py-4">Sent at</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100">
-                  {todayNoShowRows.map((row) => (
-                    <tr
-                      key={
-                        row.attendanceId ||
-                        `${row.mealSessionId}-${row.studentId}`
-                      }
-                    >
-                      <td className="px-6 py-5 text-sm text-zinc-800">
-                        {row.studentId}
-                      </td>
-                      <td className="px-6 py-5 text-sm text-zinc-800">
-                        {formatMealType(row.mealType)}
-                      </td>
-                      <td className="px-6 py-5 text-sm text-zinc-800">
-                        {String(row.attendanceStatus || '').replace('_', ' ')}
-                      </td>
-                      <td className="px-6 py-5 text-sm text-zinc-800">
-                        {row.guardianEmail || '—'}
-                      </td>
-                      <td className="px-6 py-5 text-sm text-zinc-700">
-                        {row.emailLogStatus
-                          ? `${row.emailLogStatus}${row.emailLogSkipReason ? ` (${row.emailLogSkipReason})` : ''}`
-                          : '—'}
-                      </td>
-                      <td className="px-6 py-5 text-sm text-zinc-700">
-                        {row.emailSentAt
-                          ? new Date(row.emailSentAt).toLocaleString()
-                          : '—'}
-                      </td>
-                    </tr>
-                  ))}
-                  {!isLoadingNoShowLogs && todayNoShowRows.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-6 text-center text-sm text-zinc-500"
-                      >
-                        No no-show alerts for today.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </main>
-      </div>
-
+        <div className="overflow-hidden rounded-[12px] bg-white">
+          <table className="w-full">
+            <thead className="bg-[#e7e8e8] text-left text-xs font-medium text-zinc-500">
+              <tr>
+                <th className="px-6 py-4">Student ID</th>
+                <th className="px-6 py-4">Meal</th>
+                <th className="px-6 py-4">Attendance</th>
+                <th className="px-6 py-4">Guardian email</th>
+                <th className="px-6 py-4">Email log</th>
+                <th className="px-6 py-4">Sent at</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-100">
+              {todayNoShowRows.map((row) => (
+                <tr
+                  key={
+                    row.attendanceId || `${row.mealSessionId}-${row.studentId}`
+                  }
+                >
+                  <td className="px-6 py-5 text-sm text-zinc-800">
+                    {row.studentId}
+                  </td>
+                  <td className="px-6 py-5 text-sm text-zinc-800">
+                    {formatMealType(row.mealType)}
+                  </td>
+                  <td className="px-6 py-5 text-sm text-zinc-800">
+                    {String(row.attendanceStatus || '').replace('_', ' ')}
+                  </td>
+                  <td className="px-6 py-5 text-sm text-zinc-800">
+                    {row.guardianEmail || '—'}
+                  </td>
+                  <td className="px-6 py-5 text-sm text-zinc-700">
+                    {row.emailLogStatus
+                      ? `${row.emailLogStatus}${row.emailLogSkipReason ? ` (${row.emailLogSkipReason})` : ''}`
+                      : '—'}
+                  </td>
+                  <td className="px-6 py-5 text-sm text-zinc-700">
+                    {row.emailSentAt
+                      ? new Date(row.emailSentAt).toLocaleString()
+                      : '—'}
+                  </td>
+                </tr>
+              ))}
+              {!isLoadingNoShowLogs && todayNoShowRows.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-6 py-6 text-center text-sm text-zinc-500"
+                  >
+                    No no-show alerts for today.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
       <NewSessionFloatingButton
         onClick={() => navigate('/meal-distribution/sessions?create=1')}
       />
-    </div>
+    </MealDistributionLayout>
   );
 }
