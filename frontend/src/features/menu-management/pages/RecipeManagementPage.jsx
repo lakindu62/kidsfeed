@@ -9,6 +9,7 @@ import { fetchRecipeCatalog } from '../api';
 import {
   MenuHero,
   MenuStatCard,
+  PageLoadingScreen,
   RecipeFilters,
   RecipeGrid,
   RecipePagination,
@@ -70,15 +71,21 @@ function RecipeManagementPage() {
   useEffect(() => {
     const message = location.state?.toastMessage;
     if (!message) {
-      return undefined;
+      return;
     }
 
     setToastMessage(message);
     navigate(location.pathname, { replace: true, state: {} });
+  }, [location.pathname, location.state, navigate]);
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return undefined;
+    }
 
     const timer = window.setTimeout(() => setToastMessage(''), 2400);
     return () => window.clearTimeout(timer);
-  }, [location.pathname, location.state, navigate]);
+  }, [toastMessage]);
 
   useEffect(() => {
     setPage(1);
@@ -202,6 +209,8 @@ function RecipeManagementPage() {
       onQueryChange={setSearch}
       searchPlaceholder="Search ingredients..."
     >
+      {isLoading ? <PageLoadingScreen message="Loading recipes..." /> : null}
+
       {toastMessage ? (
         <p className="mb-4 rounded-xl border border-[#cce8d0] bg-[#edf8ef] px-4 py-3 text-sm font-semibold text-[#1f7a34] shadow-sm">
           {toastMessage}

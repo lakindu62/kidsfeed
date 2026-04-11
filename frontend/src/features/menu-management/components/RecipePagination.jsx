@@ -5,6 +5,9 @@ function RecipePagination({
   onPrevious,
   onPageSelect,
   onNext,
+  ariaLabel = 'Pagination',
+  previousLabel = '<',
+  nextLabel = '>',
 }) {
   if (totalPages <= 1) {
     return null;
@@ -13,7 +16,7 @@ function RecipePagination({
   return (
     <nav
       className="mx-auto mt-4 flex w-fit gap-1 rounded-[16px] border border-[#e6e9e5] bg-[#f7f7f7] p-1 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
-      aria-label="Recipe pagination"
+      aria-label={ariaLabel}
     >
       <button
         type="button"
@@ -21,7 +24,7 @@ function RecipePagination({
         onClick={onPrevious}
         disabled={page === 1}
       >
-        &lt;
+        {previousLabel}
       </button>
 
       {pageNumbers.map((number) => (
@@ -45,7 +48,7 @@ function RecipePagination({
         onClick={onNext}
         disabled={page === totalPages}
       >
-        &gt;
+        {nextLabel}
       </button>
     </nav>
   );

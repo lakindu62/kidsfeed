@@ -18,6 +18,7 @@ import { describeApiFetchFailure } from '@/lib/describe-api-fetch-failure';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base';
 import { useAuthRole } from '@/lib/auth/use-auth-role';
 import { deleteRecipe, fetchRecipeById, updateRecipeServingSize } from '../api';
+import { PageLoadingScreen } from '../components';
 import MenuManagementLayout from '../layouts/MenuManagementLayout';
 
 const FALLBACK_RECIPE = {
@@ -106,6 +107,7 @@ function RecipeDetailsPage() {
   const [servings, setServings] = useState(FALLBACK_RECIPE.servingSize);
   const [recipe, setRecipe] = useState(FALLBACK_RECIPE);
   const [error, setError] = useState('');
+  const [isPageLoading, setIsPageLoading] = useState(Boolean(recipeId));
   const [isUpdatingServings, setIsUpdatingServings] = useState(false);
   const [servingsSaved, setServingsSaved] = useState(false);
   const [isDeletingRecipe, setIsDeletingRecipe] = useState(false);
@@ -115,6 +117,7 @@ function RecipeDetailsPage() {
     if (!recipeId) {
       setRecipe(FALLBACK_RECIPE);
       setServings(FALLBACK_RECIPE.servingSize);
+      setIsPageLoading(false);
       return;
     }
 
@@ -126,6 +129,7 @@ function RecipeDetailsPage() {
     let active = true;
 
     const loadRecipe = async () => {
+      setIsPageLoading(true);
       setError('');
       try {
         const fetched = await fetchRecipeById({
@@ -152,6 +156,10 @@ function RecipeDetailsPage() {
         );
         setRecipe(FALLBACK_RECIPE);
         setServings(FALLBACK_RECIPE.servingSize);
+      } finally {
+        if (active) {
+          setIsPageLoading(false);
+        }
       }
     };
 
@@ -166,22 +174,46 @@ function RecipeDetailsPage() {
     () => getActiveDietTags(recipe.dietaryFlags),
     [recipe.dietaryFlags],
   );
+  const preparationSteps = useMemo(() => {
+    const instructionLines =
+      typeof recipe.instructions === 'string'
+        ? recipe.instructions
+            .split('\n')
+            .map((line) => line.trim())
+            .filter(Boolean)
+        : [];
+
+    if (instructionLines.length > 0) {
+      return instructionLines.map((line, index) => ({
+        title: `Step ${index + 1}`,
+        description: line,
+      }));
+    }
+
+    return PREPARATION_STEPS;
+  }, [recipe.instructions]);
 
   const nutrition = recipe.nutritionalInfo || FALLBACK_RECIPE.nutritionalInfo;
   const canMutateRecipe = Boolean(recipeId && recipeId !== FALLBACK_RECIPE.id);
 
   useEffect(() => {
     const message = location.state?.toastMessage;
-    if (message) {
-      setToastMessage(message);
-      navigate(location.pathname, { replace: true, state: {} });
-
-      const timer = window.setTimeout(() => setToastMessage(''), 2400);
-      return () => window.clearTimeout(timer);
+    if (!message) {
+      return;
     }
 
-    return undefined;
+    setToastMessage(message);
+    navigate(location.pathname, { replace: true, state: {} });
   }, [location.pathname, location.state, navigate]);
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => setToastMessage(''), 2400);
+    return () => window.clearTimeout(timer);
+  }, [toastMessage]);
 
   const handleEditRecipe = () => {
     if (!canMutateRecipe) {
@@ -299,6 +331,10 @@ function RecipeDetailsPage() {
       subtitle={recipe.name}
       searchPlaceholder="Search institutional database..."
     >
+      {isPageLoading ? (
+        <PageLoadingScreen message="Loading recipe details..." />
+      ) : null}
+
       {toastMessage ? (
         <p className="mb-4 rounded-xl border border-[#cce8d0] bg-[#edf8ef] px-4 py-3 text-sm font-semibold text-[#1f7a34] shadow-sm">
           {toastMessage}
@@ -490,16 +526,16 @@ function RecipeDetailsPage() {
           </h3>
 
           <ol className="space-y-5">
-            {PREPARATION_STEPS.map((step, index) => (
+            {preparationSteps.map((step, index) => (
               <li
-                key={step.title}
+                key={`${step.title}-${index}`}
                 className="grid grid-cols-[2.2rem_1fr] gap-4"
               >
                 <div className="relative flex justify-center">
                   <span className="z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#117b2f] text-sm font-semibold text-white">
                     {index + 1}
                   </span>
-                  {index < PREPARATION_STEPS.length - 1 ? (
+                  {index < preparationSteps.length - 1 ? (
                     <span className="absolute top-8 h-[calc(100%+1rem)] w-px bg-[#d7dde3]" />
                   ) : null}
                 </div>
