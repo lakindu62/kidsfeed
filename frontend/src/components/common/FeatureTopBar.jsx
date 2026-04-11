@@ -5,6 +5,7 @@ export default function FeatureTopBar({
   subtitle,
   query,
   onQueryChange,
+  onQuerySubmit,
   searchPlaceholder = 'Search...',
 }) {
   const showSearch = Boolean(searchPlaceholder);
@@ -27,6 +28,11 @@ export default function FeatureTopBar({
                 type="text"
                 value={query}
                 onChange={(event) => onQueryChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    onQuerySubmit?.(event.target.value);
+                  }
+                }}
                 className="ml-3 w-full bg-transparent text-xs font-medium text-zinc-600 placeholder:text-zinc-500 focus:outline-none"
                 placeholder={searchPlaceholder}
               />
@@ -50,7 +56,7 @@ export default function FeatureTopBar({
         >
           <Settings className="h-5 w-5" />
         </button>
-        <div className="h-10 w-10 rounded-full border-2 border-[#9df898] bg-gradient-to-br from-[#111827] to-[#166534]" />
+        <div className="h-10 w-10 rounded-full border-2 border-[#9df898] bg-linear-to-br from-[#111827] to-[#166534]" />
       </div>
     </header>
   );

@@ -26,10 +26,14 @@ export class MealPlanLookupService {
       mealNotes: null,
     };
 
-    if (!schoolId || !date || !mealType) {return empty;}
+    if (!schoolId || !date || !mealType) {
+      return empty;
+    }
 
     const targetDate = date instanceof Date ? date : new Date(date);
-    if (Number.isNaN(targetDate.getTime())) {return empty;}
+    if (Number.isNaN(targetDate.getTime())) {
+      return empty;
+    }
 
     try {
       const plan = await MealPlanSchema.findOne({
@@ -51,7 +55,9 @@ export class MealPlanLookupService {
           String(m.mealType).trim().toLowerCase() === normalizedMealType
       );
 
-      if (!entry) {return empty;}
+      if (!entry) {
+        return empty;
+      }
 
       let recipeDescription = null;
       if (entry.recipeId) {

@@ -18,7 +18,9 @@ export class MealSessionService {
   }
 
   async _lookupMealDescription(session) {
-    if (!this.mealPlanLookupService) {return undefined;}
+    if (!this.mealPlanLookupService) {
+      return undefined;
+    }
     try {
       return await this.mealPlanLookupService.getMealDescription(
         session.schoolId,
@@ -99,7 +101,9 @@ export class MealSessionService {
 
   async getMealSessionById(mealSessionId) {
     const session = await this.mealSessionRepository.findById(mealSessionId);
-    if (!session) {return null;}
+    if (!session) {
+      return null;
+    }
     const mealDesc = await this._lookupMealDescription(session);
     return toMealSessionResponse(session, mealDesc);
   }

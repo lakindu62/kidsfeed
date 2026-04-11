@@ -12,7 +12,7 @@ const FALLBACK_MENU_CONFIG = {
     {
       key: 'main',
       items: [
-        { key: 'recipes', label: 'Recipes', to: '/menu-management' },
+        { key: 'dashboard', label: 'Dashboard', to: '/menu-management' },
         { key: 'menus', label: 'Menus', to: '/menu-management/menus' },
         { key: 'calendar', label: 'Calendar', to: '/menu-management/calendar' },
       ],
@@ -28,6 +28,7 @@ function MenuManagementLayout({
   subtitle = 'Design balanced school meals with precision',
   query,
   onQueryChange,
+  onQuerySubmit,
   searchPlaceholder,
   children,
 }) {
@@ -57,6 +58,7 @@ function MenuManagementLayout({
           subtitle={subtitle}
           query={query}
           onQueryChange={onQueryChange}
+          onQuerySubmit={onQuerySubmit}
           searchPlaceholder={searchPlaceholder}
         />
         {children}
