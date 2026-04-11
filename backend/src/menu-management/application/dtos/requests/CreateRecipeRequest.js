@@ -12,6 +12,7 @@ class CreateRecipeRequest {
    * @param {Array<string>} [body.allergens=[]]
    * @param {number} [body.prepTime=30]
    * @param {Array<string>} [body.seasonal=[]]
+   * @param {Object|null} [body.nutritionalInfo=null]
    */
   constructor(body) {
     this.name = body.name;
@@ -20,6 +21,7 @@ class CreateRecipeRequest {
     this.servingSize = body.servingSize;
     this.createdBy = body.createdBy;
     this.description = body.description || '';
+    this.imageUrl = body.imageUrl || '';
     this.dietaryFlags = body.dietaryFlags || {
       vegetarian: false,
       vegan: false,
@@ -31,6 +33,7 @@ class CreateRecipeRequest {
     this.allergens = body.allergens || [];
     this.prepTime = body.prepTime || 30;
     this.seasonal = body.seasonal || [];
+    this.nutritionalInfo = body.nutritionalInfo || null;
   }
 
   // Accumulates and returns all validation errors; empty array means valid

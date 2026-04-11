@@ -18,6 +18,7 @@ class RecipeMapper {
       id: mongoDoc._id.toString(),
       name: mongoDoc.name,
       description: mongoDoc.description,
+      imageUrl: mongoDoc.imageUrl || '',
       instructions: mongoDoc.instructions,
       ingredients: mongoDoc.ingredients,
       allergens: mongoDoc.allergens || [],
@@ -57,6 +58,7 @@ class RecipeMapper {
     const mongoDoc = {
       name: recipe.name,
       description: recipe.description,
+      imageUrl: recipe.imageUrl || '',
       instructions: recipe.instructions,
       ingredients: recipe.ingredients,
       allergens: recipe.allergens || [],

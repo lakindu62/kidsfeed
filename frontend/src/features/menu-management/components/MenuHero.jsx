@@ -1,6 +1,6 @@
 function MenuHero({ title, description, ctaLabel, onCtaClick }) {
   return (
-    <article className="flex min-h-[15rem] flex-col rounded-[20px] bg-[linear-gradient(125deg,#bfe7c1_0%,#c6e9ca_50%,#b2dbb6_100%)] p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+    <article className="flex min-h-60 flex-col rounded-[20px] bg-[linear-gradient(125deg,#bfe7c1_0%,#c6e9ca_50%,#b2dbb6_100%)] p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
       <h2 className="max-w-[95%] text-[2.05rem] leading-tight font-bold tracking-[-0.03em] text-[#0f5f1f]">
         {title}
       </h2>

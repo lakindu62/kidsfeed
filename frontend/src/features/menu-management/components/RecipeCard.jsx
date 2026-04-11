@@ -1,4 +1,5 @@
 import { Clock3, Users2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
   getRecipePalette,
   getRecipeDietaryBadges,
@@ -7,13 +8,26 @@ import {
 function RecipeCard({ recipe }) {
   const [startColor, endColor] = getRecipePalette(recipe.name);
   const dietaryBadges = getRecipeDietaryBadges(recipe.dietaryFlags);
+  const hasImage = Boolean(recipe.imageUrl);
 
   return (
     <article className="overflow-hidden rounded-[20px] border border-[#e6e9e5] bg-[#f8f9f8] shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
       <div
-        className="relative h-[132px]"
+        className="relative h-33 overflow-hidden"
         style={{ '--mm-media-start': startColor, '--mm-media-end': endColor }}
       >
+        {hasImage ? (
+          <img
+            src={recipe.imageUrl}
+            alt={recipe.name}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,var(--mm-media-start)_0%,var(--mm-media-end)_100%)]" />
+        )}
+
+        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(15,23,42,0.34)_0%,rgba(15,23,42,0.05)_45%,rgba(15,23,42,0)_100%)]" />
+
         <div className="absolute top-2 left-2 flex gap-2">
           {dietaryBadges.slice(0, 2).map((badge) => (
             <span
@@ -43,12 +57,12 @@ function RecipeCard({ recipe }) {
             Serves {recipe.servingSize || 0}
           </span>
         </div>
-        <button
-          type="button"
+        <Link
+          to={`/menu-management/recipes/${recipe.id || 'sample-rice-dhal'}`}
           className="w-full rounded-[10px] border border-[#d8ddd7] bg-[#ecf1eb] px-3 py-2 text-sm font-semibold text-[#2d7236] transition-colors hover:bg-[#e2e9e2] focus-visible:ring-2 focus-visible:ring-[#2d7236] focus-visible:ring-offset-2 focus-visible:outline-none"
         >
           View Details
-        </button>
+        </Link>
       </div>
     </article>
   );

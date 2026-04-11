@@ -17,6 +17,12 @@ const recipeSchema = new mongoose.Schema(
       maxlength: [500, 'Description cannot exceed 500 characters'],
     },
 
+    imageUrl: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+
     instructions: {
       type: String,
       required: [true, 'Instructions are required'],
@@ -70,6 +76,15 @@ const recipeSchema = new mongoose.Schema(
       fats: { type: Number, min: 0, default: 0 },
       fiber: { type: Number, min: 0, default: 0 },
       sugar: { type: Number, min: 0, default: 0 },
+    },
+
+    dietaryFlags: {
+      vegetarian: { type: Boolean, default: false },
+      vegan: { type: Boolean, default: false },
+      halal: { type: Boolean, default: false },
+      glutenFree: { type: Boolean, default: false },
+      dairyFree: { type: Boolean, default: false },
+      nutFree: { type: Boolean, default: false },
     },
 
     allergens: [

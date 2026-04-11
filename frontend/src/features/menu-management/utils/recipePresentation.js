@@ -3,6 +3,8 @@ const DIETARY_BADGE_LABELS = {
   vegan: 'Vegan',
   halal: 'Halal',
   glutenFree: 'Gluten-Free',
+  dairyFree: 'Dairy-Free',
+  nutFree: 'Nut-Free',
 };
 
 const PALETTES = [
