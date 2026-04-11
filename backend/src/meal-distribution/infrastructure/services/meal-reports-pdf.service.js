@@ -1,11 +1,20 @@
 import PDFDocument from 'pdfkit';
+import { fetchChartImage } from './quickchart-client.service.js';
+import {
+  buildSessionStatusPieConfig,
+  buildAttendanceTotalsBarConfig,
+  buildServedVsPlannedBarConfig,
+  buildNoShowByMealBarConfig,
+  buildEmailStatusPieConfig,
+  buildRosterStatusPieConfig,
+} from '../../application/services/meal-distribution-charts.service.js';
 
 const TABLE_BORDER = '#333333';
 const HEADER_FILL = '#d1d5db';
 const STAT_ROW_FILL = '#f4f4f5';
 const LINE_WIDTH = 0.45;
 
-function createPdfBuffer(renderFn) {
+function createPdfBuffer(asyncRenderFn) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({
       autoFirstPage: true,
@@ -16,8 +25,9 @@ function createPdfBuffer(renderFn) {
     doc.on('data', (chunk) => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
-    renderFn(doc);
-    doc.end();
+    asyncRenderFn(doc)
+      .then(() => doc.end())
+      .catch(reject);
   });
 }
 
@@ -30,13 +40,12 @@ function pageInnerBounds(doc) {
   return { left, top, right, bottom, width };
 }
 
-function ensureY(doc, y, needed, carry = () => {}) {
+function ensureY(doc, y, needed) {
   const { bottom } = pageInnerBounds(doc);
   if (y + needed <= bottom) {
     return y;
   }
   doc.addPage();
-  carry();
   return pageInnerBounds(doc).top;
 }
 
@@ -68,7 +77,6 @@ function formatRangeLabel(dateFrom, dateTo) {
   return `Until ${dateTo}`;
 }
 
-/** Draw one table row (header or body) with grid lines. Returns y below row. */
 function drawTableRow(doc, x, y, colWidths, cells, height, options = {}) {
   const { header = false, fontSize = 8, fill = null } = options;
   const tw = sumWidths(colWidths);
@@ -104,13 +112,9 @@ function drawTableRow(doc, x, y, colWidths, cells, height, options = {}) {
     cx += w;
   });
   doc.restore();
-
   return y + height;
 }
 
-/**
- * Renders a titled statistics block as a two-column table (label | value).
- */
 function drawStatsBlock(doc, x, y, title, pairs) {
   const { width } = pageInnerBounds(doc);
   const labelW = Math.min(280, width * 0.62);
@@ -164,6 +168,62 @@ function drawReportHeader(
   return cy + 28;
 }
 
+/**
+ * Embed a chart PNG from QuickChart into the document.
+ * Returns the new y position below the image, or the original y if chart failed.
+ */
+async function embedChart(doc, y, chartConfig, chartOpts = {}) {
+  const {
+    imgWidth = 260,
+    imgHeight = 160,
+    pdfWidth = 260,
+    pdfHeight = 160,
+  } = chartOpts;
+  const buf = await fetchChartImage(chartConfig, {
+    width: imgWidth,
+    height: imgHeight,
+  });
+  if (!buf) {
+    return y;
+  }
+
+  const { left, width } = pageInnerBounds(doc);
+  y = ensureY(doc, y, pdfHeight + 10);
+  const cx = left + (width - pdfWidth) / 2;
+  doc.image(buf, cx, y, { width: pdfWidth, height: pdfHeight });
+  return y + pdfHeight + 14;
+}
+
+/**
+ * Embed two charts side by side.
+ */
+async function embedChartPair(doc, y, leftConfig, rightConfig, opts = {}) {
+  const { pdfW = 240, pdfH = 150, imgW = 480, imgH = 300, gap = 16 } = opts;
+  const totalH = pdfH + 10;
+  y = ensureY(doc, y, totalH);
+
+  const { left, width } = pageInnerBounds(doc);
+  const totalW = pdfW * 2 + gap;
+  const startX = left + (width - totalW) / 2;
+
+  const [leftBuf, rightBuf] = await Promise.all([
+    fetchChartImage(leftConfig, { width: imgW, height: imgH }),
+    fetchChartImage(rightConfig, { width: imgW, height: imgH }),
+  ]);
+
+  let maxH = 0;
+  if (leftBuf) {
+    doc.image(leftBuf, startX, y, { width: pdfW, height: pdfH });
+    maxH = pdfH;
+  }
+  if (rightBuf) {
+    doc.image(rightBuf, startX + pdfW + gap, y, { width: pdfW, height: pdfH });
+    maxH = pdfH;
+  }
+
+  return maxH > 0 ? y + maxH + 14 : y;
+}
+
 function computeSessionSummaryStats(rows) {
   const byStatus = {};
   let sumPlanned = 0;
@@ -215,12 +275,7 @@ function computeNoShowStats(rows) {
 }
 
 function computeRosterStats(roster) {
-  const c = {
-    PRESENT: 0,
-    EXCUSED: 0,
-    NO_SHOW: 0,
-    NOT_MARKED: 0,
-  };
+  const c = { PRESENT: 0, EXCUSED: 0, NO_SHOW: 0, NOT_MARKED: 0 };
   roster.forEach((r) => {
     const s = String(r.status || '');
     if (s === 'PRESENT') {
@@ -290,9 +345,6 @@ function rosterStatPairs(stats) {
   ];
 }
 
-/**
- * Paginated data table with repeating header row.
- */
 function renderDataTable(
   doc,
   startY,
@@ -301,12 +353,11 @@ function renderDataTable(
   bodyRows,
   rowOptions
 ) {
-  const { left, width } = pageInnerBounds(doc);
+  const { left } = pageInnerBounds(doc);
   const { bottom } = pageInnerBounds(doc);
   const rowH = rowOptions?.rowH ?? 17;
   const headerH = rowOptions?.headerH ?? 20;
   const fontSize = rowOptions?.fontSize ?? 7;
-  const tableW = sumWidths(colWidths);
   const x = left;
 
   let y = startY;
@@ -334,14 +385,13 @@ function renderDataTable(
       y = pageInnerBounds(doc).top;
       drawPageHeader();
     }
-    y = drawTableRow(doc, x, y, colWidths, cells, rowH, {
-      fontSize,
-      fill,
-    });
+    y = drawTableRow(doc, x, y, colWidths, cells, rowH, { fontSize, fill });
   });
 
   return y + 10;
 }
+
+// ─── Session summary PDF ────────────────────────────────────────────
 
 export async function generateMealSessionSummaryPdf({
   schoolName,
@@ -349,7 +399,7 @@ export async function generateMealSessionSummaryPdf({
   dateFrom,
   dateTo,
 }) {
-  return createPdfBuffer((doc) => {
+  return createPdfBuffer(async (doc) => {
     const { left, top, width } = pageInnerBounds(doc);
     let y = top;
 
@@ -369,7 +419,43 @@ export async function generateMealSessionSummaryPdf({
     }
 
     const stats = computeSessionSummaryStats(rows);
-    y = ensureY(doc, y, 120, () => {});
+
+    // ── Charts: session status pie + attendance totals bar ──
+    const statusPie = buildSessionStatusPieConfig(stats.byStatus);
+    const attendanceBar = buildAttendanceTotalsBarConfig(stats);
+    y = ensureY(doc, y, 170);
+    doc.font('Helvetica-Bold').fontSize(11).fillColor('#166534');
+    doc.text('Visual overview', left, y);
+    y += 18;
+    y = await embedChartPair(doc, y, statusPie, attendanceBar, {
+      pdfW: 240,
+      pdfH: 150,
+      imgW: 500,
+      imgH: 300,
+    });
+
+    // ── Served vs planned bar (last N sessions) ──
+    const recent = rows.slice(0, 12).reverse();
+    if (recent.length > 1) {
+      const entries = recent.map((r) => ({
+        label: formatDate(r.date),
+        planned: Number(r.plannedHeadcount) || 0,
+        served: Number(r.actualServedCount) || 0,
+      }));
+      const servedBar = buildServedVsPlannedBarConfig(entries);
+      doc.font('Helvetica-Bold').fontSize(11).fillColor('#166534');
+      doc.text('Served vs planned (recent sessions)', left, y);
+      y += 18;
+      y = await embedChart(doc, y, servedBar, {
+        imgWidth: 700,
+        imgHeight: 300,
+        pdfWidth: width,
+        pdfHeight: 180,
+      });
+    }
+
+    // ── Stats table ──
+    y = ensureY(doc, y, 120);
     y = drawStatsBlock(
       doc,
       left,
@@ -378,6 +464,7 @@ export async function generateMealSessionSummaryPdf({
       sessionSummaryStatPairs(stats)
     );
 
+    // ── Detail table ──
     const colWidths = [70, 66, 60, 54, 54, 52, 52, 124];
     const headerCells = [
       'Date',
@@ -400,7 +487,7 @@ export async function generateMealSessionSummaryPdf({
       String(r.noShow ?? 0),
     ]);
 
-    y = ensureY(doc, y, 40, () => {});
+    y = ensureY(doc, y, 40);
     doc.font('Helvetica-Bold').fontSize(11).fillColor('#166534');
     doc.text('Session detail', left, y);
     y += 18;
@@ -413,13 +500,15 @@ export async function generateMealSessionSummaryPdf({
   });
 }
 
+// ─── No-show report PDF ─────────────────────────────────────────────
+
 export async function generateNoShowReportPdf({
   schoolName,
   rows,
   dateFrom,
   dateTo,
 }) {
-  return createPdfBuffer((doc) => {
+  return createPdfBuffer(async (doc) => {
     const { left, top, width } = pageInnerBounds(doc);
     let y = top;
 
@@ -439,7 +528,23 @@ export async function generateNoShowReportPdf({
     }
 
     const stats = computeNoShowStats(rows);
-    y = ensureY(doc, y, 100, () => {});
+
+    // ── Charts: no-shows by meal + email status doughnut ──
+    const mealBar = buildNoShowByMealBarConfig(stats.byMeal);
+    const emailPie = buildEmailStatusPieConfig(stats.byEmail);
+    y = ensureY(doc, y, 170);
+    doc.font('Helvetica-Bold').fontSize(11).fillColor('#166534');
+    doc.text('Visual overview', left, y);
+    y += 18;
+    y = await embedChartPair(doc, y, mealBar, emailPie, {
+      pdfW: 240,
+      pdfH: 150,
+      imgW: 500,
+      imgH: 300,
+    });
+
+    // ── Stats table ──
+    y = ensureY(doc, y, 100);
     y = drawStatsBlock(
       doc,
       left,
@@ -448,6 +553,7 @@ export async function generateNoShowReportPdf({
       noShowStatPairs(stats)
     );
 
+    // ── Detail table ──
     const colWidths = [64, 56, 72, 118, 126, 96];
     const headerCells = [
       'Session date',
@@ -459,9 +565,7 @@ export async function generateNoShowReportPdf({
     ];
     const bodyRows = rows.map((r) => {
       const emailLog = r.emailLogStatus
-        ? `${r.emailLogStatus}${
-            r.emailLogSkipReason ? ` (${r.emailLogSkipReason})` : ''
-          }`
+        ? `${r.emailLogStatus}${r.emailLogSkipReason ? ` (${r.emailLogSkipReason})` : ''}`
         : '—';
       return [
         formatDate(r.sessionDate),
@@ -473,7 +577,7 @@ export async function generateNoShowReportPdf({
       ];
     });
 
-    y = ensureY(doc, y, 40, () => {});
+    y = ensureY(doc, y, 40);
     doc.font('Helvetica-Bold').fontSize(11).fillColor('#166534');
     doc.text('No-show detail', left, y);
     y += 18;
@@ -486,6 +590,8 @@ export async function generateNoShowReportPdf({
   });
 }
 
+// ─── Session roster PDF ─────────────────────────────────────────────
+
 export async function generateSessionRosterPdf({
   schoolName,
   sessionLabel,
@@ -494,7 +600,7 @@ export async function generateSessionRosterPdf({
   sessionStatus,
   roster,
 }) {
-  return createPdfBuffer((doc) => {
+  return createPdfBuffer(async (doc) => {
     const { left, top, width } = pageInnerBounds(doc);
     let y = top;
 
@@ -514,7 +620,22 @@ export async function generateSessionRosterPdf({
     }
 
     const stats = computeRosterStats(roster);
-    y = ensureY(doc, y, 100, () => {});
+
+    // ── Chart: roster status doughnut ──
+    const rosterPie = buildRosterStatusPieConfig(stats);
+    y = ensureY(doc, y, 200);
+    doc.font('Helvetica-Bold').fontSize(11).fillColor('#166534');
+    doc.text('Roster breakdown', left, y);
+    y += 18;
+    y = await embedChart(doc, y, rosterPie, {
+      imgWidth: 500,
+      imgHeight: 300,
+      pdfWidth: 260,
+      pdfHeight: 160,
+    });
+
+    // ── Stats table ──
+    y = ensureY(doc, y, 100);
     y = drawStatsBlock(
       doc,
       left,
@@ -523,6 +644,7 @@ export async function generateSessionRosterPdf({
       rosterStatPairs(stats)
     );
 
+    // ── Detail table ──
     const colWidths = [100, 332, 100];
     const headerCells = ['Student ID', 'Name', 'Status'];
     const bodyRows = roster.map((row) => {
@@ -533,7 +655,7 @@ export async function generateSessionRosterPdf({
       return [String(row.studentId), name, String(row.status || '—')];
     });
 
-    y = ensureY(doc, y, 40, () => {});
+    y = ensureY(doc, y, 40);
     doc.font('Helvetica-Bold').fontSize(11).fillColor('#166534');
     doc.text('Roster detail', left, y);
     y += 18;

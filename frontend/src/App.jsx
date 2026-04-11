@@ -4,14 +4,9 @@ import RequireAuth from './components/common/guards/RequireAuth';
 import RequireRole from './components/common/guards/RequireRole';
 import { InventoryRoute, inventoryPath } from './features/inventory';
 import {
-  MealAttendanceRoute,
-  MealDistributionDashboardRoute,
-  MealDistributionLayoutRoute,
-  MealNoShowAlertsRoute,
-  MealReportsRoute,
-  MealSessionsRoute,
-  MealStudentHistoryRoute,
+  MealDistributionLayout,
   mealDistributionPath,
+  mealDistributionChildren,
 } from './features/meal-distribution';
 import {
   MenuManagementNewRecipeRoute,
@@ -73,17 +68,19 @@ function App() {
                   USER_ROLES.SCHOOL_ADMIN,
                 ]}
               >
-                <MealDistributionLayoutRoute />
+                <MealDistributionLayout />
               </RequireRole>
             </RequireAuth>
           }
         >
-          <Route index element={<MealDistributionDashboardRoute />} />
-          <Route path="sessions" element={<MealSessionsRoute />} />
-          <Route path="attendance" element={<MealAttendanceRoute />} />
-          <Route path="no-show-alerts" element={<MealNoShowAlertsRoute />} />
-          <Route path="student-history" element={<MealStudentHistoryRoute />} />
-          <Route path="reports" element={<MealReportsRoute />} />
+          {mealDistributionChildren.map((route) => (
+            <Route
+              key={route.path ?? 'index'}
+              path={route.path}
+              index={route.index}
+              element={<route.Component />}
+            />
+          ))}
         </Route>
         <Route
           path={menuManagementPath}

@@ -197,3 +197,19 @@ button:focus-visible {
     @apply font-sans;
   }
 }
+
+/* Meal distribution KPI cards — registered as Tailwind utilities via @theme */
+@keyframes md-kpi-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@theme {
+  --animate-md-kpi-card: md-kpi-card-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}

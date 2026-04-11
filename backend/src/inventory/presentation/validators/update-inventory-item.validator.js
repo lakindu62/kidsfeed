@@ -33,12 +33,20 @@ function isValidOptionalUrl(value) {
  * @param {Function} next - Express next middleware function
  */
 export function validateUpdateInventoryItem(req, res, next) {
-  const { name, category, quantity, unit } = req.body || {};
+  const { name, category, unit } = req.body || {};
 
   if (req.body?.status !== undefined) {
     return res.status(400).json({
       success: false,
       message: 'status is derived by the server and cannot be set manually',
+    });
+  }
+
+  if (req.body?.expiryStatus !== undefined) {
+    return res.status(400).json({
+      success: false,
+      message:
+        'expiryStatus is derived by the server and cannot be set manually',
     });
   }
 
@@ -115,6 +123,41 @@ export function validateUpdateInventoryItem(req, res, next) {
     return res.status(400).json({
       success: false,
       message: 'packageWeight must be a non-negative number',
+    });
+  }
+
+  if (req.body.expiryDate !== undefined) {
+    return res.status(400).json({
+      success: false,
+      message: 'expiryDate cannot be set on item-level update requests',
+    });
+  }
+
+  if (req.body.supplier !== undefined) {
+    return res.status(400).json({
+      success: false,
+      message: 'supplier cannot be set on item-level update requests',
+    });
+  }
+
+  if (req.body.unitPrice !== undefined) {
+    return res.status(400).json({
+      success: false,
+      message: 'unitPrice cannot be set on item-level update requests',
+    });
+  }
+
+  if (req.body.location !== undefined) {
+    return res.status(400).json({
+      success: false,
+      message: 'location cannot be set on item-level update requests',
+    });
+  }
+
+  if (req.body.batchNote !== undefined) {
+    return res.status(400).json({
+      success: false,
+      message: 'batchNote cannot be set on item-level update requests',
     });
   }
 
@@ -214,14 +257,6 @@ export function validateUpdateInventoryItem(req, res, next) {
     }
 
     req.body.nutritionalGrade = normalizedNutritionalGrade;
-  }
-
-  // Validate expiry date if provided
-  if (req.body.expiryDate && isNaN(Date.parse(req.body.expiryDate))) {
-    return res.status(400).json({
-      success: false,
-      message: 'expiryDate must be a valid date',
-    });
   }
 
   next();

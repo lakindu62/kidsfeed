@@ -4,6 +4,7 @@ import { MealAttendanceRepository } from '../../infrastructure/repositories/meal
 import { MealGuardianNotificationRepository } from '../../infrastructure/repositories/meal-guardian-notification.repository.js';
 import { MealSessionService } from '../../application/services/meal-session.service.js';
 import { MealSessionCompletionService } from '../../application/services/meal-session-completion.service.js';
+import { MealPlanLookupService } from '../../infrastructure/services/meal-plan-lookup.service.js';
 import { NotificationService } from '../../infrastructure/services/notification.service.js';
 import { CreateMealSessionDto } from '../../application/dtos/requests/create-meal-session.dto.js';
 import { UpdateMealSessionDto } from '../../application/dtos/requests/update-meal-session.dto.js';
@@ -20,9 +21,11 @@ const completionService = new MealSessionCompletionService({
   mealGuardianNotificationRepository,
   notificationService,
 });
+const mealPlanLookupService = new MealPlanLookupService();
 const mealSessionService = new MealSessionService(mealSessionRepository, {
   completionService,
   mealGuardianNotificationRepository,
+  mealPlanLookupService,
 });
 
 export const mealSessionRouter = express.Router();
