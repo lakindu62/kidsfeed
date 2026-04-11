@@ -5,6 +5,8 @@ import {
   MealDistributionSchoolProvider,
 } from './hooks';
 
+export const mealDistributionPath = '/meal-distribution';
+
 export default function MealDistributionLayout() {
   const { schoolId, schoolName } = getDefaultMealDistributionSchoolScope();
 
