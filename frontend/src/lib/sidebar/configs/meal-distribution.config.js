@@ -3,13 +3,14 @@ import {
   FileText,
   LayoutGrid,
   Megaphone,
+  Users,
   UtensilsCrossed,
 } from 'lucide-react';
 import { DEFAULT_FOOTER_ACTIONS } from './defaults';
 
 export const MEAL_DISTRIBUTION_SIDEBAR_CONFIG = {
-  brandTitle: 'KIDFEED',
-  featureLabel: 'CENTRAL KITCHEN',
+  brandTitle: 'Kidsfeed',
+  featureLabel: 'MEAL DISTRIBUTION PORTAL',
   sections: [
     {
       key: 'main',
@@ -38,11 +39,12 @@ export const MEAL_DISTRIBUTION_SIDEBAR_CONFIG = {
           to: '/meal-distribution/no-show-alerts',
           icon: Megaphone,
         },
-      ],
-    },
-    {
-      key: 'reports',
-      items: [
+        {
+          key: 'student-history',
+          label: 'Student History',
+          to: '/meal-distribution/student-history',
+          icon: Users,
+        },
         {
           key: 'reports',
           label: 'Reports',
