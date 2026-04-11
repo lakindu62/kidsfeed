@@ -629,38 +629,7 @@ function RecipeSearchPage() {
             ) : null}
           </div>
 
-          <section className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(220px,0.8fr)]">
-            <article className="rounded-[24px] bg-[#e6f4d6] p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-[1.25rem] leading-tight font-semibold text-[#207131]">
-                    Weekly Nutritional Balance
-                  </h3>
-                  <p className="mt-2 max-w-sm text-sm leading-6 text-[#56715d]">
-                    Your current recipe set stays aligned with vegetarian
-                    targets and healthy prep windows for the week.
-                  </p>
-
-                  <button
-                    type="button"
-                    className="mt-5 rounded-full bg-[#166534] px-4 py-2 text-sm font-semibold text-white"
-                  >
-                    View Full Report
-                  </button>
-                </div>
-
-                <div className="flex h-28 items-end gap-2">
-                  {[28, 42, 55, 74, 64].map((height, index) => (
-                    <span
-                      key={index}
-                      className={`w-4 rounded-full ${index >= 3 ? 'bg-[#0f7d2a]' : 'bg-[#8cc08f]'}`}
-                      style={{ height: `${height}px` }}
-                    />
-                  ))}
-                </div>
-              </div>
-            </article>
-
+          <section className="grid grid-cols-1 gap-4 lg:max-w-[420px]">
             <article className="rounded-[24px] bg-[#f7ede0] p-5 text-center shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[#d8a06b] text-[#c9721d]">
                 <AlertTriangle size={26} />

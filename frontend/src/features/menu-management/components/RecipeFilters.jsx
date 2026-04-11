@@ -37,17 +37,19 @@ function RecipeFilters({
         ))}
       </div>
 
-      <select
-        className="ml-auto rounded-[10px] border border-[#dde3dd] bg-[#f4f4f2] px-3 py-2 text-sm text-[#484] focus-visible:ring-2 focus-visible:ring-[#1f8a35] focus-visible:ring-offset-2 focus-visible:outline-none"
-        value={currentOption}
-        onChange={(event) => handleOptionChange?.(event.target.value)}
-      >
-        {activeOptions.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      {activeOptions.length > 0 && handleOptionChange ? (
+        <select
+          className="ml-auto rounded-[10px] border border-[#dde3dd] bg-[#f4f4f2] px-3 py-2 text-sm text-[#484] focus-visible:ring-2 focus-visible:ring-[#1f8a35] focus-visible:ring-offset-2 focus-visible:outline-none"
+          value={currentOption}
+          onChange={(event) => handleOptionChange(event.target.value)}
+        >
+          {activeOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      ) : null}
 
       <button
         type="button"

@@ -27,13 +27,6 @@ const DIETARY_FILTERS = [
   { key: 'nutFree', label: 'Nut-Free' },
 ];
 
-const COURSE_OPTIONS = [
-  { value: 'all', label: 'Course: All' },
-  { value: 'breakfast', label: 'Course: Breakfast' },
-  { value: 'lunch', label: 'Course: Lunch' },
-  { value: 'dinner', label: 'Course: Dinner' },
-];
-
 const PAGE_SIZE = 8;
 
 function RecipeManagementPage() {
@@ -45,7 +38,6 @@ function RecipeManagementPage() {
   const apiBaseUrl = resolveApiBaseUrl();
 
   const [search, setSearch] = useState('');
-  const [course, setCourse] = useState('all');
   const [dietaryFilters, setDietaryFilters] = useState({
     vegetarian: false,
     vegan: false,
@@ -86,7 +78,7 @@ function RecipeManagementPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [course, dietaryFilters]);
+  }, [dietaryFilters]);
 
   useEffect(() => {
     if (!apiBaseUrl) {
@@ -108,7 +100,6 @@ function RecipeManagementPage() {
           pageSize: PAGE_SIZE,
           searchTerm: '',
           dietaryFlags: dietaryFilters,
-          course,
         });
 
         if (!active) {
@@ -141,7 +132,7 @@ function RecipeManagementPage() {
     return () => {
       active = false;
     };
-  }, [apiBaseUrl, isSignedIn, getToken, page, course, dietaryFilters]);
+  }, [apiBaseUrl, isSignedIn, getToken, page, dietaryFilters]);
 
   const vegetarianCount = useMemo(
     () =>
@@ -177,7 +168,6 @@ function RecipeManagementPage() {
 
   const resetFilters = () => {
     setSearch('');
-    setCourse('all');
     setDietaryFilters({
       vegetarian: false,
       vegan: false,
@@ -252,9 +242,6 @@ function RecipeManagementPage() {
           active: dietaryFilters[filter.key],
         }))}
         onToggleFilter={toggleDietaryFilter}
-        course={course}
-        onCourseChange={setCourse}
-        courseOptions={COURSE_OPTIONS}
         onReset={resetFilters}
       />
 
