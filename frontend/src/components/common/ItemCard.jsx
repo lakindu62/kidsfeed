@@ -1,4 +1,6 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 
@@ -52,7 +54,7 @@ function ItemCard({
   }
 
   return (
-    <article
+    <Card
       className={cn(
         'overflow-hidden rounded-[20px] border border-[#e6e9e5] bg-[#f8f9f8] shadow-[0_1px_2px_rgba(0,0,0,0.04)]',
         className,
@@ -72,18 +74,19 @@ function ItemCard({
         {badges.length > 0 ? (
           <div className="absolute top-2 left-2 flex flex-wrap gap-2">
             {badges.map((badge) => (
-              <span
+              <Badge
                 key={badge}
+                variant="secondary"
                 className="cursor-default rounded-full bg-[#dcedc8] px-3 py-1 text-xs font-semibold text-[#2f6f33]"
               >
                 {badge}
-              </span>
+              </Badge>
             ))}
           </div>
         ) : null}
       </div>
 
-      <div className="px-3 py-3">
+      <CardContent className="px-3 py-3">
         <h3 className="m-0 text-[0.95rem] font-bold tracking-[-0.02em] text-[#2a2a2a]">
           {title}
         </h3>
@@ -110,10 +113,12 @@ function ItemCard({
             ))}
           </dl>
         ) : null}
+      </CardContent>
 
-        {action}
-      </div>
-    </article>
+      {action ? (
+        <CardFooter className="px-3 pt-0 pb-3">{action}</CardFooter>
+      ) : null}
+    </Card>
   );
 }
 

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 
@@ -50,25 +51,27 @@ function PageHero({
   }
 
   return (
-    <article
+    <Card
       className={cn(
-        'flex min-h-60 flex-col rounded-[20px] bg-[linear-gradient(125deg,#bfe7c1_0%,#c6e9ca_50%,#b2dbb6_100%)] p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04)]',
+        'min-h-60 rounded-[20px] bg-[linear-gradient(125deg,#bfe7c1_0%,#c6e9ca_50%,#b2dbb6_100%)] p-0 shadow-[0_1px_2px_rgba(0,0,0,0.04)]',
         className,
       )}
     >
-      {eyebrow ? (
-        <p className="mb-2 text-sm font-semibold tracking-[0.2em] text-[#2c6b37] uppercase">
-          {eyebrow}
+      <CardContent className="flex min-h-60 flex-col p-6">
+        {eyebrow ? (
+          <p className="mb-2 text-sm font-semibold tracking-[0.2em] text-[#2c6b37] uppercase">
+            {eyebrow}
+          </p>
+        ) : null}
+        <h2 className="max-w-[95%] text-[2.05rem] leading-tight font-bold tracking-[-0.03em] text-[#0f5f1f]">
+          {title}
+        </h2>
+        <p className="mt-4 max-w-[92%] text-[1.08rem] leading-7 text-[#2c6b37]">
+          {description}
         </p>
-      ) : null}
-      <h2 className="max-w-[95%] text-[2.05rem] leading-tight font-bold tracking-[-0.03em] text-[#0f5f1f]">
-        {title}
-      </h2>
-      <p className="mt-4 max-w-[92%] text-[1.08rem] leading-7 text-[#2c6b37]">
-        {description}
-      </p>
-      {action}
-    </article>
+        {action}
+      </CardContent>
+    </Card>
   );
 }
 
