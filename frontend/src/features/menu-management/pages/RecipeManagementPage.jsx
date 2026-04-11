@@ -17,7 +17,6 @@ import {
   WeeklyGoalCard,
 } from '../components';
 import MenuManagementLayout from '../layouts/MenuManagementLayout';
-import useDebouncedValue from '../hooks/useDebouncedValue';
 
 const DIETARY_FILTERS = [
   { key: 'vegetarian', label: 'Vegetarian' },
@@ -66,8 +65,6 @@ function RecipeManagementPage() {
   const [error, setError] = useState('');
   const [toastMessage, setToastMessage] = useState('');
 
-  const debouncedSearch = useDebouncedValue(search);
-
   useEffect(() => {
     const message = location.state?.toastMessage;
     if (!message) {
@@ -89,7 +86,7 @@ function RecipeManagementPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, course, dietaryFilters]);
+  }, [course, dietaryFilters]);
 
   useEffect(() => {
     if (!apiBaseUrl) {
@@ -109,7 +106,7 @@ function RecipeManagementPage() {
           getToken: isSignedIn ? getToken : undefined,
           page,
           pageSize: PAGE_SIZE,
-          searchTerm: debouncedSearch,
+          searchTerm: '',
           dietaryFlags: dietaryFilters,
           course,
         });
@@ -144,15 +141,7 @@ function RecipeManagementPage() {
     return () => {
       active = false;
     };
-  }, [
-    apiBaseUrl,
-    isSignedIn,
-    getToken,
-    page,
-    debouncedSearch,
-    course,
-    dietaryFilters,
-  ]);
+  }, [apiBaseUrl, isSignedIn, getToken, page, course, dietaryFilters]);
 
   const vegetarianCount = useMemo(
     () =>
@@ -199,6 +188,15 @@ function RecipeManagementPage() {
     });
   };
 
+  const handleSearchSubmit = (value) => {
+    const submittedQuery = String(value || '').trim();
+    const endpoint = submittedQuery
+      ? `/menu-management/recipes?query=${encodeURIComponent(submittedQuery)}`
+      : '/menu-management/recipes';
+
+    navigate(endpoint);
+  };
+
   return (
     <MenuManagementLayout
       role={role}
@@ -207,7 +205,8 @@ function RecipeManagementPage() {
       subtitle="Create and curate nutritious institutional meal plans"
       query={search}
       onQueryChange={setSearch}
-      searchPlaceholder="Search ingredients..."
+      onQuerySubmit={handleSearchSubmit}
+      searchPlaceholder="Search by recipe name or ingredient..."
     >
       {isLoading ? <PageLoadingScreen message="Loading recipes..." /> : null}
 
