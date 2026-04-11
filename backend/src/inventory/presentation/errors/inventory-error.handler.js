@@ -12,6 +12,10 @@ export function isBadRequestError(error) {
   return error?.statusCode === 400;
 }
 
+export function isConflictError(error) {
+  return error?.statusCode === 409;
+}
+
 export function handleInventoryItemError(res, error, fallbackMessage) {
   if (isInvalidObjectIdError(error)) {
     return res.status(400).json({
@@ -25,6 +29,19 @@ export function handleInventoryItemError(res, error, fallbackMessage) {
       success: false,
       message: error.message,
     });
+  }
+
+  if (isConflictError(error)) {
+    const response = {
+      success: false,
+      message: error.message,
+    };
+
+    if (error.action) {
+      response.action = error.action;
+    }
+
+    return res.status(409).json(response);
   }
 
   if (isNotFoundError(error)) {

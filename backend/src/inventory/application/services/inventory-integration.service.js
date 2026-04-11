@@ -51,8 +51,13 @@ export class InventoryIntegrationService {
   async releaseForMealPlanning(payload) {
     const { itemId, amount } = payload || {};
 
-    return this.inventoryItemService.incrementInventoryItem(itemId, {
-      amount,
+    return this.inventoryItemService.addBatch(itemId, {
+      quantity: amount,
+      expiryDate: null,
+      supplier: '',
+      unitPrice: 0,
+      location: '',
+      batchNote: 'Released from meal plan',
     });
   }
 }

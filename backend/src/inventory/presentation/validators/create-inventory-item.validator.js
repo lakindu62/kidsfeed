@@ -42,6 +42,14 @@ export function validateCreateInventoryItem(req, res, next) {
     });
   }
 
+  if (req.body?.expiryStatus !== undefined) {
+    return res.status(400).json({
+      success: false,
+      message:
+        'expiryStatus is derived by the server and cannot be set manually',
+    });
+  }
+
   // Check required fields
   if (!name || name.trim() === '') {
     return res.status(400).json({
@@ -62,21 +70,6 @@ export function validateCreateInventoryItem(req, res, next) {
     return res.status(400).json({
       success: false,
       message: `category must be one of: ${Object.values(INVENTORY_CATEGORIES).join(', ')}`,
-    });
-  }
-
-  if (quantity === undefined || quantity === null) {
-    return res.status(400).json({
-      success: false,
-      message: 'quantity is required',
-    });
-  }
-
-  // Validate quantity is a non-negative number
-  if (typeof quantity !== 'number' || quantity < 0) {
-    return res.status(400).json({
-      success: false,
-      message: 'quantity must be a non-negative number',
     });
   }
 
@@ -115,6 +108,20 @@ export function validateCreateInventoryItem(req, res, next) {
     return res.status(400).json({
       success: false,
       message: 'packageWeight must be a non-negative number',
+    });
+  }
+
+  if (quantity === undefined || quantity === null) {
+    return res.status(400).json({
+      success: false,
+      message: 'quantity is required for the initial batch',
+    });
+  }
+
+  if (typeof quantity !== 'number' || quantity < 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'quantity must be a non-negative number',
     });
   }
 
@@ -191,6 +198,46 @@ export function validateCreateInventoryItem(req, res, next) {
     });
   }
 
+  if (
+    req.body.supplier !== undefined &&
+    typeof req.body.supplier !== 'string'
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: 'supplier must be a string when provided',
+    });
+  }
+
+  if (
+    req.body.unitPrice !== undefined &&
+    (typeof req.body.unitPrice !== 'number' || req.body.unitPrice < 0)
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: 'unitPrice must be a non-negative number',
+    });
+  }
+
+  if (
+    req.body.location !== undefined &&
+    typeof req.body.location !== 'string'
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: 'location must be a string when provided',
+    });
+  }
+
+  if (
+    req.body.batchNote !== undefined &&
+    typeof req.body.batchNote !== 'string'
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: 'batchNote must be a string when provided',
+    });
+  }
+
   if (req.body.nutritionalGrade !== undefined) {
     if (typeof req.body.nutritionalGrade !== 'string') {
       return res.status(400).json({
@@ -216,7 +263,6 @@ export function validateCreateInventoryItem(req, res, next) {
     req.body.nutritionalGrade = normalizedNutritionalGrade;
   }
 
-  // Validate expiry date if provided
   if (req.body.expiryDate && isNaN(Date.parse(req.body.expiryDate))) {
     return res.status(400).json({
       success: false,

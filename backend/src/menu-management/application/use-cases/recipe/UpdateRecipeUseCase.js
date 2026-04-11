@@ -29,6 +29,7 @@ class UpdateRecipeUseCase {
       id: recipeId,
       name: updateData.name ?? existingRecipe.name,
       description: updateData.description ?? existingRecipe.description,
+      imageUrl: updateData.imageUrl ?? existingRecipe.imageUrl,
       ingredients: updateData.ingredients ?? existingRecipe.ingredients,
       instructions: updateData.instructions ?? existingRecipe.instructions,
       dietaryFlags: updateData.dietaryFlags
