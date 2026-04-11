@@ -34,7 +34,6 @@ function ScrollToTop() {
 
 function App() {
   return (
-
     <>
       <ScrollToTop />
       <Routes>
@@ -58,24 +57,24 @@ function App() {
             </RequireAuth>
           }
         />
-         <Route
-        path={mealDistributionPath}
-        element={
-          <RequireAuth>
-            <RequireRole
-              allowedRoles={[
-                USER_ROLES.ADMIN,
-                USER_ROLES.SCHOOL_STAFF,
-                USER_ROLES.SCHOOL_ADMIN,
-              ]}
-            >
-              <MealDistributionLayout />
-            </RequireRole>
-          </RequireAuth>
-        }
-      >
-        {mealDistributionRoutes()}
-      </Route>
+        <Route
+          path={mealDistributionPath}
+          element={
+            <RequireAuth>
+              <RequireRole
+                allowedRoles={[
+                  USER_ROLES.ADMIN,
+                  USER_ROLES.SCHOOL_STAFF,
+                  USER_ROLES.SCHOOL_ADMIN,
+                ]}
+              >
+                <MealDistributionLayout />
+              </RequireRole>
+            </RequireAuth>
+          }
+        >
+          {mealDistributionRoutes()}
+        </Route>
         <Route
           path={menuManagementPath}
           element={
@@ -107,7 +106,6 @@ function App() {
         </Route>
       </Routes>
     </>
-
   );
 }
 
