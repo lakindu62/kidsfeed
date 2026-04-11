@@ -1,7 +1,7 @@
 function MenuStatCard({ icon, value, label, variant = 'default' }) {
   return (
     <article
-      className={`flex min-h-[11rem] flex-col justify-center gap-1 rounded-[20px] p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] ${
+      className={`flex min-h-44 flex-col justify-center gap-1 rounded-[20px] p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] ${
         variant === 'highlight' ? 'bg-[#f6d8be]' : 'bg-[#f7f7f7]'
       }`}
     >

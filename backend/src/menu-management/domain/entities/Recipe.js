@@ -21,6 +21,7 @@ class Recipe {
     id = null,
     name,
     description,
+    imageUrl = '',
     ingredients,
     instructions,
     nutritionalInfo = null,
@@ -37,6 +38,7 @@ class Recipe {
     this.id = id;
     this.name = name;
     this.description = description;
+    this.imageUrl = imageUrl;
     this.ingredients = ingredients;
     this.instructions = instructions;
     this.nutritionalInfo = nutritionalInfo;
