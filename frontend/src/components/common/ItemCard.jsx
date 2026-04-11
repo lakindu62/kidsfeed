@@ -25,7 +25,7 @@ function ItemCard({
     action = (
       <Button
         asChild
-        className="w-full rounded-[10px] border border-[#d8ddd7] bg-[#ecf1eb] px-3 py-2 text-sm font-semibold text-[#2d7236] transition-colors hover:bg-[#e2e9e2] focus-visible:ring-2 focus-visible:ring-[#2d7236] focus-visible:ring-offset-2 focus-visible:outline-none"
+        className="typography-body-sm w-full rounded-[10px] border border-[#d8ddd7] bg-[#ecf1eb] px-3 py-2 text-[#2d7236] transition-colors hover:bg-[#e2e9e2] focus-visible:ring-2 focus-visible:ring-[#2d7236] focus-visible:ring-offset-2 focus-visible:outline-none"
       >
         <Link to={actionTo}>{actionLabel}</Link>
       </Button>
@@ -34,7 +34,7 @@ function ItemCard({
     action = (
       <Button
         asChild
-        className="w-full rounded-[10px] border border-[#d8ddd7] bg-[#ecf1eb] px-3 py-2 text-sm font-semibold text-[#2d7236] transition-colors hover:bg-[#e2e9e2] focus-visible:ring-2 focus-visible:ring-[#2d7236] focus-visible:ring-offset-2 focus-visible:outline-none"
+        className="typography-body-sm w-full rounded-[10px] border border-[#d8ddd7] bg-[#ecf1eb] px-3 py-2 text-[#2d7236] transition-colors hover:bg-[#e2e9e2] focus-visible:ring-2 focus-visible:ring-[#2d7236] focus-visible:ring-offset-2 focus-visible:outline-none"
       >
         <a href={actionHref} target={actionTarget} rel={actionRel}>
           {actionLabel}
@@ -45,7 +45,7 @@ function ItemCard({
     action = (
       <Button
         type="button"
-        className="w-full rounded-[10px] border border-[#d8ddd7] bg-[#ecf1eb] px-3 py-2 text-sm font-semibold text-[#2d7236] transition-colors hover:bg-[#e2e9e2] focus-visible:ring-2 focus-visible:ring-[#2d7236] focus-visible:ring-offset-2 focus-visible:outline-none"
+        className="typography-body-sm w-full rounded-[10px] border border-[#d8ddd7] bg-[#ecf1eb] px-3 py-2 text-[#2d7236] transition-colors hover:bg-[#e2e9e2] focus-visible:ring-2 focus-visible:ring-[#2d7236] focus-visible:ring-offset-2 focus-visible:outline-none"
         onClick={onActionClick}
       >
         {actionLabel}
@@ -77,7 +77,7 @@ function ItemCard({
               <Badge
                 key={badge}
                 variant="secondary"
-                className="cursor-default rounded-full bg-[#dcedc8] px-3 py-1 text-xs font-semibold text-[#2f6f33]"
+                className="typography-body-sm cursor-default rounded-full bg-[#dcedc8] px-3 py-1 text-[#2f6f33]"
               >
                 {badge}
               </Badge>
@@ -87,24 +87,22 @@ function ItemCard({
       </div>
 
       <CardContent className="px-3 py-3">
-        <h3 className="m-0 text-[0.95rem] font-bold tracking-[-0.02em] text-[#2a2a2a]">
-          {title}
-        </h3>
+        <h3 className="typography-body-lg m-0 text-[#2a2a2a]">{title}</h3>
 
         {description ? (
-          <p className="mt-1.5 mb-2 line-clamp-2 min-h-[2.2rem] overflow-hidden text-[0.77rem] leading-[1.3] text-ellipsis text-[#667]">
+          <p className="typography-body-sm mt-1.5 mb-2 line-clamp-2 min-h-[2.2rem] overflow-hidden text-ellipsis text-[#667]">
             {description}
           </p>
         ) : null}
 
         {details.length > 0 ? (
-          <dl className="mb-3 grid gap-1 text-[0.73rem] text-[#657267]">
+          <dl className="typography-body-sm mb-3 grid gap-1 text-[#657267]">
             {details.map((detail) => (
               <div
                 key={detail.label}
                 className="flex items-center justify-between gap-2"
               >
-                <dt className="font-medium">{detail.label}</dt>
+                <dt>{detail.label}</dt>
                 <dd className="flex items-center gap-1 text-right">
                   {detail.icon ? detail.icon : null}
                   <span>{detail.value}</span>

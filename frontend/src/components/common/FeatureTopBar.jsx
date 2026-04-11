@@ -39,11 +39,11 @@ export default function FeatureTopBar({
                     onQuerySubmit?.(event.target.value);
                   }
                 }}
-                className="ml-3 w-full bg-transparent text-xs font-medium text-zinc-600 placeholder:text-zinc-500 focus:outline-none"
+                className="typography-body-sm ml-3 w-full bg-transparent text-zinc-600 placeholder:text-zinc-500 focus:outline-none"
                 placeholder={searchPlaceholder}
               />
             ) : (
-              <span className="ml-3 text-xs font-medium text-zinc-500">
+              <span className="typography-body-sm ml-3 text-zinc-500">
                 {searchPlaceholder}
               </span>
             )}

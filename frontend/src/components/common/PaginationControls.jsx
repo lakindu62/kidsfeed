@@ -26,7 +26,7 @@ function PaginationControls({
       <Button
         type="button"
         variant="ghost"
-        className="h-8 min-w-8 rounded-[8px] px-2 font-semibold text-[#596] transition-colors hover:bg-[#ecece9] disabled:cursor-not-allowed disabled:opacity-45"
+        className="typography-body-sm h-8 min-w-8 rounded-[8px] px-2 text-[#596] transition-colors hover:bg-[#ecece9] disabled:cursor-not-allowed disabled:opacity-45"
         onClick={onPrevious}
         disabled={page === 1}
       >
@@ -39,7 +39,7 @@ function PaginationControls({
           type="button"
           variant={number === page ? 'default' : 'ghost'}
           className={cn(
-            'h-8 min-w-8 rounded-[8px] px-2 font-semibold transition-colors',
+            'typography-body-sm h-8 min-w-8 rounded-[8px] px-2 transition-colors',
             number === page
               ? 'bg-[#0f7d2a] text-white hover:bg-[#0f7d2a]'
               : 'text-[#596] hover:bg-[#ecece9]',
@@ -53,7 +53,7 @@ function PaginationControls({
       <Button
         type="button"
         variant="ghost"
-        className="h-8 min-w-8 rounded-[8px] px-2 font-semibold text-[#596] transition-colors hover:bg-[#ecece9] disabled:cursor-not-allowed disabled:opacity-45"
+        className="typography-body-sm h-8 min-w-8 rounded-[8px] px-2 text-[#596] transition-colors hover:bg-[#ecece9] disabled:cursor-not-allowed disabled:opacity-45"
         onClick={onNext}
         disabled={page === totalPages}
       >

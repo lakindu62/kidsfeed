@@ -39,7 +39,7 @@ function SidebarLink({ item, isActive, onSelect }) {
       disabled={item.disabled}
       aria-current={isActive ? 'page' : undefined}
       className={cx(
-        'flex w-full items-center gap-3 rounded-r-full px-6 py-3 text-left text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-[#166534] focus-visible:outline-none',
+        'typography-body-sm flex w-full items-center gap-3 rounded-r-full px-6 py-3 text-left transition-colors focus-visible:ring-2 focus-visible:ring-[#166534] focus-visible:outline-none',
         isActive
           ? 'border bg-white text-[#116e20] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]'
           : 'text-[#57534e] hover:bg-white/60',
@@ -48,7 +48,7 @@ function SidebarLink({ item, isActive, onSelect }) {
     >
       {renderIcon(item.icon, 'h-[18px] w-[18px] shrink-0')}
       <span
-        className={`typography-body truncate ${isActive ? 'font-semibold text-[#083d11]' : 'font-medium text-[#3a3836]'} '`}
+        className={`typography-body-sm truncate ${isActive ? 'text-[#083d11]' : 'text-[#3a3836]'}`}
       >
         {item.label}
       </span>
@@ -63,7 +63,7 @@ function FooterAction({ action, onSelect }) {
       onClick={() => onSelect(action)}
       disabled={action.disabled}
       className={cx(
-        'flex h-9 w-full items-center gap-3 rounded-lg px-2 text-left text-sm font-normal text-stone-500 transition-colors hover:bg-stone-200 focus-visible:ring-2 focus-visible:ring-[#166534] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f5f5f4] focus-visible:outline-none',
+        'typography-body-sm flex h-9 w-full items-center gap-3 rounded-lg px-2 text-left text-stone-500 transition-colors hover:bg-stone-200 focus-visible:ring-2 focus-visible:ring-[#166534] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f5f5f4] focus-visible:outline-none',
         action.disabled && 'cursor-not-allowed opacity-50',
       )}
     >
@@ -138,7 +138,7 @@ export default function FeatureSidebar({
       <div className="px-6 pb-6">
         <img src="kids-feed-logo.png" className="h-8" />
 
-        <p className="mt-2 border-t pt-2 text-xs font-semibold tracking-[0.6px] text-stone-500 uppercase">
+        <p className="typography-body-sm mt-2 border-t pt-2 tracking-[0.6px] text-stone-500 uppercase">
           {featureLabel}
         </p>
       </div>
@@ -171,7 +171,7 @@ export default function FeatureSidebar({
             onClick={() => handleFooterAction(primaryCta)}
             disabled={primaryCta.disabled}
             className={cx(
-              'mb-4 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#006117] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#005414] focus-visible:ring-2 focus-visible:ring-[#166534] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f5f5f4] focus-visible:outline-none',
+              'typography-body-sm mb-4 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#006117] px-4 text-white transition-colors hover:bg-[#005414] focus-visible:ring-2 focus-visible:ring-[#166534] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f5f5f4] focus-visible:outline-none',
               primaryCta.disabled && 'cursor-not-allowed opacity-50',
             )}
           >

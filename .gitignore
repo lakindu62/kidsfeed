@@ -37,6 +37,7 @@ Thumbs.db
 .yarn/install-state.gz
 .vercel
 implementations/
+*.bat
 
 # system/editor
 .vscode/

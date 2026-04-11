@@ -14,7 +14,6 @@ export const CATEGORY_FILTERS = [
 ];
 
 export const NUTRITIONAL_GRADE_OPTIONS = [
-  { value: '', label: 'Not set' },
   { value: 'a', label: 'A' },
   { value: 'b', label: 'B' },
   { value: 'c', label: 'C' },
@@ -31,12 +30,4 @@ export const UNIT_OPTIONS = [
   { value: 'ml', label: 'Milliliters' },
   { value: 'boxes', label: 'Boxes' },
   { value: 'packs', label: 'Packs' },
-];
-
-export const PACKAGE_WEIGHT_UNIT_OPTIONS = [
-  { value: '', label: 'Select unit' },
-  { value: 'g', label: 'g' },
-  { value: 'kg', label: 'kg' },
-  { value: 'ml', label: 'ml' },
-  { value: 'l', label: 'l' },
 ];

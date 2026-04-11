@@ -15,14 +15,14 @@ export default function Breadcrumb({ items = [] }) {
             {isLast ? (
               <span
                 aria-current="page"
-                className="text-xs font-medium text-[#19e65e]"
+                className="typography-body-sm text-[#19e65e]"
               >
                 {item.label}
               </span>
             ) : (
               <a
                 href={item.href ?? '#'}
-                className="text-xs font-medium text-[#64748b] transition-colors hover:text-[#475569]"
+                className="typography-body-sm text-[#64748b] transition-colors hover:text-[#475569]"
               >
                 {item.label}
               </a>
