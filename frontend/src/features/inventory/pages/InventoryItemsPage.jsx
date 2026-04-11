@@ -22,6 +22,9 @@ import {
   buildSearchText,
   formatPackageSummary,
   formatQuantity,
+  getExpiryStatusIcon,
+  getExpiryStatusLabel,
+  getExpiryStatusTone,
   getCategoryLabel,
   getItemId,
   getStatusIcon,
@@ -52,6 +55,7 @@ function InventoryGridCard({ item, onOpen }) {
   const itemId = getItemId(item);
   const categoryLabel = getCategoryLabel(item?.category);
   const statusLabel = getStatusLabel(item?.status);
+  const expiryStatusLabel = getExpiryStatusLabel(item?.expiryStatus);
   const packageSummary = formatPackageSummary(item);
 
   return (
@@ -94,17 +98,34 @@ function InventoryGridCard({ item, onOpen }) {
         </div>
 
         <div className="flex items-center justify-between border-t border-[#f3f4f0] pt-3">
-          <div className="flex items-center gap-2 text-sm font-semibold text-[#40493d]">
-            <span>{formatQuantity(item)}</span>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#40493d]">
+              <span>{formatQuantity(item)}</span>
+            </div>
+            {item?.expiryStatus !== undefined && item?.expiryStatus !== null ? (
+              <div className="flex flex-wrap gap-2">
+                <div
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase',
+                    getExpiryStatusTone(item?.expiryStatus),
+                  )}
+                >
+                  {getExpiryStatusIcon(item?.expiryStatus)}
+                  {expiryStatusLabel}
+                </div>
+              </div>
+            ) : null}
           </div>
-          <div
-            className={cn(
-              'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase',
-              getStatusTone(item?.status),
-            )}
-          >
-            {getStatusIcon(item?.status)}
-            {statusLabel}
+          <div className="flex flex-col items-end gap-2">
+            <div
+              className={cn(
+                'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase',
+                getStatusTone(item?.status),
+              )}
+            >
+              {getStatusIcon(item?.status)}
+              {statusLabel}
+            </div>
           </div>
         </div>
 

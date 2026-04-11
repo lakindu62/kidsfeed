@@ -1,10 +1,12 @@
 import { useAuth } from '@clerk/clerk-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { format, parseISO } from 'date-fns';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -51,6 +53,9 @@ import {
   formatCurrency,
   formatDate,
   formatQuantityLabel,
+  getExpiryStatusIcon,
+  getExpiryStatusLabel,
+  getExpiryStatusTone,
   formatStatusLabel,
   initialBatchFormState,
   statusTone,
@@ -109,12 +114,9 @@ function InventoryItemDetailsPage() {
           : 'Not set',
       },
       {
-        label: 'Package weight',
-        value: item.packageWeight
-          ? `${item.packageWeight} ${item.packageWeightUnit || ''}`.trim()
-          : 'Not set',
+        label: 'Package type',
+        value: item.packageType || 'Not set',
       },
-      { label: 'Package type', value: item.packageType || 'Not set' },
       { label: 'Reorder level', value: item.reorderLevel ?? 'Not set' },
       {
         label: 'Allergens',
@@ -141,6 +143,10 @@ function InventoryItemDetailsPage() {
       return sum + (Number.isFinite(quantity) ? quantity : 0);
     }, 0);
   }, [batches]);
+
+  const batchExpiryDate = batchForm.expiryDate
+    ? parseISO(batchForm.expiryDate)
+    : undefined;
 
   const openBatchSheet = () => {
     setBatchError('');
@@ -352,6 +358,20 @@ function InventoryItemDetailsPage() {
                 <Badge className="rounded-full bg-[#f3f4f0] px-3 py-1 text-[10px] font-bold tracking-widest text-[#4e544c] uppercase hover:bg-[#f3f4f0]">
                   {formatCategoryLabel(item?.category)}
                 </Badge>
+                {item?.expiryStatus !== undefined &&
+                item?.expiryStatus !== null ? (
+                  <Badge
+                    className={cn(
+                      'rounded-full px-3 py-1 text-[10px] font-bold tracking-widest uppercase hover:bg-inherit',
+                      getExpiryStatusTone(item?.expiryStatus),
+                    )}
+                  >
+                    {getExpiryStatusIcon(item?.expiryStatus)}
+                    <span className="ml-1">
+                      {getExpiryStatusLabel(item?.expiryStatus)}
+                    </span>
+                  </Badge>
+                ) : null}
               </div>
             </div>
 
@@ -583,10 +603,17 @@ function InventoryItemDetailsPage() {
                 />
               </BatchField>
               <BatchField label="Expiry date">
-                <Input
-                  type="date"
-                  value={batchForm.expiryDate}
-                  onChange={handleBatchChange('expiryDate')}
+                <DatePicker
+                  date={batchExpiryDate}
+                  setDate={(date) =>
+                    setBatchForm((current) => ({
+                      ...current,
+                      expiryDate: date ? format(date, 'yyyy-MM-dd') : '',
+                    }))
+                  }
+                  compact
+                  placeholder="Pick a date"
+                  buttonClassName="h-10 rounded-[12px] px-3 text-sm"
                 />
               </BatchField>
             </div>

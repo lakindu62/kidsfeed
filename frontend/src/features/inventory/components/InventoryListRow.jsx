@@ -8,6 +8,9 @@ import { Package } from 'lucide-react';
 import {
   formatPackageSummary,
   formatQuantity,
+  getExpiryStatusIcon,
+  getExpiryStatusLabel,
+  getExpiryStatusTone,
   getCategoryLabel,
   getItemId,
   getStatusIcon,
@@ -40,6 +43,7 @@ export default function InventoryListRow({ item, onOpen }) {
   const itemId = getItemId(item);
   const categoryLabel = getCategoryLabel(item?.category);
   const statusLabel = getStatusLabel(item?.status);
+  const expiryStatusLabel = getExpiryStatusLabel(item?.expiryStatus);
   const packageSummary = formatPackageSummary(item);
   const metaParts = [
     item?.brand,
@@ -87,15 +91,28 @@ export default function InventoryListRow({ item, onOpen }) {
         </div>
 
         <div className="flex items-center justify-between gap-3 md:flex-col md:items-end md:justify-center md:gap-2">
-          <Badge
-            className={cn(
-              'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase hover:bg-inherit',
-              getStatusTone(item?.status),
-            )}
-          >
-            {getStatusIcon(item?.status)}
-            {statusLabel}
-          </Badge>
+          <div className="flex flex-col items-end gap-2">
+            <Badge
+              className={cn(
+                'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase hover:bg-inherit',
+                getStatusTone(item?.status),
+              )}
+            >
+              {getStatusIcon(item?.status)}
+              {statusLabel}
+            </Badge>
+            {item?.expiryStatus !== undefined && item?.expiryStatus !== null ? (
+              <Badge
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase hover:bg-inherit',
+                  getExpiryStatusTone(item?.expiryStatus),
+                )}
+              >
+                {getExpiryStatusIcon(item?.expiryStatus)}
+                {expiryStatusLabel}
+              </Badge>
+            ) : null}
+          </div>
           <Button
             variant="outline"
             size="sm"

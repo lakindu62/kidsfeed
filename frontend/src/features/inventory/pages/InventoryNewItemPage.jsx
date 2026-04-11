@@ -20,11 +20,14 @@ import { describeApiFetchFailure } from '@/lib/describe-api-fetch-failure';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base';
 
 import InventoryLayout from '../layouts/InventoryLayout';
-import { createInventoryItem, lookupInventoryItemByBarcode } from '../api';
+import {
+  createInventoryItem,
+  lookupExistingInventoryItem,
+  lookupInventoryItemByBarcode,
+} from '../api';
 import {
   CATEGORY_OPTIONS,
   NUTRITIONAL_GRADE_OPTIONS,
-  PACKAGE_WEIGHT_UNIT_OPTIONS,
   UNIT_OPTIONS,
   initialFormState,
   lookupToFormSummary,
@@ -146,8 +149,9 @@ function DatePickerField({
       <DatePicker
         date={date}
         setDate={onDateChange}
+        compact
         placeholder="Pick expiry date"
-        buttonClassName="h-11 rounded-[14px]"
+        buttonClassName="h-10 rounded-[12px]"
       />
       <div className="flex justify-end">
         <Button
@@ -173,6 +177,19 @@ function formatPickerDate(dateValue) {
   return Number.isNaN(parsedDate.getTime()) ? undefined : parsedDate;
 }
 
+function getDuplicateMatchLabel(matchType) {
+  switch ((matchType || '').toUpperCase()) {
+    case 'BARCODE_EXACT':
+      return 'Barcode exact';
+    case 'NAME_EXACT':
+      return 'Name exact';
+    case 'NAME_POSSIBLE':
+      return 'Possible duplicate';
+    default:
+      return 'No match';
+  }
+}
+
 function InventoryNewItemPage() {
   const navigate = useNavigate();
   const { isSignedIn, getToken } = useAuth();
@@ -185,6 +202,7 @@ function InventoryNewItemPage() {
   const [barcodeLookupError, setBarcodeLookupError] = useState('');
   const [barcodeLookupMessage, setBarcodeLookupMessage] = useState('');
   const [isBarcodeLookupLoading, setIsBarcodeLookupLoading] = useState(false);
+  const [barcodeDuplicateLookup, setBarcodeDuplicateLookup] = useState(null);
   const [barcodeLookupSummary, setBarcodeLookupSummary] = useState(null);
   const expiryDateValue = formatPickerDate(form.expiryDate);
 
@@ -199,6 +217,7 @@ function InventoryNewItemPage() {
 
   const handleLookupBarcode = async () => {
     const barcode = form.barcode.trim();
+    const name = form.name.trim();
 
     if (!apiBaseUrl) {
       setBarcodeLookupError('Could not resolve API base URL.');
@@ -212,9 +231,35 @@ function InventoryNewItemPage() {
 
     setBarcodeLookupError('');
     setBarcodeLookupMessage('');
+    setBarcodeDuplicateLookup(null);
+    setBarcodeLookupSummary(null);
     setIsBarcodeLookupLoading(true);
 
     try {
+      const duplicateLookup = await lookupExistingInventoryItem({
+        apiUrl: apiBaseUrl,
+        barcode,
+        name,
+        getToken: isSignedIn ? getToken : undefined,
+      });
+
+      if (duplicateLookup?.matchType && duplicateLookup.matchType !== 'NONE') {
+        setBarcodeDuplicateLookup(duplicateLookup);
+
+        if (duplicateLookup.suggestedAction === 'ADD_BATCH_TO_EXISTING') {
+          setBarcodeLookupMessage(
+            'An existing inventory item matches this barcode. Open it and add a batch instead of creating a new item.',
+          );
+          return;
+        }
+
+        if (duplicateLookup.suggestedAction === 'ASK_USER_TO_CONFIRM') {
+          setBarcodeLookupMessage(
+            'Possible duplicate inventory items were found. Review the matches before creating a new item.',
+          );
+        }
+      }
+
       const summary = lookupToFormSummary(
         await lookupInventoryItemByBarcode({
           apiUrl: apiBaseUrl,
@@ -235,9 +280,6 @@ function InventoryNewItemPage() {
           imageUrl: summary.imageUrl || current.imageUrl,
           nutritionalGrade:
             summary.nutritionalGrade || current.nutritionalGrade,
-          packageWeight: summary.packageWeight || current.packageWeight,
-          packageWeightUnit:
-            summary.packageWeightUnit || current.packageWeightUnit,
           packageType: summary.packageType || current.packageType,
           ingredients: summary.ingredients || current.ingredients,
           allergensText:
@@ -252,7 +294,7 @@ function InventoryNewItemPage() {
         }));
       }
     } catch (error) {
-      setBarcodeLookupSummary(null);
+      setBarcodeDuplicateLookup(null);
       setBarcodeLookupError(
         describeApiFetchFailure(error, 'Could not complete barcode lookup.'),
       );
@@ -279,6 +321,13 @@ function InventoryNewItemPage() {
       return;
     }
 
+    if (barcodeDuplicateLookup?.suggestedAction === 'ADD_BATCH_TO_EXISTING') {
+      setSubmitError(
+        'This item already exists. Open the existing inventory item and add a batch instead.',
+      );
+      return;
+    }
+
     const payload = {
       name: form.name.trim(),
       category: form.category,
@@ -292,8 +341,6 @@ function InventoryNewItemPage() {
       imageUrl: form.imageUrl.trim(),
       nutritionalGrade: form.nutritionalGrade.trim(),
       reorderLevel: toOptionalNumber(form.reorderLevel),
-      packageWeight: toOptionalNumber(form.packageWeight),
-      packageWeightUnit: form.packageWeightUnit.trim(),
       packageType: form.packageType.trim(),
       quantity: toOptionalNumber(form.quantity),
       expiryDate: form.expiryDate || undefined,
@@ -338,6 +385,7 @@ function InventoryNewItemPage() {
     setSubmitSuccess('');
     setBarcodeLookupError('');
     setBarcodeLookupMessage('');
+    setBarcodeDuplicateLookup(null);
     setBarcodeLookupSummary(null);
   };
 
@@ -396,17 +444,6 @@ function InventoryNewItemPage() {
                     value={form.barcode}
                     onChange={handleFieldChange('barcode')}
                     placeholder="Digits from the packaging"
-                    rightNode={
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="h-11 rounded-full px-4"
-                        onClick={handleLookupBarcode}
-                        disabled={isBarcodeLookupLoading}
-                      >
-                        {isBarcodeLookupLoading ? 'Looking up...' : 'Lookup'}
-                      </Button>
-                    }
                   />
                 </div>
 
@@ -584,24 +621,6 @@ function InventoryNewItemPage() {
                     onChange={handleFieldChange('imageUrl')}
                     placeholder="Optional image link"
                   />
-                  <Field
-                    label="Package weight"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={form.packageWeight}
-                    onChange={handleFieldChange('packageWeight')}
-                    placeholder="Optional"
-                  />
-                  <SelectField
-                    label="Weight unit"
-                    value={form.packageWeightUnit}
-                    onValueChange={handleSelectChange('packageWeightUnit')}
-                    allowEmptyOption
-                    emptyOptionLabel="Select unit"
-                    placeholder="Select unit"
-                    options={PACKAGE_WEIGHT_UNIT_OPTIONS}
-                  />
                 </div>
 
                 <Field
@@ -627,8 +646,8 @@ function InventoryNewItemPage() {
                 </div>
 
                 <p className="text-sm text-[#646b63]">
-                  Search Open Food Facts through the backend to prefill item
-                  metadata.
+                  Check for an existing inventory item first, then use Open Food
+                  Facts only when no duplicate is found.
                 </p>
 
                 <div className="rounded-[20px] border border-[#e6e9e5] bg-[#f7faf6] p-4 text-sm text-[#40493d]">
@@ -650,6 +669,90 @@ function InventoryNewItemPage() {
                     kind="success"
                     message={barcodeLookupMessage}
                   />
+                ) : null}
+
+                {barcodeDuplicateLookup ? (
+                  <Card className="rounded-[20px] border border-[#e6d9b8] bg-[#fff9ec] shadow-none">
+                    <CardContent className="space-y-3 p-4 text-sm text-[#5b4a1d]">
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold tracking-[0.16em] text-[#8a5b00] uppercase">
+                          Duplicate check
+                        </p>
+                        <h3 className="text-lg font-bold text-[#2f2610]">
+                          {getDuplicateMatchLabel(
+                            barcodeDuplicateLookup.matchType,
+                          )}
+                        </h3>
+                      </div>
+
+                      <p>
+                        {barcodeDuplicateLookup.suggestedAction ===
+                        'ADD_BATCH_TO_EXISTING'
+                          ? 'An existing item matches this barcode or name. Open the item to add a new batch.'
+                          : 'Potential duplicate items were found. Review the matches before creating a new item.'}
+                      </p>
+
+                      {barcodeDuplicateLookup.existingItem ? (
+                        <div className="rounded-[16px] border border-[#edd9a8] bg-white p-3 text-[#40493d]">
+                          <p className="text-xs font-semibold tracking-[0.16em] text-[#8a5b00] uppercase">
+                            Existing item
+                          </p>
+                          <p className="mt-1 text-base font-bold text-[#181c1b]">
+                            {barcodeDuplicateLookup.existingItem.name}
+                          </p>
+                          <p className="text-sm">
+                            {barcodeDuplicateLookup.existingItem.brand ||
+                              'No brand recorded'}
+                          </p>
+                        </div>
+                      ) : null}
+
+                      {Array.isArray(barcodeDuplicateLookup.candidates) &&
+                      barcodeDuplicateLookup.candidates.length > 0 ? (
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold tracking-[0.16em] text-[#8a5b00] uppercase">
+                            Candidate matches
+                          </p>
+                          <div className="space-y-2">
+                            {barcodeDuplicateLookup.candidates.map(
+                              (candidate) => (
+                                <div
+                                  key={
+                                    candidate.id ||
+                                    candidate.barcode ||
+                                    candidate.name
+                                  }
+                                  className="rounded-[14px] border border-[#edd9a8] bg-white px-3 py-2"
+                                >
+                                  <p className="font-semibold text-[#181c1b]">
+                                    {candidate.name || 'Unnamed item'}
+                                  </p>
+                                  <p className="text-xs text-[#646b63]">
+                                    {candidate.barcode || 'No barcode'} ·{' '}
+                                    {candidate.status || 'Unknown status'}
+                                  </p>
+                                </div>
+                              ),
+                            )}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {barcodeDuplicateLookup.existingItem?.id ? (
+                        <Button
+                          type="button"
+                          className="h-10 rounded-full bg-[#8a5b00] px-4 text-white hover:bg-[#744b00]"
+                          onClick={() =>
+                            navigate(
+                              `/inventory/items/${barcodeDuplicateLookup.existingItem.id}`,
+                            )
+                          }
+                        >
+                          Open existing item
+                        </Button>
+                      ) : null}
+                    </CardContent>
+                  </Card>
                 ) : null}
 
                 {barcodeLookupSummary ? (
@@ -701,7 +804,7 @@ function InventoryNewItemPage() {
                   onClick={handleLookupBarcode}
                   disabled={isBarcodeLookupLoading}
                 >
-                  {isBarcodeLookupLoading ? 'Looking up...' : 'Lookup barcode'}
+                  {isBarcodeLookupLoading ? 'Looking up...' : 'Check barcode'}
                 </Button>
               </CardContent>
             </Card>
@@ -718,8 +821,7 @@ function InventoryNewItemPage() {
                 </div>
 
                 <p className="text-sm text-[#646b63]">
-                  This submission creates the item and the first batch. Status
-                  and expiry state stay backend-controlled.
+                  This submission creates the item and the first batch.
                 </p>
 
                 <div className="space-y-3 rounded-[20px] border border-[#e6e9e5] bg-[#f7faf6] p-4 text-sm text-[#40493d]">
@@ -728,12 +830,6 @@ function InventoryNewItemPage() {
                     <p>
                       Item and batch data are sent together as one create
                       request.
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <span className="mt-1 h-2.5 w-2.5 rounded-full bg-[#005412]" />
-                    <p>
-                      Status and expiryStatus are omitted from the form payload.
                     </p>
                   </div>
                   <div className="flex items-start gap-3">

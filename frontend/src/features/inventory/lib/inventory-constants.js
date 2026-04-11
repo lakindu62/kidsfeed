@@ -31,10 +31,3 @@ export const UNIT_OPTIONS = [
   { value: 'boxes', label: 'Boxes' },
   { value: 'packs', label: 'Packs' },
 ];
-
-export const PACKAGE_WEIGHT_UNIT_OPTIONS = [
-  { value: 'g', label: 'g' },
-  { value: 'kg', label: 'kg' },
-  { value: 'ml', label: 'ml' },
-  { value: 'l', label: 'l' },
-];

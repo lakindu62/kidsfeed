@@ -68,6 +68,33 @@ export async function lookupInventoryItemByBarcode({
   return payload?.data ?? null;
 }
 
+export async function lookupExistingInventoryItem({
+  apiUrl,
+  name,
+  barcode,
+  getToken,
+}) {
+  const query = new URLSearchParams();
+
+  if (name) {
+    query.set('name', name);
+  }
+
+  if (barcode) {
+    query.set('barcode', barcode);
+  }
+
+  const response = await requestInventoryApi({
+    apiUrl,
+    getToken,
+    path: `/api/inventory/existing-lookup?${query.toString()}`,
+    fallbackMessage: 'Failed to check for duplicate inventory items.',
+  });
+
+  const payload = await response.json();
+  return payload?.data ?? null;
+}
+
 export async function createInventoryItem({ apiUrl, getToken, payload }) {
   const response = await requestInventoryApi({
     apiUrl,

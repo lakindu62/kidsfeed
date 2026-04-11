@@ -11,8 +11,6 @@ export const initialFormState = {
   imageUrl: '',
   nutritionalGrade: '',
   reorderLevel: '10',
-  packageWeight: '',
-  packageWeightUnit: '',
   packageType: '',
   quantity: '',
   expiryDate: '',
@@ -57,11 +55,6 @@ export function lookupToFormSummary(item) {
     brand: item.brand || '',
     imageUrl: item.imageUrl || '',
     nutritionalGrade: item.nutritionalGrade || '',
-    packageWeight:
-      item.packageWeight !== undefined && item.packageWeight !== null
-        ? String(item.packageWeight)
-        : '',
-    packageWeightUnit: item.packageWeightUnit || '',
     packageType: item.packageType || '',
     ingredients: item.ingredients || '',
     allergens: Array.isArray(item.allergens) ? item.allergens : [],

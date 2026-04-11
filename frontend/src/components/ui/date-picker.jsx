@@ -18,8 +18,13 @@ export function DatePicker({
   setDate,
   className,
   buttonClassName,
+  calendarClassName,
+  contentClassName,
+  compact = false,
   placeholder = 'Pick a date',
 }) {
+  const compactMode = compact === true;
+
   return (
     <Popover className={className}>
       <PopoverTrigger asChild>
@@ -27,16 +32,42 @@ export function DatePicker({
           variant="outline"
           data-empty={!date}
           className={cn(
-            'data-[empty=true]:text-muted-foreground w-full justify-start text-left font-normal',
+            'data-[empty=true]:text-muted-foreground flex w-full min-w-0 items-center justify-start gap-2 overflow-hidden text-left font-normal',
+            compactMode
+              ? 'h-10 rounded-[12px] px-3 text-sm'
+              : 'h-11 rounded-[14px] px-4',
             buttonClassName,
           )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, 'PPP') : <span>{placeholder}</span>}
+          <CalendarIcon
+            className={cn('shrink-0', compactMode ? 'h-3.5 w-3.5' : 'h-4 w-4')}
+          />
+          <span className="min-w-0 truncate">
+            {date
+              ? format(date, compactMode ? 'MMM d, yyyy' : 'PPP')
+              : placeholder}
+          </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
-        <Calendar mode="single" selected={date} onSelect={setDate} />
+      <PopoverContent
+        align={compactMode ? 'end' : 'center'}
+        sideOffset={compactMode ? 8 : 4}
+        className={cn(
+          compactMode
+            ? 'w-auto rounded-[18px] border p-2 shadow-xl'
+            : 'w-auto p-0',
+          contentClassName,
+        )}
+      >
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={setDate}
+          className={cn(
+            compactMode ? 'bg-transparent p-0 [--cell-size:2.1rem]' : null,
+            calendarClassName,
+          )}
+        />
       </PopoverContent>
     </Popover>
   );
