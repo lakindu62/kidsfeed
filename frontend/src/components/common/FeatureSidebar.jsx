@@ -39,15 +39,19 @@ function SidebarLink({ item, isActive, onSelect }) {
       disabled={item.disabled}
       aria-current={isActive ? 'page' : undefined}
       className={cx(
-        'flex min-h-11 w-full items-center gap-3 rounded-r-full px-6 py-3 text-left text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-[#166534] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f5f5f4] focus-visible:outline-none',
+        'flex w-full items-center gap-3 rounded-r-full px-6 py-3 text-left text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-[#166534] focus-visible:outline-none',
         isActive
-          ? 'bg-white text-[#166534] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]'
-          : 'text-stone-600 hover:bg-stone-100',
+          ? 'border bg-white text-[#116e20] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]'
+          : 'text-[#57534e] hover:bg-white/60',
         item.disabled && 'cursor-not-allowed opacity-50',
       )}
     >
       {renderIcon(item.icon, 'h-[18px] w-[18px] shrink-0')}
-      <span className="truncate">{item.label}</span>
+      <span
+        className={`typography-body truncate ${isActive ? 'font-semibold text-[#083d11]' : 'font-medium text-[#3a3836]'} '`}
+      >
+        {item.label}
+      </span>
     </button>
   );
 }
@@ -70,7 +74,6 @@ function FooterAction({ action, onSelect }) {
 }
 
 export default function FeatureSidebar({
-  brandTitle = 'KIDFEED',
   featureLabel = '',
   sections = [],
   items = [],
@@ -128,15 +131,14 @@ export default function FeatureSidebar({
   return (
     <aside
       className={cx(
-        'sticky top-0 flex h-screen w-64 shrink-0 flex-col bg-[#f5f5f4] py-6',
+        'sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-r-black/10 bg-[#f5f5f4] py-6 pr-3',
         className,
       )}
     >
       <div className="px-6 pb-6">
-        <p className="text-xl leading-7 font-semibold text-stone-900">
-          {brandTitle}
-        </p>
-        <p className="text-xs font-semibold tracking-[1.2px] text-stone-500 uppercase">
+        <img src="kids-feed-logo.png" className="h-8" />
+
+        <p className="mt-2 border-t pt-2 text-xs font-semibold tracking-[0.6px] text-stone-500 uppercase">
           {featureLabel}
         </p>
       </div>
