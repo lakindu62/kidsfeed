@@ -11,6 +11,23 @@ import { clerkClient } from '@clerk/express';
  */
 class UserService {
   /**
+   * List users for admin flows.
+   * Supports an optional role filter and returns all users when no role is provided.
+   *
+   * @param {{ role?: string }} filters
+   * @returns {Promise<Array>}
+   */
+  async listUsers(filters = {}) {
+    const { role } = filters;
+
+    if (role) {
+      return userRepository.findByRole(role);
+    }
+
+    return userRepository.findAll();
+  }
+
+  /**
    * Upgrades a lightweight mock session user object into a full database user profile.
    * Cross-domain modules should use this when they need secondary fields like 'email' or 'schoolId'.
    *
