@@ -1,5 +1,10 @@
 import mongoose from 'mongoose';
 
+import {
+  INVENTORY_EXPIRY_STATUS,
+  INVENTORY_STATUS,
+} from '../../application/constants/inventory-constants.js';
+
 /**
  * Mongoose schema for inventory items
  * @typedef {Object} InventoryItem
@@ -27,6 +32,49 @@ import mongoose from 'mongoose';
  * @property {string} [packageWeightUnit] - The unit of the package weight (e.g. 'g', 'ml')
  * @property {string} [packageType] - The container type (e.g. 'jar', 'bottle', 'box')
  */
+const batchSchema = new mongoose.Schema(
+  {
+    quantity: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    expiryDate: {
+      type: Date,
+      default: null,
+    },
+    supplier: {
+      type: String,
+      default: '',
+    },
+    unitPrice: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    location: {
+      type: String,
+      default: '',
+    },
+    receivedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    batchNote: {
+      type: String,
+      default: '',
+    },
+    status: {
+      type: String,
+      enum: Object.values(INVENTORY_STATUS),
+      default: INVENTORY_STATUS.ACTIVE,
+    },
+  },
+  {
+    _id: true,
+  }
+);
+
 const inventoryItemSchema = new mongoose.Schema(
   {
     barcode: {
@@ -90,11 +138,6 @@ const inventoryItemSchema = new mongoose.Schema(
       default: 10,
       min: 0,
     },
-    unitPrice: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
     packageWeight: {
       type: Number,
       default: 0,
@@ -108,22 +151,19 @@ const inventoryItemSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
-    supplier: {
-      type: String,
-      default: '',
-    },
-    location: {
-      type: String,
-      default: '',
-    },
-    expiryDate: {
-      type: Date,
-      default: null,
+    batches: {
+      type: [batchSchema],
+      default: [],
     },
     status: {
       type: String,
-      enum: ['ACTIVE', 'LOW_STOCK', 'OUT_OF_STOCK', 'EXPIRED'],
-      default: 'ACTIVE',
+      enum: Object.values(INVENTORY_STATUS),
+      default: INVENTORY_STATUS.OUT_OF_STOCK,
+    },
+    expiryStatus: {
+      type: String,
+      enum: Object.values(INVENTORY_EXPIRY_STATUS),
+      default: INVENTORY_EXPIRY_STATUS.UNAVAILABLE,
     },
   },
   {

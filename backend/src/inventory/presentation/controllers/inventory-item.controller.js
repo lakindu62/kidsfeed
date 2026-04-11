@@ -3,10 +3,12 @@ import { CreateInventoryItemRequestDTO } from '../../application/dtos/requests/c
 import { UpdateInventoryItemRequestDTO } from '../../application/dtos/requests/update-inventory-item.request.dto.js';
 import { PatchInventoryItemRequestDTO } from '../../application/dtos/requests/patch-inventory-item.request.dto.js';
 import { AdjustInventoryQuantityRequestDTO } from '../../application/dtos/requests/adjust-inventory-quantity.request.dto.js';
+import { AddInventoryBatchRequestDTO } from '../../application/dtos/requests/add-inventory-batch.request.dto.js';
 import { InventoryItemService } from '../../application/services/inventory-item.service.js';
 import { openFoodFactsService } from '../../application/services/open-food-facts.service.js';
 import { inventoryErrorMiddleware } from '../middleware/inventory-error.middleware.js';
 import { validateAdjustInventoryQuantity } from '../validators/adjust-inventory-quantity.validator.js';
+import { validateAddInventoryBatch } from '../validators/add-inventory-batch.validator.js';
 import { validateCreateInventoryItem } from '../validators/create-inventory-item.validator.js';
 import { validateUpdateInventoryItem } from '../validators/update-inventory-item.validator.js';
 import { validatePatchInventoryItem } from '../validators/patch-inventory-item.validator.js';
@@ -105,6 +107,36 @@ inventoryRouter.get('/lookup/:barcode', async (req, res, next) => {
 });
 
 /**
+ * GET /api/inventory/existing-lookup
+ * Find existing inventory item matches for duplicate-check UX.
+ */
+inventoryRouter.get('/existing-lookup', async (req, res, next) => {
+  try {
+    const { name, barcode } = req.query;
+
+    if (!name && !barcode) {
+      return res.status(400).json({
+        success: false,
+        message: 'name or barcode is required for existing lookup',
+      });
+    }
+
+    const lookupData = await inventoryItemService.findExistingInventoryItem({
+      name,
+      barcode,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: lookupData,
+    });
+  } catch (error) {
+    error.fallbackMessage = 'Failed to handle existing inventory lookup';
+    return next(error);
+  }
+});
+
+/**
  * GET /api/inventory/:id
  * Get a single inventory item by ID
  */
@@ -133,9 +165,14 @@ inventoryRouter.post(
   validateCreateInventoryItem,
   async (req, res, next) => {
     try {
-      const itemData = new CreateInventoryItemRequestDTO(req.body).toObject();
+      const { itemData, initialBatch } = new CreateInventoryItemRequestDTO(
+        req.body
+      ).toObject();
 
-      const newItem = await inventoryItemService.createInventoryItem(itemData);
+      const newItem = await inventoryItemService.createInventoryItem(
+        itemData,
+        initialBatch
+      );
 
       res.status(201).json({
         success: true,
@@ -148,6 +185,53 @@ inventoryRouter.post(
     }
   }
 );
+
+/**
+ * POST /api/inventory/:id/batches
+ * Add a new stock batch to an inventory item
+ */
+inventoryRouter.post(
+  '/:id/batches',
+  validateAddInventoryBatch,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const batchData = new AddInventoryBatchRequestDTO(req.body).toObject();
+
+      const updatedItem = await inventoryItemService.addBatch(id, batchData);
+
+      res.status(201).json({
+        success: true,
+        message: 'Inventory batch added successfully',
+        data: updatedItem,
+      });
+    } catch (error) {
+      error.fallbackMessage = 'Failed to add inventory batch';
+      return next(error);
+    }
+  }
+);
+
+/**
+ * DELETE /api/inventory/:id/batches/:batchId
+ * Remove a stock batch from an inventory item
+ */
+inventoryRouter.delete('/:id/batches/:batchId', async (req, res, next) => {
+  try {
+    const { id, batchId } = req.params;
+
+    const updatedItem = await inventoryItemService.removeBatch(id, batchId);
+
+    res.status(200).json({
+      success: true,
+      message: 'Inventory batch removed successfully',
+      data: updatedItem,
+    });
+  } catch (error) {
+    error.fallbackMessage = 'Failed to remove inventory batch';
+    return next(error);
+  }
+});
 
 /**
  * PUT /api/inventory/:id
@@ -202,37 +286,6 @@ inventoryRouter.patch(
       });
     } catch (error) {
       error.fallbackMessage = 'Failed to partially update inventory item';
-      return next(error);
-    }
-  }
-);
-
-/**
- * PATCH /api/inventory/:id/increment
- * Increment inventory item quantity
- */
-inventoryRouter.patch(
-  '/:id/increment',
-  validateAdjustInventoryQuantity,
-  async (req, res, next) => {
-    try {
-      const { id } = req.params;
-      const adjustmentData = new AdjustInventoryQuantityRequestDTO(
-        req.body
-      ).toObject();
-
-      const updatedItem = await inventoryItemService.incrementInventoryItem(
-        id,
-        adjustmentData
-      );
-
-      res.status(200).json({
-        success: true,
-        message: 'Inventory item quantity increased successfully',
-        data: updatedItem,
-      });
-    } catch (error) {
-      error.fallbackMessage = 'Failed to increment inventory item quantity';
       return next(error);
     }
   }
