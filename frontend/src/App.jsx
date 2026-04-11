@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Outlet, Route, Routes, useLocation } from 'react-router-dom';
 import RequireAuth from './components/common/guards/RequireAuth';
 import RequireRole from './components/common/guards/RequireRole';
-import { InventoryRoute, inventoryPath } from './features/inventory';
+import { inventoryChildren, inventoryPath } from './features/inventory';
 import {
   MealDistributionLayout,
   mealDistributionPath,
@@ -45,6 +45,8 @@ function App() {
           element={<RolePendingAssignment />}
         />
         <Route path="/about" element={<div>About Page</div>} />
+
+        {/* Inventory Routes */}
         <Route
           path={inventoryPath}
           element={
@@ -52,11 +54,22 @@ function App() {
               <RequireRole
                 allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.INVENTORY_MANAGER]}
               >
-                <InventoryRoute />
+                <Outlet />
               </RequireRole>
             </RequireAuth>
           }
-        />
+        >
+          {inventoryChildren.map((route) => (
+            <Route
+              key={route.path ?? 'index'}
+              path={route.path}
+              index={route.index}
+              element={<route.Component />}
+            />
+          ))}
+        </Route>
+
+        {/* Meal Distribution Routes */}
         <Route
           path={mealDistributionPath}
           element={
@@ -82,6 +95,8 @@ function App() {
             />
           ))}
         </Route>
+
+        {/* Menu Management Routes */}
         <Route
           path={menuManagementPath}
           element={
