@@ -1,4 +1,5 @@
 export * from './routes';
+export * from './route-config';
 // export * from './api';
 // export * from './hooks';
 export { default as InventoryDashboardPage } from './pages/InventoryDashboardPage';
