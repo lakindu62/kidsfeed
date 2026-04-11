@@ -26,6 +26,10 @@ import {
   menuManagementPath,
   MenuManagementRecipesRoute,
 } from './features/menu-management';
+import {
+  SchoolManagementRoute,
+  schoolManagementPath,
+} from './features/school-management';
 
 function App() {
   return (
@@ -73,6 +77,18 @@ function App() {
         <Route path="student-history" element={<MealStudentHistoryRoute />} />
         <Route path="reports" element={<MealReportsRoute />} />
       </Route>
+      <Route
+        path={schoolManagementPath}
+        element={
+          <RequireAuth>
+            <RequireRole
+              allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.SCHOOL_ADMIN]}
+            >
+              <SchoolManagementRoute />
+            </RequireRole>
+          </RequireAuth>
+        }
+      />
       <Route
         path={menuManagementPath}
         element={
