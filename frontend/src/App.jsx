@@ -16,6 +16,10 @@ import {
   MenuManagementRoute,
   menuManagementPath,
 } from './features/menu-management';
+import {
+  SchoolManagementRoute,
+  schoolManagementPath,
+} from './features/school-management';
 import AuthRedirectPage from './pages/AuthRedirectPage';
 import Home from './pages/Home';
 import RolePendingAssignment from './pages/RolePendingAssignment';
@@ -95,6 +99,20 @@ function App() {
             />
           ))}
         </Route>
+
+        {/* School Management Routes */}
+        <Route
+          path={schoolManagementPath}
+          element={
+            <RequireAuth>
+              <RequireRole
+                allowedRoles={[USER_ROLES.ADMIN, USER_ROLES.SCHOOL_ADMIN]}
+              >
+                <SchoolManagementRoute />
+              </RequireRole>
+            </RequireAuth>
+          }
+        />
 
         {/* Menu Management Routes */}
         <Route
