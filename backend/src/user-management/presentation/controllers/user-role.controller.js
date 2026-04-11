@@ -15,6 +15,11 @@ export const userManagementRouter = express.Router();
  * PATCH /api/users/by-clerk/:clerkId/role
  * Updates a user's role in MongoDB and Clerk metadata.
  * Guard middleware is intentionally omitted for now.
+ *
+ * DELETE /api/users/by-id/:userId
+ * DELETE /api/users/by-clerk/:clerkId
+ * DANGEROUS: permanently deletes a user from Clerk and MongoDB.
+ * The frontend must show a confirmation popup/flow before calling this.
  */
 const sendUsersList = (res, users, role = null) => {
   return res.status(200).json({
@@ -47,6 +52,18 @@ const sendRoleUpdateSuccess = (res, updatedUser) => {
       _id: updatedUser._id,
       clerkId: updatedUser.clerkId,
       role: updatedUser.role,
+    },
+  });
+};
+
+const sendDeleteSuccess = (res, deletedUser) => {
+  return res.status(200).json({
+    success: true,
+    message: 'User deleted successfully',
+    data: {
+      _id: deletedUser._id,
+      clerkId: deletedUser.clerkId,
+      role: deletedUser.role,
     },
   });
 };
@@ -138,4 +155,56 @@ userManagementRouter.patch('/by-id/:userId/role', async (req, res) => {
 
 userManagementRouter.patch('/by-clerk/:clerkId/role', async (req, res) => {
   return updateRoleAndRespond(req, res, 'by-clerk');
+});
+
+userManagementRouter.delete('/by-id/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'A valid MongoDB userId path param is required',
+      });
+    }
+
+    const deletedUser = await userService.deleteUserById(userId);
+    return sendDeleteSuccess(res, deletedUser);
+  } catch (error) {
+    const statusCode = error.message?.toLowerCase().includes('not found')
+      ? 404
+      : 500;
+
+    return res.status(statusCode).json({
+      success: false,
+      message: 'Failed to delete user',
+      error: error.message,
+    });
+  }
+});
+
+userManagementRouter.delete('/by-clerk/:clerkId', async (req, res) => {
+  try {
+    const { clerkId } = req.params;
+
+    if (!clerkId) {
+      return res.status(400).json({
+        success: false,
+        message: 'clerkId path param is required',
+      });
+    }
+
+    const deletedUser = await userService.deleteUserByClerkId(clerkId);
+    return sendDeleteSuccess(res, deletedUser);
+  } catch (error) {
+    const statusCode = error.message?.toLowerCase().includes('not found')
+      ? 404
+      : 500;
+
+    return res.status(statusCode).json({
+      success: false,
+      message: 'Failed to delete user',
+      error: error.message,
+    });
+  }
 });

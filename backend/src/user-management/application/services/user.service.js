@@ -116,6 +116,64 @@ class UserService {
 
     return updatedUser;
   }
+
+  /**
+   * DANGEROUS: Permanently deletes a user from Clerk and MongoDB.
+   * Use this only from an admin-only frontend flow with a confirmation popup.
+   *
+   * @param {string} userId - The internal MongoDB user _id
+   * @returns {Promise<Object>} The deleted MongoDB user document
+   */
+  async deleteUserById(userId) {
+    if (!userId) {
+      throw new Error('userId is strictly required to delete a user');
+    }
+
+    const existingUser = await userRepository.findById(userId);
+
+    if (!existingUser) {
+      throw new Error('User not found for provided userId');
+    }
+
+    await clerkClient.users.deleteUser(existingUser.clerkId);
+
+    const deletedUser = await userRepository.deleteById(userId);
+
+    if (!deletedUser) {
+      throw new Error('User could not be deleted from local database');
+    }
+
+    return deletedUser;
+  }
+
+  /**
+   * DANGEROUS: Permanently deletes a user from Clerk and MongoDB.
+   * Use this only from an admin-only frontend flow with a confirmation popup.
+   *
+   * @param {string} clerkId - The external Clerk user ID
+   * @returns {Promise<Object>} The deleted MongoDB user document
+   */
+  async deleteUserByClerkId(clerkId) {
+    if (!clerkId) {
+      throw new Error('clerkId is strictly required to delete a user');
+    }
+
+    const existingUser = await userRepository.findByClerkId(clerkId);
+
+    if (!existingUser) {
+      throw new Error('User not found for provided clerkId');
+    }
+
+    await clerkClient.users.deleteUser(clerkId);
+
+    const deletedUser = await userRepository.deleteByClerkId(clerkId);
+
+    if (!deletedUser) {
+      throw new Error('User could not be deleted from local database');
+    }
+
+    return deletedUser;
+  }
 }
 
 export const userService = new UserService();

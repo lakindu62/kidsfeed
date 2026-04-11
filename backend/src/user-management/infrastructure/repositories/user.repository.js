@@ -87,6 +87,15 @@ class UserRepository {
   }
 
   /**
+   * Delete a user by their internal MongoDB ID.
+   * @param {string} userId
+   * @returns {Promise<Object|null>}
+   */
+  async deleteById(userId) {
+    return UserModel.findByIdAndDelete(userId);
+  }
+
+  /**
    * Find all users with optional filtering.
    * @param {Object} filter
    * @returns {Promise<Array>}
