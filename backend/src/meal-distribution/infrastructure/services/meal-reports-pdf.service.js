@@ -54,16 +54,26 @@ function sumWidths(widths) {
 }
 
 function formatDate(value) {
-  if (!value) {return '—';}
+  if (!value) {
+    return '—';
+  }
   const d = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(d.getTime())) {return '—';}
+  if (Number.isNaN(d.getTime())) {
+    return '—';
+  }
   return d.toLocaleDateString();
 }
 
 function formatRangeLabel(dateFrom, dateTo) {
-  if (!dateFrom && !dateTo) {return 'All dates';}
-  if (dateFrom && dateTo) {return `${dateFrom} to ${dateTo}`;}
-  if (dateFrom) {return `From ${dateFrom}`;}
+  if (!dateFrom && !dateTo) {
+    return 'All dates';
+  }
+  if (dateFrom && dateTo) {
+    return `${dateFrom} to ${dateTo}`;
+  }
+  if (dateFrom) {
+    return `From ${dateFrom}`;
+  }
   return `Until ${dateTo}`;
 }
 
@@ -173,7 +183,9 @@ async function embedChart(doc, y, chartConfig, chartOpts = {}) {
     width: imgWidth,
     height: imgHeight,
   });
-  if (!buf) {return y;}
+  if (!buf) {
+    return y;
+  }
 
   const { left, width } = pageInnerBounds(doc);
   y = ensureY(doc, y, pdfHeight + 10);
@@ -266,10 +278,15 @@ function computeRosterStats(roster) {
   const c = { PRESENT: 0, EXCUSED: 0, NO_SHOW: 0, NOT_MARKED: 0 };
   roster.forEach((r) => {
     const s = String(r.status || '');
-    if (s === 'PRESENT') {c.PRESENT += 1;}
-    else if (s === 'EXCUSED') {c.EXCUSED += 1;}
-    else if (s === 'NO_SHOW') {c.NO_SHOW += 1;}
-    else {c.NOT_MARKED += 1;}
+    if (s === 'PRESENT') {
+      c.PRESENT += 1;
+    } else if (s === 'EXCUSED') {
+      c.EXCUSED += 1;
+    } else if (s === 'NO_SHOW') {
+      c.NO_SHOW += 1;
+    } else {
+      c.NOT_MARKED += 1;
+    }
   });
   return {
     ...c,

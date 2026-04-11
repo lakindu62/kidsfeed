@@ -44,6 +44,24 @@ function buildDietaryQuery(flags = {}) {
   return params.toString();
 }
 
+function matchesRecipeQuery(recipe, query) {
+  const normalizedQuery = String(query || '')
+    .trim()
+    .toLowerCase();
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  const name = String(recipe.name || '').toLowerCase();
+  const ingredientNames = (recipe.ingredients || [])
+    .map((ingredient) => String(ingredient.name || '').toLowerCase())
+    .join(' ');
+
+  return (
+    name.includes(normalizedQuery) || ingredientNames.includes(normalizedQuery)
+  );
+}
+
 function inferCourse(recipe) {
   const haystack = `${recipe.name} ${recipe.description}`.toLowerCase();
 
@@ -108,8 +126,9 @@ export async function fetchRecipeCatalog({
   let payload;
 
   if (query) {
-    const endpoint = new URL('/api/recipes/search/ingredient', apiUrl);
-    endpoint.searchParams.set('name', query);
+    const endpoint = new URL('/api/recipes', apiUrl);
+    endpoint.searchParams.set('page', '1');
+    endpoint.searchParams.set('limit', '100');
     payload = await fetchMenuApi({ url: endpoint.toString(), getToken });
   } else if (hasAnyDietaryFlag(dietaryFlags)) {
     const endpoint = new URL('/api/recipes/search/dietary', apiUrl);
@@ -129,7 +148,11 @@ export async function fetchRecipeCatalog({
     ? payload.data.map(normalizeRecipe)
     : [];
 
-  const courseFilteredRecipes = filterByCourse(normalizedRecipes, course);
+  const searchFilteredRecipes = query
+    ? normalizedRecipes.filter((recipe) => matchesRecipeQuery(recipe, query))
+    : normalizedRecipes;
+
+  const courseFilteredRecipes = filterByCourse(searchFilteredRecipes, course);
   const total = courseFilteredRecipes.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const safePage = Math.min(Math.max(page, 1), totalPages);

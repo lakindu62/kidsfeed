@@ -15,6 +15,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { describeApiFetchFailure } from '@/lib/describe-api-fetch-failure';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base';
+import { uploadRecipeImage } from '@/lib/upload-recipe-image';
 import { useAuthRole } from '@/lib/auth/use-auth-role';
 import {
   calculateRecipeNutrition,
@@ -22,6 +23,7 @@ import {
   fetchRecipeById,
   updateRecipe,
 } from '../api';
+import { PageLoadingScreen } from '../components';
 import MenuManagementLayout from '../layouts/MenuManagementLayout';
 
 const SEASONS = ['spring', 'summer', 'fall', 'winter', 'all-year'];
@@ -32,6 +34,18 @@ const DIETARY_KEYS = [
   { key: 'glutenFree', label: 'Gluten-Free' },
   { key: 'dairyFree', label: 'Dairy-Free' },
   { key: 'nutFree', label: 'Nut-Free' },
+];
+const ALLERGEN_OPTIONS = [
+  { key: 'nuts', label: 'Nuts' },
+  { key: 'peanuts', label: 'Peanuts' },
+  { key: 'dairy', label: 'Dairy' },
+  { key: 'eggs', label: 'Eggs' },
+  { key: 'soy', label: 'Soy' },
+  { key: 'wheat', label: 'Wheat' },
+  { key: 'gluten', label: 'Gluten' },
+  { key: 'shellfish', label: 'Shellfish' },
+  { key: 'fish', label: 'Fish' },
+  { key: 'sesame', label: 'Sesame' },
 ];
 const INGREDIENT_UNITS = [
   { value: 'g', label: 'Grams (g)' },
@@ -54,6 +68,7 @@ function NewRecipePage() {
   const navigate = useNavigate();
   const isEditMode = Boolean(recipeId);
   const recipeHydratedRef = useRef(!isEditMode);
+  const nutritionSectionRef = useRef(null);
 
   const apiBaseUrl = resolveApiBaseUrl();
 
@@ -63,9 +78,12 @@ function NewRecipePage() {
   const [servingSize, setServingSize] = useState('');
   const [seasons, setSeasons] = useState([]);
   const [imageUrl, setImageUrl] = useState('');
+  const [pendingImageFile, setPendingImageFile] = useState(null);
+  const [localImagePreviewUrl, setLocalImagePreviewUrl] = useState('');
 
   const [ingredients, setIngredients] = useState([]);
   const [instructions, setInstructions] = useState([]);
+  const [allergens, setAllergens] = useState([]);
 
   const [dietaryFlags, setDietaryFlags] = useState({
     vegetarian: false,
@@ -79,6 +97,7 @@ function NewRecipePage() {
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isCalculatingNutrition, setIsCalculatingNutrition] = useState(false);
   const [nutritionResult, setNutritionResult] = useState(null);
   const [isLoadingRecipe, setIsLoadingRecipe] = useState(isEditMode);
@@ -87,6 +106,7 @@ function NewRecipePage() {
     () => Object.values(dietaryFlags).filter(Boolean).length,
     [dietaryFlags],
   );
+  const activeAllergenCount = allergens.length;
 
   useEffect(() => {
     if (!recipeHydratedRef.current) {
@@ -95,6 +115,15 @@ function NewRecipePage() {
 
     setNutritionResult(null);
   }, [ingredients]);
+
+  useEffect(
+    () => () => {
+      if (localImagePreviewUrl) {
+        URL.revokeObjectURL(localImagePreviewUrl);
+      }
+    },
+    [localImagePreviewUrl],
+  );
 
   useEffect(() => {
     if (!isEditMode) {
@@ -134,6 +163,13 @@ function NewRecipePage() {
         );
         setSeasons(existingRecipe.seasonal || []);
         setImageUrl(existingRecipe.imageUrl || '');
+        setPendingImageFile(null);
+        setLocalImagePreviewUrl((current) => {
+          if (current) {
+            URL.revokeObjectURL(current);
+          }
+          return '';
+        });
         setIngredients(
           existingRecipe.ingredients?.length > 0
             ? existingRecipe.ingredients.map((ingredient) => ({
@@ -164,6 +200,11 @@ function NewRecipePage() {
           dairyFree: Boolean(existingRecipe.dietaryFlags?.dairyFree),
           nutFree: Boolean(existingRecipe.dietaryFlags?.nutFree),
         });
+        setAllergens(
+          Array.isArray(existingRecipe.allergens)
+            ? existingRecipe.allergens
+            : [],
+        );
         setNutritionResult(existingRecipe.nutritionalInfo || null);
         setFormSuccess('');
         recipeHydratedRef.current = true;
@@ -231,36 +272,13 @@ function NewRecipePage() {
     };
   }, [nutritionResult]);
 
-  const clearForm = () => {
-    setRecipeName('');
-    setShortDescription('');
-    setPrepTime('');
-    setServingSize('');
-    setSeasons([]);
-    setImageUrl('');
-    setIngredients([]);
-    setInstructions([]);
-    setDietaryFlags({
-      vegetarian: false,
-      vegan: false,
-      halal: false,
-      glutenFree: false,
-      dairyFree: false,
-      nutFree: false,
-    });
-    setFormError('');
-    setFormSuccess('Draft discarded.');
-    setNutritionResult(null);
-    setIsCalculatingNutrition(false);
-  };
-
   const discardDraft = () => {
     if (isEditMode) {
       navigate(`/menu-management/recipes/${recipeId}`);
       return;
     }
 
-    clearForm();
+    navigate(-1);
   };
 
   const toggleSeason = (seasonKey) => {
@@ -280,6 +298,14 @@ function NewRecipePage() {
 
   const toggleDietaryFlag = (key) => {
     setDietaryFlags((current) => ({ ...current, [key]: !current[key] }));
+  };
+
+  const toggleAllergen = (key) => {
+    setAllergens((current) =>
+      current.includes(key)
+        ? current.filter((item) => item !== key)
+        : [...current, key],
+    );
   };
 
   const addIngredient = () => {
@@ -370,17 +396,21 @@ function NewRecipePage() {
 
     if (!file.type.startsWith('image/')) {
       setFormError('Please select an image file.');
+      event.target.value = '';
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setImageUrl(reader.result);
-        setFormError('');
-      }
-    };
-    reader.readAsDataURL(file);
+    setFormError('');
+    setFormSuccess('');
+
+    if (localImagePreviewUrl) {
+      URL.revokeObjectURL(localImagePreviewUrl);
+    }
+
+    setPendingImageFile(file);
+    setLocalImagePreviewUrl(URL.createObjectURL(file));
+    setFormSuccess('Image selected. It will upload when you save the recipe.');
+    event.target.value = '';
   };
 
   const handleSave = async ({ navigateToDetails = false } = {}) => {
@@ -404,6 +434,12 @@ function NewRecipePage() {
       return;
     }
 
+    if (isUploadingImage) {
+      setFormSuccess('');
+      setFormError('Please wait until the image upload completes.');
+      return;
+    }
+
     if (!nutritionResult) {
       setFormSuccess('');
       setFormError('Please calculate nutrition before saving the recipe.');
@@ -420,6 +456,26 @@ function NewRecipePage() {
       setFormError('');
       setFormSuccess('');
 
+      let resolvedImageUrl = imageUrl;
+
+      if (pendingImageFile) {
+        setIsUploadingImage(true);
+        try {
+          resolvedImageUrl = await uploadRecipeImage(pendingImageFile, {
+            recipeId,
+            userId: user?.id,
+          });
+          setImageUrl(resolvedImageUrl);
+          setPendingImageFile(null);
+          if (localImagePreviewUrl) {
+            URL.revokeObjectURL(localImagePreviewUrl);
+          }
+          setLocalImagePreviewUrl('');
+        } finally {
+          setIsUploadingImage(false);
+        }
+      }
+
       const nutritionPayload = {
         calories: Number(nutritionResult.calories) || 0,
         protein: Number(nutritionResult.protein) || 0,
@@ -432,7 +488,7 @@ function NewRecipePage() {
       const savePayload = {
         name: recipeName.trim(),
         description: shortDescription.trim(),
-        imageUrl,
+        imageUrl: resolvedImageUrl,
         ingredients: normalizedIngredients,
         instructions: normalizedInstructions.join('\n'),
         nutritionalInfo: nutritionPayload,
@@ -440,7 +496,7 @@ function NewRecipePage() {
         prepTime: parsedPrepTime,
         dietaryFlags,
         seasonal: seasons,
-        allergens: [],
+        allergens,
         createdBy,
       };
 
@@ -541,6 +597,10 @@ function NewRecipePage() {
 
       setNutritionResult(nutrition);
       setFormSuccess('Nutrition calculated successfully.');
+      nutritionSectionRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
     } catch (requestError) {
       setFormSuccess('');
       setFormError(
@@ -566,6 +626,10 @@ function NewRecipePage() {
       }
       searchPlaceholder=""
     >
+      {isLoadingRecipe ? (
+        <PageLoadingScreen message="Loading recipe editor..." />
+      ) : null}
+
       <section className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold tracking-widest text-[#6f7782] uppercase">
@@ -579,30 +643,6 @@ function NewRecipePage() {
               ? 'Update the recipe details and re-save the calculated nutrition.'
               : 'Ensure all dietary markers are strictly verified before publishing.'}
           </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={discardDraft}
-            disabled={isSaving || isLoadingRecipe}
-            className="rounded-xl border border-[#d9dee4] bg-white px-4 py-2 text-sm font-semibold text-[#4b5a6a] hover:bg-[#f4f6f8] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isEditMode ? 'Discard Changes' : 'Discard Draft'}
-          </button>
-          <button
-            type="button"
-            disabled={isSaving || isLoadingRecipe}
-            onClick={() => handleSave({ navigateToDetails: isEditMode })}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#0f7d2a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0d6d25] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <Save size={14} />
-            {isSaving
-              ? 'Saving...'
-              : isEditMode
-                ? 'Update Recipe'
-                : 'Quick Save'}
-          </button>
         </div>
       </section>
 
@@ -927,12 +967,44 @@ function NewRecipePage() {
             <p className="mt-3 text-xs text-[#667383]">
               {activeDietaryCount} dietary markers currently selected.
             </p>
+
+            <p className="mt-4 text-xs font-semibold tracking-[0.08em] text-[#7a848f] uppercase">
+              Allergens
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {ALLERGEN_OPTIONS.map((item) => {
+                const active = allergens.includes(item.key);
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => toggleAllergen(item.key)}
+                    className={`flex items-center justify-between rounded-lg border px-2.5 py-2 text-xs font-semibold ${
+                      active
+                        ? 'border-[#c4894d] bg-[#fff3e7] text-[#8f4f1a]'
+                        : 'border-[#dbe1e7] bg-[#f7f8f9] text-[#5e6c7f]'
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    <span
+                      className={`h-2.5 w-2.5 rounded-full ${
+                        active ? 'bg-[#b46a2c]' : 'bg-[#c7cfd8]'
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="mt-3 text-xs text-[#667383]">
+              {activeAllergenCount} allergens currently selected.
+            </p>
           </div>
 
           <div className="overflow-hidden rounded-[20px] border border-[#e3e6ea] bg-white shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
-            {imageUrl ? (
+            {localImagePreviewUrl || imageUrl ? (
               <img
-                src={imageUrl}
+                src={localImagePreviewUrl || imageUrl}
                 alt="Recipe preview"
                 className="h-36 w-full object-cover"
               />
@@ -942,11 +1014,18 @@ function NewRecipePage() {
 
             <label className="flex cursor-pointer items-center justify-center gap-2 border-t border-[#e3e6ea] bg-[#f8faf8] px-3 py-2 text-sm font-semibold text-[#49615a] hover:bg-[#eef3ef]">
               <ImagePlus size={14} />
-              {imageUrl ? 'Change Image' : 'Add Image'}
+              {isUploadingImage
+                ? 'Uploading...'
+                : pendingImageFile
+                  ? 'Image Selected'
+                  : imageUrl
+                    ? 'Change Image'
+                    : 'Add Image'}
               <input
                 type="file"
                 accept="image/*"
                 className="hidden"
+                disabled={isUploadingImage}
                 onChange={handleImageUpload}
               />
             </label>
@@ -954,7 +1033,10 @@ function NewRecipePage() {
         </article>
       </section>
 
-      <section className="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,0.7fr)]">
+      <section
+        ref={nutritionSectionRef}
+        className="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,0.7fr)]"
+      >
         <article className="rounded-[14px] border border-[#e1e5ea] bg-white p-4">
           <h4 className="text-2xl font-semibold tracking-[-0.02em] text-[#2e3338]">
             Nutritional Information
@@ -1096,27 +1178,31 @@ function NewRecipePage() {
         Powered by USDA FoodData Central API
       </p>
 
-      <footer className="mt-5 grid grid-cols-1 gap-3 rounded-[14px] border border-[#e1e5ea] bg-white p-3 sm:grid-cols-[1fr_auto] sm:items-center">
-        <div>
-          <p className="text-[10px] font-semibold tracking-[0.12em] text-[#7b828f] uppercase">
-            Current Status
-          </p>
-          <p className="text-sm font-semibold text-[#c06c1d]">Draft Mode</p>
-        </div>
+      <footer className="mt-5 rounded-[14px] border border-[#e1e5ea] bg-white p-3">
+        <div className="flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={discardDraft}
+            disabled={isSaving || isLoadingRecipe || isUploadingImage}
+            className="rounded-xl border border-[#d9dee4] bg-white px-4 py-2 text-sm font-semibold text-[#4b5a6a] hover:bg-[#f4f6f8] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isEditMode ? 'Discard Changes' : 'Discard Draft'}
+          </button>
 
-        <button
-          type="button"
-          disabled={isSaving || isLoadingRecipe}
-          onClick={() => handleSave({ navigateToDetails: true })}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0f7d2a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0d6d25] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <Save size={14} />
-          {isSaving
-            ? 'Saving...'
-            : isEditMode
-              ? 'Update Recipe'
-              : 'Save Recipe'}
-        </button>
+          <button
+            type="button"
+            disabled={isSaving || isLoadingRecipe || isUploadingImage}
+            onClick={() => handleSave({ navigateToDetails: true })}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0f7d2a] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0d6d25] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Save size={14} />
+            {isSaving
+              ? 'Saving...'
+              : isEditMode
+                ? 'Update Recipe'
+                : 'Save Recipe'}
+          </button>
+        </div>
       </footer>
     </MenuManagementLayout>
   );

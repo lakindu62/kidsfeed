@@ -43,6 +43,9 @@ class UpdateRecipeRequest {
     if (body.seasonal !== undefined) {
       this.seasonal = body.seasonal;
     }
+    if (body.nutritionalInfo !== undefined) {
+      this.nutritionalInfo = body.nutritionalInfo;
+    }
   }
 
   // Validates only provided fields; accumulates all errors

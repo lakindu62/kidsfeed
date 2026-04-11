@@ -1,5 +1,6 @@
 import RecipeManagementPage from './pages/RecipeManagementPage';
 import RecipeDetailsPage from './pages/RecipeDetailsPage';
+import RecipeSearchPage from './pages/RecipeSearchPage';
 import NewRecipePage from './pages/NewRecipePage';
 
 export const menuManagementPath = '/menu-management';
@@ -15,7 +16,7 @@ export function MenuManagementRoute() {
 }
 
 export function MenuManagementRecipesRoute() {
-  return <RecipeManagementPage />;
+  return <RecipeSearchPage />;
 }
 
 export function MenuManagementRecipeDetailsRoute() {
