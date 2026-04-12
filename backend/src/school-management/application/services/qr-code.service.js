@@ -8,10 +8,13 @@ import { generateQRCodeBase64 } from '../../infrastructure/services/qr-code-gene
 import { toStudentResponse } from '../dtos/responses/student-response.dto.js';
 import { toMealCardResponse } from '../dtos/responses/meal-card-response.dto.js';
 import { AppError } from '../errors/app-error.js';
+import { sendGuardianSms } from '../../infrastructure/services/twilio.service.js';
 
 const generateStudentQR = async (studentId) => {
   const student = await findStudentById(studentId);
-  if (!student) throw new AppError(404, 'Student not found');
+  if (!student) {
+    throw new AppError(404, 'Student not found');
+  }
 
   const qrPayload = JSON.stringify({
     studentId: student.studentId,
@@ -31,7 +34,9 @@ const generateStudentQR = async (studentId) => {
 
 const batchGenerateQR = async (schoolId, filters = {}) => {
   const school = await findSchoolById(schoolId);
-  if (!school) throw new AppError(404, 'School not found');
+  if (!school) {
+    throw new AppError(404, 'School not found');
+  }
 
   const students = await findStudentsBySchoolForQr(schoolId, filters);
 
@@ -59,7 +64,9 @@ const batchGenerateQR = async (schoolId, filters = {}) => {
 
 const listQRCards = async (schoolId, rawQuery = {}) => {
   const school = await findSchoolById(schoolId);
-  if (!school) throw new AppError(404, 'School not found');
+  if (!school) {
+    throw new AppError(404, 'School not found');
+  }
 
   const { grade, status } = rawQuery;
   const students = await findStudentsBySchoolForQr(schoolId, {
@@ -75,7 +82,20 @@ const updateQRStatus = async (studentId, status) => {
     throw new AppError(400, 'Status must be pending or printed');
   }
   const student = await updateStudentById(studentId, { qrStatus: status });
-  if (!student) throw new AppError(404, 'Student not found');
+  if (!student) {
+    throw new AppError(404, 'Student not found');
+  }
+
+  if (!student.guardian?.smsOptOut && student.guardian?.phone) {
+    const name = `${student.firstName} ${student.lastName}`;
+    const statusLabel =
+      status === 'printed' ? 'printed and ready' : 'pending review';
+    await sendGuardianSms(
+      student.guardian.phone,
+      `KidsFeed: The meal card QR code for ${name} is now ${statusLabel}. Contact your school for more information.`
+    );
+  }
+
   return toStudentResponse(student);
 };
 

@@ -1,10 +1,11 @@
+import './config/env.js'; // must be first — loads .env before any other module reads process.env
 import express from 'express';
 import dotenv from 'dotenv';
 import { clerkMiddleware } from '@clerk/express';
 import cors from 'cors';
-import { corsOptions, handleCorsPreflight } from './config/cors.config.js';
 
-dotenv.config();
+dotenv.config(); // kept for teammates — env.js handles ES module hoisting issue
+import { corsOptions, handleCorsPreflight } from './config/cors.config.js';
 
 import { connectDB } from './database.config.js';
 

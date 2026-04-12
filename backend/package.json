@@ -25,7 +25,8 @@
     "mongoose": "^7.6.3",
     "multer": "^2.0.2",
     "pdfkit": "^0.17.2",
-    "qrcode": "^1.5.4"
+    "qrcode": "^1.5.4",
+    "twilio": "^5.13.1"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
