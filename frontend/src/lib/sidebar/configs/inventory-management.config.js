@@ -1,4 +1,4 @@
-import { LayoutGrid, LogOut, Package } from 'lucide-react';
+import { LogOut, Package } from 'lucide-react';
 import { DEFAULT_FOOTER_ACTIONS } from './defaults';
 
 export const INVENTORY_MANAGEMENT_SIDEBAR_CONFIG = {
@@ -8,12 +8,6 @@ export const INVENTORY_MANAGEMENT_SIDEBAR_CONFIG = {
     {
       key: 'main',
       items: [
-        {
-          key: 'dashboard',
-          label: 'Dashboard',
-          to: '/inventory',
-          icon: LayoutGrid,
-        },
         {
           key: 'inventory',
           label: 'Inventory',
