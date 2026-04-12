@@ -1,4 +1,4 @@
-import { CalendarDays, LayoutGrid, UtensilsCrossed } from 'lucide-react';
+import { LayoutGrid, UtensilsCrossed } from 'lucide-react';
 import { DEFAULT_FOOTER_ACTIONS } from './defaults';
 
 export const MENU_MANAGEMENT_SIDEBAR_CONFIG = {
@@ -11,7 +11,7 @@ export const MENU_MANAGEMENT_SIDEBAR_CONFIG = {
         {
           key: 'dashboard',
           label: 'Dashboard',
-          to: '/menu-management',
+          to: '/meal-planning',
           icon: LayoutGrid,
         },
         {
@@ -19,12 +19,6 @@ export const MENU_MANAGEMENT_SIDEBAR_CONFIG = {
           label: 'Menus',
           to: '/menu-management/menus',
           icon: UtensilsCrossed,
-        },
-        {
-          key: 'calendar',
-          label: 'Publishing Calendar',
-          to: '/menu-management/calendar',
-          icon: CalendarDays,
         },
       ],
     },
