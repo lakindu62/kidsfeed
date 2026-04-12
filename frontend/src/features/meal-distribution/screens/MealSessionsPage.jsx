@@ -5,7 +5,10 @@ import { CalendarDays, ChevronDown, Filter, X } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { describeApiFetchFailure } from '../../../lib/describe-api-fetch-failure';
 import { createMealSession, fetchMealSessions } from '../api';
+import CardGrid from '@/components/common/CardGrid';
+import MetricCard from '@/components/common/MetricCard';
 import NewSessionFloatingButton from '@/components/common/NewSessionFloatingButton';
+import StatusMessage from '@/components/common/StatusMessage';
 import MealDistributionLayout from '../layouts/MealDistributionLayout';
 import {
   formatMealDistributionSchoolSubtitle,
@@ -222,6 +225,10 @@ export default function MealSessionsPage() {
       query={query}
       onQueryChange={setQuery}
       searchPlaceholder="Search by meal type, date, status..."
+      breadcrumbItems={[
+        { label: 'Meal Distribution', href: '/meal-distribution' },
+        { label: 'Meal Sessions' },
+      ]}
     >
       <section className="rounded-[12px] bg-[#f0f1f1] p-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -296,57 +303,51 @@ export default function MealSessionsPage() {
           </div>
         </div>
 
-        <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <div className="rounded-lg bg-white px-4 py-3 shadow-sm">
-            <p className="text-[11px] font-semibold text-zinc-500">
-              Sessions (current view)
-            </p>
-            <p className="mt-1 text-xl font-bold text-zinc-800">
-              {currentStats.totalSessions}
-            </p>
-          </div>
-          <div className="rounded-lg bg-white px-4 py-3 shadow-sm">
-            <p className="text-[11px] font-semibold text-zinc-500">
-              Planned meals
-            </p>
-            <p className="mt-1 text-xl font-bold text-zinc-800">
-              {currentStats.planned}
-            </p>
-          </div>
-          <div className="rounded-lg bg-white px-4 py-3 shadow-sm">
-            <p className="text-[11px] font-semibold text-zinc-500">
-              Meals served
-            </p>
-            <p className="mt-1 text-xl font-bold text-[#a83206]">
-              {currentStats.served}
-            </p>
-          </div>
-          <div className="rounded-lg bg-white px-4 py-3 shadow-sm">
-            <p className="text-[11px] font-semibold text-zinc-500">
-              Completed sessions
-            </p>
-            <p className="mt-1 text-xl font-bold text-green-700">
-              {currentStats.completed}
-            </p>
-          </div>
-          <div className="rounded-lg bg-white px-4 py-3 shadow-sm">
-            <p className="text-[11px] font-semibold text-zinc-500">
-              Completion rate
-            </p>
-            <p className="mt-1 text-xl font-bold text-zinc-800">
-              {currentStats.completionRate}%
-            </p>
-          </div>
-        </div>
+        <CardGrid
+          items={[
+            {
+              key: 'sessions',
+              label: 'Sessions (current view)',
+              value: currentStats.totalSessions,
+            },
+            {
+              key: 'planned',
+              label: 'Planned meals',
+              value: currentStats.planned,
+            },
+            {
+              key: 'served',
+              label: 'Meals served',
+              value: currentStats.served,
+            },
+            {
+              key: 'completed',
+              label: 'Completed sessions',
+              value: currentStats.completed,
+            },
+            {
+              key: 'rate',
+              label: 'Completion rate',
+              value: `${currentStats.completionRate}%`,
+            },
+          ]}
+          columnsClassName="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5"
+          emptyMessage="No session stats available."
+          renderItem={(card) => (
+            <MetricCard
+              key={card.key}
+              value={card.value}
+              label={card.label}
+              className="min-h-0"
+            />
+          )}
+        />
 
-        {isLoading && (
-          <p className="mb-4 text-xs font-medium text-zinc-500">
-            Loading sessions...
-          </p>
-        )}
-        {error && (
-          <p className="mb-4 text-xs font-medium text-red-600">{error}</p>
-        )}
+        <StatusMessage
+          kind="info"
+          message={isLoading ? 'Loading sessions...' : ''}
+        />
+        <StatusMessage kind="error" message={error} />
 
         <div className="overflow-x-auto">
           <table className="w-full border-separate border-spacing-y-3">

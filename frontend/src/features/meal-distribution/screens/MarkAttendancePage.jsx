@@ -604,6 +604,10 @@ export default function MarkAttendancePage() {
       title="Mark Attendance"
       subtitle={`${formatMealDistributionSchoolSubtitle(schoolName)} · Select a session, then use manual ID or camera / image QR`}
       searchPlaceholder=""
+      breadcrumbItems={[
+        { label: 'Meal Distribution', href: '/meal-distribution' },
+        { label: 'Mark Attendance' },
+      ]}
     >
       <section className="rounded-[12px] bg-[#f0f1f1] p-8">
         <div className="grid gap-4 md:grid-cols-3">
