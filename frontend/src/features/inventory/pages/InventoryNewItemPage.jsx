@@ -6,6 +6,14 @@ import { format, parseISO } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
@@ -18,6 +26,7 @@ import PageHero from '@/components/common/PageHero';
 import StatusMessage from '@/components/common/StatusMessage';
 import { describeApiFetchFailure } from '@/lib/describe-api-fetch-failure';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base';
+import { toast } from 'sonner';
 
 import InventoryLayout from '../layouts/InventoryLayout';
 import {
@@ -190,6 +199,13 @@ function getDuplicateMatchLabel(matchType) {
   }
 }
 
+const initialDuplicateDialogState = {
+  open: false,
+  source: 'lookup',
+  lookup: null,
+  pendingPayload: null,
+};
+
 function InventoryNewItemPage() {
   const navigate = useNavigate();
   const { isSignedIn, getToken } = useAuth();
@@ -197,13 +213,14 @@ function InventoryNewItemPage() {
 
   const [form, setForm] = useState(initialFormState);
   const [submitError, setSubmitError] = useState('');
-  const [submitSuccess, setSubmitSuccess] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [barcodeLookupError, setBarcodeLookupError] = useState('');
   const [barcodeLookupMessage, setBarcodeLookupMessage] = useState('');
   const [isBarcodeLookupLoading, setIsBarcodeLookupLoading] = useState(false);
-  const [barcodeDuplicateLookup, setBarcodeDuplicateLookup] = useState(null);
   const [barcodeLookupSummary, setBarcodeLookupSummary] = useState(null);
+  const [duplicateDialogState, setDuplicateDialogState] = useState(
+    initialDuplicateDialogState,
+  );
   const expiryDateValue = formatPickerDate(form.expiryDate);
 
   const handleFieldChange = (field) => (event) => {
@@ -231,7 +248,6 @@ function InventoryNewItemPage() {
 
     setBarcodeLookupError('');
     setBarcodeLookupMessage('');
-    setBarcodeDuplicateLookup(null);
     setBarcodeLookupSummary(null);
     setIsBarcodeLookupLoading(true);
 
@@ -244,20 +260,13 @@ function InventoryNewItemPage() {
       });
 
       if (duplicateLookup?.matchType && duplicateLookup.matchType !== 'NONE') {
-        setBarcodeDuplicateLookup(duplicateLookup);
-
-        if (duplicateLookup.suggestedAction === 'ADD_BATCH_TO_EXISTING') {
-          setBarcodeLookupMessage(
-            'An existing inventory item matches this barcode. Open it and add a batch instead of creating a new item.',
-          );
-          return;
-        }
-
-        if (duplicateLookup.suggestedAction === 'ASK_USER_TO_CONFIRM') {
-          setBarcodeLookupMessage(
-            'Possible duplicate inventory items were found. Review the matches before creating a new item.',
-          );
-        }
+        setDuplicateDialogState({
+          open: true,
+          source: 'lookup',
+          lookup: duplicateLookup,
+          pendingPayload: null,
+        });
+        return;
       }
 
       const summary = lookupToFormSummary(
@@ -294,12 +303,50 @@ function InventoryNewItemPage() {
         }));
       }
     } catch (error) {
-      setBarcodeDuplicateLookup(null);
+      setDuplicateDialogState(initialDuplicateDialogState);
       setBarcodeLookupError(
         describeApiFetchFailure(error, 'Could not complete barcode lookup.'),
       );
     } finally {
       setIsBarcodeLookupLoading(false);
+    }
+  };
+
+  const createItemFromPayload = async (payload) => {
+    const createdItem = await createInventoryItem({
+      apiUrl: apiBaseUrl,
+      getToken: isSignedIn ? getToken : undefined,
+      payload,
+    });
+    const createdItemId = createdItem?._id || createdItem?.id || '';
+
+    toast.success('Inventory item created successfully.');
+
+    if (createdItemId) {
+      navigate(`/inventory/items/${createdItemId}`);
+      return;
+    }
+
+    navigate('/inventory/items');
+  };
+
+  const handleConfirmSaveFromDuplicateDialog = async () => {
+    if (!duplicateDialogState.pendingPayload) {
+      return;
+    }
+
+    setSubmitError('');
+    setIsSaving(true);
+
+    try {
+      await createItemFromPayload(duplicateDialogState.pendingPayload);
+      setDuplicateDialogState(initialDuplicateDialogState);
+    } catch (error) {
+      setSubmitError(
+        describeApiFetchFailure(error, 'Could not create inventory item.'),
+      );
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -318,13 +365,6 @@ function InventoryNewItemPage() {
 
     if (form.quantity === '') {
       setSubmitError('Quantity is required for the initial batch.');
-      return;
-    }
-
-    if (barcodeDuplicateLookup?.suggestedAction === 'ADD_BATCH_TO_EXISTING') {
-      setSubmitError(
-        'This item already exists. Open the existing inventory item and add a batch instead.',
-      );
       return;
     }
 
@@ -351,25 +391,27 @@ function InventoryNewItemPage() {
     };
 
     setSubmitError('');
-    setSubmitSuccess('');
     setIsSaving(true);
 
     try {
-      const createdItem = await createInventoryItem({
+      const duplicateLookup = await lookupExistingInventoryItem({
         apiUrl: apiBaseUrl,
+        name: payload.name,
+        barcode: payload.barcode,
         getToken: isSignedIn ? getToken : undefined,
-        payload,
       });
-      const createdItemId = createdItem?._id || createdItem?.id || '';
 
-      setSubmitSuccess('Inventory item created successfully.');
-
-      if (createdItemId) {
-        navigate(`/inventory/items/${createdItemId}`);
+      if (duplicateLookup?.matchType && duplicateLookup.matchType !== 'NONE') {
+        setDuplicateDialogState({
+          open: true,
+          source: 'save',
+          lookup: duplicateLookup,
+          pendingPayload: payload,
+        });
         return;
       }
 
-      navigate('/inventory/items');
+      await createItemFromPayload(payload);
     } catch (error) {
       setSubmitError(
         describeApiFetchFailure(error, 'Could not create inventory item.'),
@@ -382,11 +424,29 @@ function InventoryNewItemPage() {
   const handleReset = () => {
     setForm(initialFormState);
     setSubmitError('');
-    setSubmitSuccess('');
     setBarcodeLookupError('');
     setBarcodeLookupMessage('');
-    setBarcodeDuplicateLookup(null);
     setBarcodeLookupSummary(null);
+    setDuplicateDialogState(initialDuplicateDialogState);
+  };
+
+  const duplicateLookupData = duplicateDialogState.lookup;
+  const isDuplicateAddBatchAction =
+    duplicateLookupData?.suggestedAction === 'ADD_BATCH_TO_EXISTING';
+  const isDuplicateConfirmAction =
+    duplicateLookupData?.suggestedAction === 'ASK_USER_TO_CONFIRM';
+  const canConfirmSaveFromDialog =
+    duplicateDialogState.source === 'save' &&
+    isDuplicateConfirmAction &&
+    Boolean(duplicateDialogState.pendingPayload);
+
+  const handleOpenDuplicateItem = (itemId) => {
+    if (!itemId) {
+      return;
+    }
+
+    setDuplicateDialogState(initialDuplicateDialogState);
+    navigate(`/inventory/items/${itemId}`);
   };
 
   return (
@@ -406,9 +466,6 @@ function InventoryNewItemPage() {
 
         {submitError ? (
           <StatusMessage kind="error" message={submitError} />
-        ) : null}
-        {submitSuccess ? (
-          <StatusMessage kind="success" message={submitSuccess} />
         ) : null}
 
         <form
@@ -669,90 +726,6 @@ function InventoryNewItemPage() {
                   />
                 ) : null}
 
-                {barcodeDuplicateLookup ? (
-                  <Card className="rounded-[20px] border border-[#e6d9b8] bg-[#fff9ec] shadow-none">
-                    <CardContent className="typography-body space-y-3 p-4 text-[#5b4a1d]">
-                      <div className="space-y-1">
-                        <p className="typography-body-sm tracking-[0.16em] text-[#8a5b00] uppercase">
-                          Duplicate check
-                        </p>
-                        <h3 className="typography-body-lg text-[#2f2610]">
-                          {getDuplicateMatchLabel(
-                            barcodeDuplicateLookup.matchType,
-                          )}
-                        </h3>
-                      </div>
-
-                      <p>
-                        {barcodeDuplicateLookup.suggestedAction ===
-                        'ADD_BATCH_TO_EXISTING'
-                          ? 'An existing item matches this barcode or name. Open the item to add a new batch.'
-                          : 'Potential duplicate items were found. Review the matches before creating a new item.'}
-                      </p>
-
-                      {barcodeDuplicateLookup.existingItem ? (
-                        <div className="rounded-[16px] border border-[#edd9a8] bg-white p-3 text-[#40493d]">
-                          <p className="typography-body-sm tracking-[0.16em] text-[#8a5b00] uppercase">
-                            Existing item
-                          </p>
-                          <p className="typography-body-lg mt-1 text-[#181c1b]">
-                            {barcodeDuplicateLookup.existingItem.name}
-                          </p>
-                          <p className="typography-body text-[#40493d]">
-                            {barcodeDuplicateLookup.existingItem.brand ||
-                              'No brand recorded'}
-                          </p>
-                        </div>
-                      ) : null}
-
-                      {Array.isArray(barcodeDuplicateLookup.candidates) &&
-                      barcodeDuplicateLookup.candidates.length > 0 ? (
-                        <div className="space-y-2">
-                          <p className="typography-body-sm tracking-[0.16em] text-[#8a5b00] uppercase">
-                            Candidate matches
-                          </p>
-                          <div className="space-y-2">
-                            {barcodeDuplicateLookup.candidates.map(
-                              (candidate) => (
-                                <div
-                                  key={
-                                    candidate.id ||
-                                    candidate.barcode ||
-                                    candidate.name
-                                  }
-                                  className="rounded-[14px] border border-[#edd9a8] bg-white px-3 py-2"
-                                >
-                                  <p className="typography-body text-[#181c1b]">
-                                    {candidate.name || 'Unnamed item'}
-                                  </p>
-                                  <p className="typography-body-sm text-[#646b63]">
-                                    {candidate.barcode || 'No barcode'} ·{' '}
-                                    {candidate.status || 'Unknown status'}
-                                  </p>
-                                </div>
-                              ),
-                            )}
-                          </div>
-                        </div>
-                      ) : null}
-
-                      {barcodeDuplicateLookup.existingItem?.id ? (
-                        <Button
-                          type="button"
-                          className="h-10 rounded-full bg-[#8a5b00] px-4 text-white hover:bg-[#744b00]"
-                          onClick={() =>
-                            navigate(
-                              `/inventory/items/${barcodeDuplicateLookup.existingItem.id}`,
-                            )
-                          }
-                        >
-                          Open existing item
-                        </Button>
-                      ) : null}
-                    </CardContent>
-                  </Card>
-                ) : null}
-
                 {barcodeLookupSummary ? (
                   <div className="typography-body rounded-[20px] border border-[#e6e9e5] bg-[#f7faf6] p-4 text-[#40493d]">
                     <div className="flex items-start justify-between gap-3">
@@ -871,6 +844,146 @@ function InventoryNewItemPage() {
           </aside>
         </form>
       </div>
+
+      <Dialog
+        open={duplicateDialogState.open}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDuplicateDialogState(initialDuplicateDialogState);
+          }
+        }}
+      >
+        <DialogContent className="max-w-xl rounded-[24px] border border-[#e6d9b8] bg-[#fff9ec] p-0">
+          <div className="space-y-4 p-6">
+            <DialogHeader>
+              <p className="typography-body-sm tracking-[0.2em] text-[#8a5b00] uppercase">
+                Duplicate check
+              </p>
+              <DialogTitle className="typography-h1 text-[#2f2610]">
+                {getDuplicateMatchLabel(duplicateLookupData?.matchType)}
+              </DialogTitle>
+              <DialogDescription className="typography-body text-[#5b4a1d]">
+                {isDuplicateAddBatchAction
+                  ? 'An existing inventory item already matches this barcode or name. Add a new batch to that item instead of creating a duplicate.'
+                  : 'Potential duplicate items were found. Review the matches before creating a new item.'}
+              </DialogDescription>
+            </DialogHeader>
+
+            {duplicateLookupData?.existingItem ? (
+              <button
+                type="button"
+                onClick={() =>
+                  handleOpenDuplicateItem(duplicateLookupData.existingItem.id)
+                }
+                disabled={!duplicateLookupData.existingItem.id}
+                className="w-full rounded-[16px] border border-[#edd9a8] bg-white p-3 text-left text-[#40493d] transition-colors enabled:cursor-pointer enabled:hover:bg-[#fff5dc] disabled:opacity-80"
+              >
+                <p className="typography-body-sm tracking-[0.16em] text-[#8a5b00] uppercase">
+                  Existing item
+                </p>
+                <p className="typography-body-lg mt-1 text-[#181c1b]">
+                  {duplicateLookupData.existingItem.name}
+                </p>
+                <p className="typography-body text-[#40493d]">
+                  {duplicateLookupData.existingItem.brand ||
+                    'No brand recorded'}
+                </p>
+                {duplicateLookupData.existingItem.id ? (
+                  <p className="typography-body-sm mt-1 text-[#8a5b00]">
+                    Open this item to add a batch
+                  </p>
+                ) : null}
+              </button>
+            ) : null}
+
+            {Array.isArray(duplicateLookupData?.candidates) &&
+            duplicateLookupData.candidates.length > 0 ? (
+              <div className="space-y-2">
+                <p className="typography-body-sm tracking-[0.16em] text-[#8a5b00] uppercase">
+                  Candidate matches
+                </p>
+                <div className="max-h-72 space-y-2 overflow-auto pr-1">
+                  {duplicateLookupData.candidates.map((candidate) =>
+                    candidate.id ? (
+                      <button
+                        key={
+                          candidate.id || candidate.barcode || candidate.name
+                        }
+                        type="button"
+                        onClick={() => handleOpenDuplicateItem(candidate.id)}
+                        className="w-full rounded-[14px] border border-[#edd9a8] bg-white px-3 py-2 text-left transition-colors hover:bg-[#fff5dc]"
+                      >
+                        <p className="typography-body text-[#181c1b]">
+                          {candidate.name || 'Unnamed item'}
+                        </p>
+                        <p className="typography-body-sm text-[#646b63]">
+                          {candidate.barcode || 'No barcode'} ·{' '}
+                          {candidate.status || 'Unknown status'}
+                        </p>
+                        <p className="typography-body-sm mt-1 text-[#8a5b00]">
+                          Open this item to add a batch
+                        </p>
+                      </button>
+                    ) : (
+                      <div
+                        key={
+                          candidate.id || candidate.barcode || candidate.name
+                        }
+                        className="rounded-[14px] border border-[#edd9a8] bg-white px-3 py-2"
+                      >
+                        <p className="typography-body text-[#181c1b]">
+                          {candidate.name || 'Unnamed item'}
+                        </p>
+                        <p className="typography-body-sm text-[#646b63]">
+                          {candidate.barcode || 'No barcode'} ·{' '}
+                          {candidate.status || 'Unknown status'}
+                        </p>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+            ) : null}
+
+            <DialogFooter className="gap-2 sm:justify-end">
+              {duplicateLookupData?.existingItem?.id ? (
+                <Button
+                  type="button"
+                  className="h-10 rounded-full bg-[#8a5b00] px-4 text-white hover:bg-[#744b00]"
+                  onClick={() =>
+                    handleOpenDuplicateItem(duplicateLookupData.existingItem.id)
+                  }
+                >
+                  Open existing item
+                </Button>
+              ) : null}
+
+              {canConfirmSaveFromDialog ? (
+                <Button
+                  type="button"
+                  className="h-10 rounded-full bg-[#005412] px-4 text-white hover:bg-[#00460f]"
+                  onClick={handleConfirmSaveFromDuplicateDialog}
+                  disabled={isSaving}
+                >
+                  {isSaving ? 'Saving...' : 'Save as new item'}
+                </Button>
+              ) : null}
+
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-full"
+                onClick={() =>
+                  setDuplicateDialogState(initialDuplicateDialogState)
+                }
+                disabled={isSaving}
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </InventoryLayout>
   );
 }

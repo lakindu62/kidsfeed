@@ -2,10 +2,24 @@
  * Inventory item categories
  */
 export const INVENTORY_CATEGORIES = {
+  VEGETABLES: 'VEGETABLES',
+  FRUITS: 'FRUITS',
+  GRAINS: 'GRAINS',
+  PACKAGED: 'PACKAGED',
+  BISCUITS: 'BISCUITS',
+  MEAT_FISH: 'MEAT_FISH',
+  DAIRY: 'DAIRY',
+  BEVERAGES: 'BEVERAGES',
+  SPICES_CONDIMENTS: 'SPICES_CONDIMENTS',
+  SNACKS: 'SNACKS',
+  BAKING: 'BAKING',
+  FROZEN: 'FROZEN',
+  CANNED: 'CANNED',
+  OTHER: 'OTHER',
+  // Legacy values retained for backward compatibility with existing records.
   FOOD: 'FOOD',
   SUPPLIES: 'SUPPLIES',
   EQUIPMENT: 'EQUIPMENT',
-  OTHER: 'OTHER',
 };
 
 /**

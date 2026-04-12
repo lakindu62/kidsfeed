@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 import {
+  INVENTORY_CATEGORIES,
   INVENTORY_EXPIRY_STATUS,
   INVENTORY_STATUS,
 } from '../../application/constants/inventory-constants.js';
@@ -119,7 +120,7 @@ const inventoryItemSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: ['FOOD', 'SUPPLIES', 'EQUIPMENT', 'OTHER'],
+      enum: Object.values(INVENTORY_CATEGORIES),
       default: 'OTHER',
     },
     quantity: {
