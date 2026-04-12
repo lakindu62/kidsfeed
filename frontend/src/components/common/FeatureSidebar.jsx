@@ -1,5 +1,18 @@
 import { cloneElement, isValidElement } from 'react';
-import { CircleHelp, LogOut } from 'lucide-react';
+import { Repeat2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { useAuthRole } from '@/lib/auth/use-auth-role';
+import {
+  ADMIN_CONTEXT_SWITCH_OPTIONS,
+  getAdminContextKeyFromPath,
+} from '@/lib/sidebar/admin-context-switches';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { DEFAULT_FOOTER_ACTIONS } from '../../lib/sidebar/configs/defaults';
 
 // const DEFAULT_FOOTER_ACTIONS = [
@@ -73,6 +86,53 @@ function FooterAction({ action, onSelect }) {
   );
 }
 
+function AdminContextSwitcher({ onSelect }) {
+  const { pathname } = useLocation();
+  const activeContextKey = getAdminContextKeyFromPath(pathname);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className={cx(
+            'typography-body-sm mb-4 flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-stone-300 bg-white px-4 text-stone-700 transition-colors hover:bg-stone-100 focus-visible:ring-2 focus-visible:ring-[#166534] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f5f5f4] focus-visible:outline-none',
+          )}
+        >
+          <Repeat2 className="h-4 w-4" />
+          <span>Switch context</span>
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" className="w-72">
+        <DropdownMenuRadioGroup
+          value={activeContextKey}
+          onValueChange={(nextKey) => {
+            const nextOption = ADMIN_CONTEXT_SWITCH_OPTIONS.find(
+              (option) => option.key === nextKey,
+            );
+
+            if (nextOption) {
+              onSelect?.(nextOption);
+            }
+          }}
+        >
+          {ADMIN_CONTEXT_SWITCH_OPTIONS.map((option) => (
+            <DropdownMenuRadioItem key={option.key} value={option.key}>
+              <span className="flex flex-col items-start gap-0.5">
+                <span>{option.label}</span>
+                <span className="text-muted-foreground text-xs font-normal">
+                  {option.description}
+                </span>
+              </span>
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export default function FeatureSidebar({
   featureLabel = '',
   sections = [],
@@ -97,6 +157,9 @@ export default function FeatureSidebar({
   const visibleFooterActions = (footerActions || []).filter(
     (action) => action?.visible !== false,
   );
+
+  const { isLoaded, isSignedIn, role } = useAuthRole();
+  const isAdminUser = isLoaded && isSignedIn && role === 'admin';
 
   const handleItemSelect = (item) => {
     if (!item || item.disabled) {
@@ -180,14 +243,18 @@ export default function FeatureSidebar({
           </button>
         ) : null}
 
-        {visibleFooterActions.map((action, index) => (
-          <div
-            key={action.key || `footer-${index}`}
-            className={index > 0 ? 'mt-1' : ''}
-          >
-            <FooterAction action={action} onSelect={handleFooterAction} />
-          </div>
-        ))}
+        {isAdminUser ? (
+          <AdminContextSwitcher onSelect={handleFooterAction} />
+        ) : (
+          visibleFooterActions.map((action, index) => (
+            <div
+              key={action.key || `footer-${index}`}
+              className={index > 0 ? 'mt-1' : ''}
+            >
+              <FooterAction action={action} onSelect={handleFooterAction} />
+            </div>
+          ))
+        )}
       </div>
     </aside>
   );
