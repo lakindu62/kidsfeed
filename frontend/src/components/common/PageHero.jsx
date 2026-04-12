@@ -17,7 +17,7 @@ function PageHero({
   className,
 }) {
   const actionButtonClassName = cn(
-    'mt-auto w-fit rounded-[14px] px-6 py-4 text-base font-semibold text-white transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+    'mt-auto w-fit rounded-[14px] px-6 py-4 typography-body-lg text-white transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
     'bg-[#0f7d2a] hover:bg-[#0d6c25] focus-visible:ring-[#0f7d2a]',
     actionClassName,
   );
@@ -59,14 +59,12 @@ function PageHero({
     >
       <CardContent className="flex min-h-60 flex-col p-6">
         {eyebrow ? (
-          <p className="mb-2 text-sm font-semibold tracking-[0.2em] text-[#2c6b37] uppercase">
+          <p className="typography-body-sm mb-2 tracking-[0.2em] text-[#2c6b37] uppercase">
             {eyebrow}
           </p>
         ) : null}
-        <h2 className="max-w-[95%] text-[2.05rem] leading-tight font-bold tracking-[-0.03em] text-[#0f5f1f]">
-          {title}
-        </h2>
-        <p className="mt-4 max-w-[92%] text-[1.08rem] leading-7 text-[#2c6b37]">
+        <h2 className="typography-h1 max-w-[95%] text-[#0f5f1f]">{title}</h2>
+        <p className="typography-body-lg mt-4 max-w-[92%] text-[#2c6b37]">
           {description}
         </p>
         {action}

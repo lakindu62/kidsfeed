@@ -82,7 +82,7 @@ const mealPlanSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: {
-        values: ['planned', 'confirmed', 'served'],
+        values: ['draft', 'planned', 'confirmed', 'served'],
         message: '{VALUE} is not a valid status',
       },
       default: 'planned',
@@ -95,9 +95,10 @@ const mealPlanSchema = new mongoose.Schema(
     },
 
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      type: String,
       required: [true, 'Created by is required'],
+      trim: true,
+      set: (value) => (value === null ? value : String(value).trim()),
     },
   },
   {

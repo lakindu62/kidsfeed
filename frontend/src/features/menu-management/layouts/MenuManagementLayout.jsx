@@ -12,9 +12,8 @@ const FALLBACK_MENU_CONFIG = {
     {
       key: 'main',
       items: [
-        { key: 'dashboard', label: 'Dashboard', to: '/menu-management' },
+        { key: 'dashboard', label: 'Dashboard', to: '/meal-planning' },
         { key: 'menus', label: 'Menus', to: '/menu-management/menus' },
-        { key: 'calendar', label: 'Calendar', to: '/menu-management/calendar' },
       ],
     },
   ],

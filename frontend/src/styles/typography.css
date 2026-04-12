@@ -1,0 +1,59 @@
+@theme {
+  --font-inter: 'Inter', sans-serif;
+  --font-inter-tight: "Inter Tight", sans-serif;
+
+  --font-size-heading-1: 24px;
+  --line-height-heading-1: 52px;
+  --letter-spacing-heading-1: -0.6px;
+
+  --font-size-heading-2: 20px;
+  --line-height-heading-2: 42px;
+  --letter-spacing-heading-2: -2px;
+
+  --font-size-body-lg: 16px;
+  --line-height-body-lg: 18px;
+
+  --font-size-body: 14px;
+  --line-height-body: 24px;
+
+  --font-size-body-sm: 12px;
+  --line-height-body-sm: 20px;
+}
+
+@layer components {
+  .typography-h1 {
+    font-family: var(--font-inter-tight);
+    font-size: var(--font-size-heading-1);
+    font-weight: 700;
+    line-height: var(--line-height-heading-1);
+    letter-spacing: var(--letter-spacing-heading-1);
+  }
+
+  .typography-h2 {
+    font-family: var(--font-inter);
+    font-size: var(--font-size-heading-2);
+    line-height: var(--line-height-heading-2);
+    letter-spacing: var(--letter-spacing-heading-2);
+  }
+
+  .typography-body-lg {
+    font-family: var(--font-inter);
+    font-size: var(--font-size-body-lg);
+    font-weight: 400;
+    line-height: var(--line-height-body-lg);
+  }
+
+  .typography-body {
+    font-family: var(--font-inter);
+    font-size: var(--font-size-body);
+    font-weight: 400;
+    line-height: var(--line-height-body);
+  }
+
+  .typography-body-sm {
+    font-family: var(--font-inter);
+    font-size: var(--font-size-body-sm);
+    font-weight: 500;
+    line-height: var(--line-height-body-sm);
+  }
+}

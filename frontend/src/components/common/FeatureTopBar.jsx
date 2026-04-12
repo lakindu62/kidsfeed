@@ -1,4 +1,6 @@
+import { UserButton } from '@clerk/clerk-react';
 import { Bell, Search, Settings } from 'lucide-react';
+import Breadcrumb from './Breadcrumb';
 
 export default function FeatureTopBar({
   title,
@@ -7,16 +9,20 @@ export default function FeatureTopBar({
   onQueryChange,
   onQuerySubmit,
   searchPlaceholder = 'Search...',
+  breadcrumbItems,
 }) {
   const showSearch = Boolean(searchPlaceholder);
 
   return (
-    <header className="mb-6 flex flex-wrap items-center justify-between gap-4 py-3">
+    <header className="mb-6 flex flex-wrap items-start justify-between gap-4 py-3">
       <div>
-        <h1 className="text-[20px] font-semibold tracking-[-0.4px] text-[#166534]">
-          {title}
-        </h1>
-        <p className="text-xs font-medium text-zinc-500">{subtitle}</p>
+        <h1 className="typography-h2 text-[#166534]">{title}</h1>
+        {breadcrumbItems?.length > 0 && (
+          <div className="ml-1">
+            <Breadcrumb items={breadcrumbItems} />
+          </div>
+        )}
+        <p className="typography-body text-zinc-500">{subtitle}</p>
       </div>
 
       <div className="flex items-center gap-3">
@@ -33,11 +39,11 @@ export default function FeatureTopBar({
                     onQuerySubmit?.(event.target.value);
                   }
                 }}
-                className="ml-3 w-full bg-transparent text-xs font-medium text-zinc-600 placeholder:text-zinc-500 focus:outline-none"
+                className="typography-body-sm ml-3 w-full bg-transparent text-zinc-600 placeholder:text-zinc-500 focus:outline-none"
                 placeholder={searchPlaceholder}
               />
             ) : (
-              <span className="ml-3 text-xs font-medium text-zinc-500">
+              <span className="typography-body-sm ml-3 text-zinc-500">
                 {searchPlaceholder}
               </span>
             )}
@@ -50,13 +56,12 @@ export default function FeatureTopBar({
         >
           <Bell className="h-5 w-5" />
         </button>
-        <button
-          type="button"
-          className="rounded-full p-2 text-zinc-500 hover:bg-zinc-200"
-        >
-          <Settings className="h-5 w-5" />
-        </button>
-        <div className="h-10 w-10 rounded-full border-2 border-[#9df898] bg-linear-to-br from-[#111827] to-[#166534]" />
+
+        <UserButton
+          appearance={{
+            elements: { avatarBox: 'h-10 w-10 border-2 border-[#9df898]' },
+          }}
+        />
       </div>
     </header>
   );
