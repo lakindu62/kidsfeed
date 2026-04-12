@@ -3,10 +3,12 @@ import { useAuthRole } from '@/lib/auth/use-auth-role';
 import { USER_ROLES } from '@/lib/user-roles';
 
 const ROLE_HOME_PATHS = {
-  [USER_ROLES.ADMIN]: '/',
+  [USER_ROLES.ADMIN]: '/user-management',
   [USER_ROLES.INVENTORY_MANAGER]: '/inventory',
-  [USER_ROLES.MEAL_PLANNER]: '/meal-distribution',
-  [USER_ROLES.STAFF]: '/role-pending-assignment',
+  [USER_ROLES.MEAL_PLANNER]: '/menu-management',
+  [USER_ROLES.MENU_MANAGER]: '/menu-management',
+  [USER_ROLES.SCHOOL_STAFF]: '/meal-distribution',
+  [USER_ROLES.SCHOOL_ADMIN]: '/school-management',
   [USER_ROLES.UNASSIGNED]: '/role-pending-assignment',
 };
 
