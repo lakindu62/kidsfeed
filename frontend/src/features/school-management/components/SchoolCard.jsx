@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { MapPin, MoreVertical, ArrowRight } from 'lucide-react';
 
 function formatLastUpdated(updatedAt) {
@@ -11,13 +12,14 @@ function formatLastUpdated(updatedAt) {
   return `Last updated ${days}d ago`;
 }
 
-export default function SchoolCard({ school, onViewDetails }) {
-  const { schoolName, districtNumber, region, totalStudents, updatedAt } =
-    school;
+export default function SchoolCard({ school }) {
+  const navigate = useNavigate();
+  const { schoolName, districtNumber, region, totalStudents, updatedAt } = school;
+  const id = school._id ?? school.id;
 
   return (
     <div className="flex flex-col overflow-hidden rounded-3xl border border-[#e2e8f0] bg-white shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
-      <div className="flex flex-col gap-4 px-6 pt-6 pb-12">
+      <div className="flex flex-col gap-4 px-6 pb-12 pt-6">
         <div className="flex items-start justify-between">
           <div className="flex flex-col gap-1">
             <p className="typography-body-lg font-inter-tight font-medium text-[#0f172a]">
@@ -45,9 +47,7 @@ export default function SchoolCard({ school, onViewDetails }) {
           <span className="typography-h2 text-[#0f172a]">
             {(totalStudents ?? 0).toLocaleString()}
           </span>
-          <span className="typography-body-sm text-[#64748b]">
-            Total Students
-          </span>
+          <span className="typography-body-sm text-[#64748b]">Total Students</span>
         </div>
       </div>
 
@@ -57,11 +57,11 @@ export default function SchoolCard({ school, onViewDetails }) {
         </span>
         <button
           type="button"
-          onClick={() => onViewDetails?.(school)}
+          onClick={() => navigate(`/school-management/schools/${id}/students`)}
           className="typography-body-sm flex items-center gap-1 text-[#19e65e] transition-colors hover:underline"
         >
           View Details
-          <ArrowRight className="h-2.25 w-2.25" />
+          <ArrowRight className="h-2.5 w-2.5" />
         </button>
       </div>
     </div>

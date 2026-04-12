@@ -27,6 +27,11 @@ import {
 import {
   SchoolManagementRoute,
   schoolManagementPath,
+  SchoolOverviewScreen,
+  SchoolsScreen,
+  StudentsScreen,
+  QrCodeScreen,
+  ReportsScreen,
 } from './features/school-management';
 import {
   userManagementChildren,
@@ -124,7 +129,16 @@ function App() {
               </RequireRole>
             </RequireAuth>
           }
-        />
+        >
+          <Route index element={<SchoolOverviewScreen />} />
+          <Route path="schools" element={<SchoolsScreen />} />
+          <Route
+            path="schools/:schoolId/students"
+            element={<StudentsScreen />}
+          />
+          <Route path="schools/:schoolId/qr" element={<QrCodeScreen />} />
+          <Route path="reports" element={<ReportsScreen />} />
+        </Route>
 
         {/* Menu Management Routes */}
         <Route

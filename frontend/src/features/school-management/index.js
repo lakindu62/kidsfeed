@@ -1,1 +1,9 @@
-export { schoolManagementPath, SchoolManagementRoute } from './routes';
+export {
+  schoolManagementPath,
+  SchoolManagementRoute,
+  SchoolOverviewScreen,
+  SchoolsScreen,
+  StudentsScreen,
+  QrCodeScreen,
+  ReportsScreen,
+} from './routes';
