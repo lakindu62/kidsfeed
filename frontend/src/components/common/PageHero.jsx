@@ -17,7 +17,7 @@ function PageHero({
   className,
 }) {
   const actionButtonClassName = cn(
-    'mt-auto w-fit rounded-[14px] px-6 py-4 typography-body-lg text-white transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+    'mt-auto w-fit rounded-[14px] px-6 py-4 typography-body-lg !text-white hover:!text-white transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
     'bg-[#0f7d2a] hover:bg-[#0d6c25] focus-visible:ring-[#0f7d2a]',
     actionClassName,
   );

@@ -8,6 +8,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/separator';
 import {
   Sheet,
@@ -41,12 +51,18 @@ import {
   Package,
   Plus,
   Tag,
+  Trash2,
   Truck,
   Weight,
 } from 'lucide-react';
 
 import InventoryLayout from '../layouts/InventoryLayout';
-import { addInventoryBatch, fetchInventoryItemById } from '../api';
+import {
+  addInventoryBatch,
+  deleteInventoryBatch,
+  deleteInventoryItem,
+  fetchInventoryItemById,
+} from '../api';
 import {
   batchTitle,
   formatCategoryLabel,
@@ -88,6 +104,12 @@ function InventoryItemDetailsPage() {
   const [batchError, setBatchError] = useState('');
   const [batchSuccess, setBatchSuccess] = useState('');
   const [isSavingBatch, setIsSavingBatch] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [isDeleteItemDialogOpen, setIsDeleteItemDialogOpen] = useState(false);
+  const [isDeleteBatchDialogOpen, setIsDeleteBatchDialogOpen] = useState(false);
+  const [activeBatchForDelete, setActiveBatchForDelete] = useState(null);
+  const [isDeletingBatch, setIsDeletingBatch] = useState(false);
+  const [isDeletingItem, setIsDeletingItem] = useState(false);
 
   const batches = useMemo(() => {
     return [...(item?.batches || [])].sort((left, right) => {
@@ -152,6 +174,18 @@ function InventoryItemDetailsPage() {
     setBatchError('');
     setBatchSuccess('');
     setIsAddBatchOpen(true);
+  };
+
+  const openDeleteItemDialog = () => {
+    setDeleteError('');
+    setIsDeleteItemDialogOpen(true);
+  };
+
+  const openDeleteBatchDialog = (batch) => {
+    setBatchError('');
+    setBatchSuccess('');
+    setActiveBatchForDelete(batch || null);
+    setIsDeleteBatchDialogOpen(true);
   };
 
   const loadItem = async () => {
@@ -246,6 +280,66 @@ function InventoryItemDetailsPage() {
     }
   };
 
+  const handleDeleteBatch = async () => {
+    const batchId =
+      activeBatchForDelete?._id || activeBatchForDelete?.id || null;
+
+    if (!apiBaseUrl || !itemId || !batchId) {
+      setBatchError('Could not resolve API base URL, item ID, or batch ID.');
+      return;
+    }
+
+    setBatchError('');
+    setBatchSuccess('');
+    setIsDeletingBatch(true);
+
+    try {
+      const updatedItem = await deleteInventoryBatch({
+        apiUrl: apiBaseUrl,
+        itemId,
+        batchId,
+        getToken: isSignedIn ? getToken : undefined,
+      });
+
+      setItem(updatedItem || null);
+      setBatchSuccess('Inventory batch deleted successfully.');
+      setIsDeleteBatchDialogOpen(false);
+      setActiveBatchForDelete(null);
+    } catch (error) {
+      setBatchError(
+        describeApiFetchFailure(error, 'Could not delete inventory batch.'),
+      );
+    } finally {
+      setIsDeletingBatch(false);
+    }
+  };
+
+  const handleDeleteItem = async () => {
+    if (!apiBaseUrl || !itemId) {
+      setDeleteError('Could not resolve API base URL or item ID.');
+      return;
+    }
+
+    setDeleteError('');
+    setIsDeletingItem(true);
+
+    try {
+      await deleteInventoryItem({
+        apiUrl: apiBaseUrl,
+        itemId,
+        getToken: isSignedIn ? getToken : undefined,
+      });
+
+      navigate('/inventory/items');
+    } catch (error) {
+      setDeleteError(
+        describeApiFetchFailure(error, 'Could not delete inventory item.'),
+      );
+    } finally {
+      setIsDeletingItem(false);
+    }
+  };
+
   if (!isLoading && (!item || loadError)) {
     return (
       <InventoryLayout
@@ -308,6 +402,9 @@ function InventoryItemDetailsPage() {
         ) : null}
         {batchSuccess ? (
           <StatusMessage kind="success" message={batchSuccess} />
+        ) : null}
+        {deleteError ? (
+          <StatusMessage kind="error" message={deleteError} />
         ) : null}
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -501,14 +598,28 @@ function InventoryItemDetailsPage() {
                                 {batchTitle(batch, index)}
                               </h3>
                             </div>
-                            <Badge
-                              className={cn(
-                                'typography-body-sm rounded-full px-3 py-1 tracking-widest uppercase hover:bg-inherit',
-                                statusTone(batch?.status || item?.status),
-                              )}
-                            >
-                              {formatStatusLabel(batch?.status || item?.status)}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                className={cn(
+                                  'typography-body-sm rounded-full px-3 py-1 tracking-widest uppercase hover:bg-inherit',
+                                  statusTone(batch?.status || item?.status),
+                                )}
+                              >
+                                {formatStatusLabel(
+                                  batch?.status || item?.status,
+                                )}
+                              </Badge>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                className="h-8 w-8 rounded-full p-0 text-[#ba1a1a] hover:bg-[#fde8e8] hover:text-[#8f1212]"
+                                onClick={() => openDeleteBatchDialog(batch)}
+                                disabled={!batch?._id && !batch?.id}
+                                aria-label={`Delete batch ${index + 1}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
 
                           <div className="typography-body grid gap-3 text-[#40493d]">
@@ -576,7 +687,93 @@ function InventoryItemDetailsPage() {
             </Tabs>
           </CardContent>
         </Card>
+
+        <Card className="rounded-[28px] border border-[#f3c2c2] bg-[#fff7f7] shadow-[0px_12px_28px_rgba(47,51,49,0.05)]">
+          <CardContent className="space-y-4 p-6">
+            <div className="space-y-1">
+              <p className="typography-body-sm tracking-[0.2em] text-[#b42318] uppercase">
+                Danger zone
+              </p>
+              <h2 className="typography-h1 text-[#7a271a]">Delete item</h2>
+              <p className="typography-body text-[#8a2c1f]">
+                Deleting this inventory item permanently removes it and all of
+                its batches.
+              </p>
+            </div>
+
+            <div className="flex justify-start">
+              <Button
+                type="button"
+                className="typography-body-sm rounded-full bg-[#b42318] px-5 text-white hover:bg-[#912018]"
+                onClick={openDeleteItemDialog}
+                disabled={isDeletingItem}
+              >
+                Delete inventory item
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      <AlertDialog
+        open={isDeleteBatchDialogOpen}
+        onOpenChange={(open) => {
+          setIsDeleteBatchDialogOpen(open);
+
+          if (!open) {
+            setActiveBatchForDelete(null);
+          }
+        }}
+      >
+        <AlertDialogContent className="rounded-[24px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete batch?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the selected batch and recalculate
+              item quantity and status.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingBatch}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-[#b42318] text-white hover:bg-[#912018]"
+              onClick={handleDeleteBatch}
+              disabled={isDeletingBatch}
+            >
+              {isDeletingBatch ? 'Deleting...' : 'Delete batch'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={isDeleteItemDialogOpen}
+        onOpenChange={setIsDeleteItemDialogOpen}
+      >
+        <AlertDialogContent className="rounded-[24px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete inventory item?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The item and all associated batches
+              will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingItem}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-[#b42318] text-white hover:bg-[#912018]"
+              onClick={handleDeleteItem}
+              disabled={isDeletingItem}
+            >
+              {isDeletingItem ? 'Deleting...' : 'Delete item'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Sheet open={isAddBatchOpen} onOpenChange={setIsAddBatchOpen}>
         <SheetContent side="right" className="sm:max-w-xl">

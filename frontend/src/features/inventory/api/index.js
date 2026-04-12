@@ -126,3 +126,46 @@ export async function addInventoryBatch({ apiUrl, itemId, getToken, payload }) {
   const responsePayload = await response.json();
   return responsePayload?.data ?? null;
 }
+
+export async function deleteInventoryBatch({
+  apiUrl,
+  itemId,
+  batchId,
+  getToken,
+}) {
+  if (!itemId) {
+    throw new Error('Inventory item ID is required.');
+  }
+
+  if (!batchId) {
+    throw new Error('Inventory batch ID is required.');
+  }
+
+  const response = await requestInventoryApi({
+    apiUrl,
+    getToken,
+    path: `/api/inventory/${encodeURIComponent(itemId)}/batches/${encodeURIComponent(batchId)}`,
+    method: 'DELETE',
+    fallbackMessage: 'Failed to delete inventory batch.',
+  });
+
+  const responsePayload = await response.json();
+  return responsePayload?.data ?? null;
+}
+
+export async function deleteInventoryItem({ apiUrl, itemId, getToken }) {
+  if (!itemId) {
+    throw new Error('Inventory item ID is required.');
+  }
+
+  const response = await requestInventoryApi({
+    apiUrl,
+    getToken,
+    path: `/api/inventory/${encodeURIComponent(itemId)}`,
+    method: 'DELETE',
+    fallbackMessage: 'Failed to delete inventory item.',
+  });
+
+  const responsePayload = await response.json();
+  return responsePayload?.data ?? null;
+}
