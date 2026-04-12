@@ -10,6 +10,7 @@ import {
   Utensils,
   Users,
   CheckCircle,
+  // Icon,
   Clock,
 } from 'lucide-react';
 import SchoolManagementLayout from '../layouts/SchoolManagementLayout';
@@ -43,7 +44,7 @@ function StatCard({ label, value, sub }) {
   return (
     <div className="flex items-center gap-4 rounded-3xl border border-[#e2e8f0] bg-white px-6 py-5 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
       <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f0fdf4]">
-        <Icon className="h-5 w-5 text-[#006117]" />
+        {/* <Icon className="h-5 w-5 text-[#006117]" /> */}
       </div>
       <div>
         <p className="typography-h2 text-[#0f172a]">{value}</p>
@@ -422,7 +423,19 @@ export default function StudentsScreen() {
       )}
 
       {qrStudent && (
-        <QrCodeModal student={qrStudent} onClose={() => setQrStudent(null)} />
+        <QrCodeModal
+          student={qrStudent}
+          onClose={() => setQrStudent(null)}
+          onStatusChange={(newStatus) =>
+            setStudents((prev) =>
+              prev.map((s) =>
+                (s._id ?? s.id) === (qrStudent._id ?? qrStudent.id)
+                  ? { ...s, qrStatus: newStatus }
+                  : s,
+              ),
+            )
+          }
+        />
       )}
 
       {showImport && (

@@ -1,5 +1,8 @@
 import express from 'express';
-import { updateDietaryProfile } from '../../application/services/dietary.service.js';
+import {
+  updateDietaryProfile,
+  updateMealEligibility,
+} from '../../application/services/dietary.service.js';
 import { validateDietaryUpdate } from '../validators/dietary.validator.js';
 import { sendSuccess } from '../../application/helpers/response.helper.js';
 
@@ -9,7 +12,28 @@ const router = express.Router();
 router.put('/:id/dietary', validateDietaryUpdate, async (req, res, next) => {
   try {
     const student = await updateDietaryProfile(req.params.id, req.body);
-    return sendSuccess(res, 200, 'Dietary profile updated successfully', student);
+    return sendSuccess(
+      res,
+      200,
+      'Dietary profile updated successfully',
+      student
+    );
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /students/:id/eligibility
+router.put('/:id/eligibility', async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    const student = await updateMealEligibility(req.params.id, status);
+    return sendSuccess(
+      res,
+      200,
+      'Meal eligibility updated successfully',
+      student
+    );
   } catch (error) {
     next(error);
   }

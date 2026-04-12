@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
 
-const DIETARY_TAGS = ['Vegetarian', 'Halal', 'Nut Allergy', 'Dairy-Free', 'Gluten-Free'];
+const DIETARY_TAGS = [
+  'Vegetarian',
+  'Halal',
+  'Nut Allergy',
+  'Dairy-Free',
+  'Gluten-Free',
+];
 
 const studentSchema = new mongoose.Schema(
   {
@@ -11,13 +17,23 @@ const studentSchema = new mongoose.Schema(
     gradeLevel: { type: String },
     photoUrl: { type: String },
     status: { type: String, enum: ['active', 'draft'], default: 'active' },
-    school: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+    school: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'School',
+      required: true,
+    },
+    mealEligibilityStatus: {
+      type: String,
+      enum: ['eligible', 'not-eligible', 'pending'],
+      default: 'pending',
+    },
     guardian: {
       name: { type: String },
       phone: { type: String },
       email: { type: String },
       emergencyContactName: { type: String },
       emergencyContactPhone: { type: String },
+      smsOptOut: { type: Boolean, default: false },
     },
     dietaryTags: {
       type: [String],
@@ -26,7 +42,11 @@ const studentSchema = new mongoose.Schema(
     },
     kitchenNotes: { type: String },
     qrCode: { type: String },
-    qrStatus: { type: String, enum: ['pending', 'printed'], default: 'pending' },
+    qrStatus: {
+      type: String,
+      enum: ['pending', 'printed'],
+      default: 'pending',
+    },
     qrGeneratedAt: { type: Date },
   },
   { timestamps: true }

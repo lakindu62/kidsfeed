@@ -1,20 +1,45 @@
 import { useEffect, useState } from 'react';
-import { X, Download } from 'lucide-react';
+import { X, Download, CheckCircle, Clock } from 'lucide-react';
 import { useAuth } from '@clerk/clerk-react';
-import { fetchStudentQr } from '../api';
+import { fetchStudentQr, updateQrStatus } from '../api';
 
-export default function QrCodeModal({ student, onClose }) {
+const STATUS_CONFIG = {
+  printed: {
+    label: 'Printed',
+    classes: 'bg-green-50 text-green-700 border-green-200',
+    icon: CheckCircle,
+    next: 'pending',
+    nextLabel: 'Mark as Pending',
+  },
+  pending: {
+    label: 'Pending',
+    classes: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    icon: Clock,
+    next: 'printed',
+    nextLabel: 'Mark as Printed',
+  },
+};
+
+export default function QrCodeModal({ student, onClose, onStatusChange }) {
   const { getToken } = useAuth();
   const [qrCode, setQrCode] = useState(null);
+  const [status, setStatus] = useState(student.qrStatus ?? 'pending');
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
-        const data = await fetchStudentQr({ getToken, id: student._id ?? student.id });
-        if (!cancelled) setQrCode(data.qrCode);
+        const data = await fetchStudentQr({
+          getToken,
+          id: student._id ?? student.id,
+        });
+        if (!cancelled) {
+          setQrCode(data.qrCode);
+          setStatus(data.qrStatus ?? 'pending');
+        }
       } catch (err) {
         if (!cancelled) setError(err.message ?? 'Failed to load QR code');
       } finally {
@@ -22,7 +47,9 @@ export default function QrCodeModal({ student, onClose }) {
       }
     }
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [getToken, student]);
 
   function handleDownload() {
@@ -33,12 +60,36 @@ export default function QrCodeModal({ student, onClose }) {
     a.click();
   }
 
+  async function handleToggleStatus() {
+    const next = STATUS_CONFIG[status]?.next ?? 'pending';
+    setUpdating(true);
+    setError(null);
+    try {
+      await updateQrStatus({
+        getToken,
+        id: student._id ?? student.id,
+        status: next,
+      });
+      setStatus(next);
+      onStatusChange?.(next);
+    } catch (err) {
+      setError(err.message ?? 'Failed to update status');
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending;
+  const StatusIcon = config.icon;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
       <div className="w-full max-w-xs rounded-3xl border border-[#e2e8f0] bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-[#f1f5f9] px-6 py-5">
           <div>
-            <h2 className="typography-body-lg font-semibold text-[#0f172a]">QR Code</h2>
+            <h2 className="typography-body-lg font-semibold text-[#0f172a]">
+              QR Code
+            </h2>
             <p className="typography-body-sm text-[#64748b]">
               {student.firstName} {student.lastName}
             </p>
@@ -56,9 +107,7 @@ export default function QrCodeModal({ student, onClose }) {
           {loading && (
             <div className="h-48 w-48 animate-pulse rounded-2xl bg-[#e2e8f0]" />
           )}
-          {!loading && error && (
-            <p className="text-sm text-red-600">{error}</p>
-          )}
+          {!loading && error && <p className="text-sm text-red-600">{error}</p>}
           {!loading && qrCode && (
             <img
               src={qrCode}
@@ -66,9 +115,30 @@ export default function QrCodeModal({ student, onClose }) {
               className="h-48 w-48 rounded-2xl border border-[#e2e8f0]"
             />
           )}
-          <p className="typography-body-sm text-[#94a3b8]">
-            Student ID: {student.studentId ?? '—'}
-          </p>
+
+          <div className="flex w-full items-center justify-between">
+            <p className="typography-body-sm text-[#94a3b8]">
+              Student ID: {student.studentId ?? '—'}
+            </p>
+            <span
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${config.classes}`}
+            >
+              <StatusIcon className="h-3 w-3" />
+              {config.label}
+            </span>
+          </div>
+
+          {/* Status toggle — triggers SMS to guardian via backend */}
+          {!loading && qrCode && (
+            <button
+              type="button"
+              onClick={handleToggleStatus}
+              disabled={updating}
+              className="w-full rounded-2xl border border-[#e2e8f0] bg-[#f8fafc] px-4 py-2.5 text-sm font-medium text-[#334155] transition-colors hover:bg-stone-100 disabled:opacity-50"
+            >
+              {updating ? 'Updating…' : config.nextLabel}
+            </button>
+          )}
 
           <div className="flex w-full justify-end gap-3">
             <button
