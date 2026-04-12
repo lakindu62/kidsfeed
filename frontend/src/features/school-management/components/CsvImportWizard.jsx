@@ -11,7 +11,7 @@ export default function CsvImportWizard({ schoolId, onClose, onImported }) {
 
   const [step, setStep] = useState(0); // 0=download, 1=preview, 2=confirm
   const [preview, setPreview] = useState(null); // { valid, invalid, headers, rows, importToken }
-  const [file, setFile] = useState(null);
+  const [setFile] = useState(null);
   const [importToken, setImportToken] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -44,9 +44,12 @@ export default function CsvImportWizard({ schoolId, onClose, onImported }) {
       // Normalize backend shape → component shape
       const previewRows = data.preview ?? [];
       const headers = previewRows.length > 0 ? Object.keys(previewRows[0]) : [];
-      const errorRowNums = new Set((data.errors ?? []).map((e) => e.row));
+      // const _errorRowNums = new Set((data.errors ?? []).map((e) => e.row));
       // Build combined rows list: valid rows + flag error rows
-      const rows = previewRows.map((rowData) => ({ data: rowData, valid: true }));
+      const rows = previewRows.map((rowData) => ({
+        data: rowData,
+        valid: true,
+      }));
       setPreview({
         valid: data.validRows,
         invalid: data.errorCount,
@@ -84,7 +87,9 @@ export default function CsvImportWizard({ schoolId, onClose, onImported }) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#f1f5f9] px-6 py-5">
           <div>
-            <h2 className="typography-body-lg font-semibold text-[#0f172a]">Import Students</h2>
+            <h2 className="typography-body-lg font-semibold text-[#0f172a]">
+              Import Students
+            </h2>
             <div className="mt-1 flex items-center gap-2">
               {STEPS.map((label, i) => (
                 <div key={label} className="flex items-center gap-2">
@@ -93,15 +98,17 @@ export default function CsvImportWizard({ schoolId, onClose, onImported }) {
                       i < step
                         ? 'bg-[#006117] text-white'
                         : i === step
-                        ? 'border-2 border-[#006117] text-[#006117]'
-                        : 'border-2 border-[#e2e8f0] text-[#94a3b8]'
+                          ? 'border-2 border-[#006117] text-[#006117]'
+                          : 'border-2 border-[#e2e8f0] text-[#94a3b8]'
                     }`}
                   >
                     {i < step ? '✓' : i + 1}
                   </div>
                   <span
                     className={`typography-body-sm ${
-                      i === step ? 'font-semibold text-[#0f172a]' : 'text-[#94a3b8]'
+                      i === step
+                        ? 'font-semibold text-[#0f172a]'
+                        : 'text-[#94a3b8]'
                     }`}
                   >
                     {label}
@@ -134,12 +141,13 @@ export default function CsvImportWizard({ schoolId, onClose, onImported }) {
             <div className="flex flex-col items-center gap-6 py-4 text-center">
               <div className="flex flex-col items-center gap-2">
                 <p className="typography-body text-[#334155]">
-                  Download the CSV template, fill in student data, then upload it below.
+                  Download the CSV template, fill in student data, then upload
+                  it below.
                 </p>
                 <button
                   type="button"
                   onClick={handleDownloadTemplate}
-                  className="flex items-center gap-2 rounded-3xl border border-[#e2e8f0] bg-white px-5 py-2.5 text-sm font-medium text-[#334155] hover:bg-stone-50 transition-colors"
+                  className="flex items-center gap-2 rounded-3xl border border-[#e2e8f0] bg-white px-5 py-2.5 text-sm font-medium text-[#334155] transition-colors hover:bg-stone-50"
                 >
                   <Download className="h-4 w-4" />
                   Download Template
@@ -192,19 +200,19 @@ export default function CsvImportWizard({ schoolId, onClose, onImported }) {
               </div>
 
               <div className="overflow-hidden rounded-2xl border border-[#e2e8f0]">
-                <div className="overflow-x-auto max-h-64">
+                <div className="max-h-64 overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[#f1f5f9] bg-[#f8fafc]">
                         {(preview.headers ?? []).map((h) => (
                           <th
                             key={h}
-                            className="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wide text-[#64748b]"
+                            className="px-4 py-2.5 text-left text-xs font-bold tracking-wide text-[#64748b] uppercase"
                           >
                             {h}
                           </th>
                         ))}
-                        <th className="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wide text-[#64748b]">
+                        <th className="px-4 py-2.5 text-left text-xs font-bold tracking-wide text-[#64748b] uppercase">
                           Status
                         </th>
                       </tr>
@@ -219,9 +227,14 @@ export default function CsvImportWizard({ schoolId, onClose, onImported }) {
                           ))}
                           <td className="px-4 py-2.5">
                             {row.valid ? (
-                              <span className="text-xs font-medium text-green-600">Valid</span>
+                              <span className="text-xs font-medium text-green-600">
+                                Valid
+                              </span>
                             ) : (
-                              <span className="text-xs font-medium text-red-600" title={row.error}>
+                              <span
+                                className="text-xs font-medium text-red-600"
+                                title={row.error}
+                              >
                                 Invalid
                               </span>
                             )}
@@ -236,7 +249,12 @@ export default function CsvImportWizard({ schoolId, onClose, onImported }) {
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => { setStep(0); setPreview(null); setFile(null); setError(null); }}
+                  onClick={() => {
+                    setStep(0);
+                    setPreview(null);
+                    setFile(null);
+                    setError(null);
+                  }}
                   className="rounded-3xl border border-[#e2e8f0] bg-white px-5 py-2.5 text-sm font-medium text-[#334155] hover:bg-stone-50"
                 >
                   Back
@@ -247,7 +265,9 @@ export default function CsvImportWizard({ schoolId, onClose, onImported }) {
                   disabled={confirming || preview.valid === 0}
                   className="rounded-3xl bg-[#006117] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#005414] disabled:opacity-50"
                 >
-                  {confirming ? 'Importing…' : `Import ${preview.valid} Student${preview.valid !== 1 ? 's' : ''}`}
+                  {confirming
+                    ? 'Importing…'
+                    : `Import ${preview.valid} Student${preview.valid !== 1 ? 's' : ''}`}
                 </button>
               </div>
             </div>
@@ -257,9 +277,13 @@ export default function CsvImportWizard({ schoolId, onClose, onImported }) {
           {step === 2 && confirmed && (
             <div className="flex flex-col items-center gap-4 py-6 text-center">
               <CheckCircle className="h-12 w-12 text-[#006117]" />
-              <p className="typography-body-lg font-semibold text-[#0f172a]">Import Complete</p>
+              <p className="typography-body-lg font-semibold text-[#0f172a]">
+                Import Complete
+              </p>
               <p className="typography-body-sm text-[#64748b]">
-                {preview?.valid ?? 0} student{(preview?.valid ?? 0) !== 1 ? 's' : ''} were imported successfully.
+                {preview?.valid ?? 0} student
+                {(preview?.valid ?? 0) !== 1 ? 's' : ''} were imported
+                successfully.
               </p>
               <button
                 type="button"

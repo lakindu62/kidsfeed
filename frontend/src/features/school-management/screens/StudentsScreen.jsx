@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
-import { Plus, Upload, Pencil, Trash2, QrCode, Utensils, Users, CheckCircle, Clock } from 'lucide-react';
+import {
+  Plus,
+  Upload,
+  Pencil,
+  Trash2,
+  QrCode,
+  Utensils,
+  Users,
+  CheckCircle,
+  Clock,
+} from 'lucide-react';
 import SchoolManagementLayout from '../layouts/SchoolManagementLayout';
 import StudentFormModal from '../components/StudentFormModal';
 import DietaryModal from '../components/DietaryModal';
@@ -10,9 +20,18 @@ import CsvImportWizard from '../components/CsvImportWizard';
 import { fetchStudents, fetchSchoolStats, deleteStudent } from '../api';
 
 const ELIGIBILITY_BADGE = {
-  eligible: { label: 'Eligible', classes: 'bg-green-50 text-green-700 border-green-200' },
-  'not-eligible': { label: 'Not Eligible', classes: 'bg-red-50 text-red-700 border-red-200' },
-  pending: { label: 'Pending', classes: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+  eligible: {
+    label: 'Eligible',
+    classes: 'bg-green-50 text-green-700 border-green-200',
+  },
+  'not-eligible': {
+    label: 'Not Eligible',
+    classes: 'bg-red-50 text-red-700 border-red-200',
+  },
+  pending: {
+    label: 'Pending',
+    classes: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  },
 };
 
 const QR_BADGE = {
@@ -20,7 +39,7 @@ const QR_BADGE = {
   disabled: { label: 'Disabled', classes: 'bg-stone-100 text-[#64748b]' },
 };
 
-function StatCard({ icon: Icon, label, value, sub }) {
+function StatCard({ label, value, sub }) {
   return (
     <div className="flex items-center gap-4 rounded-3xl border border-[#e2e8f0] bg-white px-6 py-5 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
       <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f0fdf4]">
@@ -76,11 +95,18 @@ export default function StudentsScreen() {
     }
 
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [getToken, schoolId, refreshKey]);
 
   async function handleDelete(student) {
-    if (!window.confirm(`Delete ${student.firstName} ${student.lastName}? This cannot be undone.`)) return;
+    if (
+      !window.confirm(
+        `Delete ${student.firstName} ${student.lastName}? This cannot be undone.`,
+      )
+    )
+      return;
     const id = student._id ?? student.id;
     setDeletingId(id);
     try {
@@ -99,11 +125,19 @@ export default function StudentsScreen() {
 
   // Compute stats from student list if API stats unavailable
   const totalStudents = stats?.totalStudents ?? students.length;
-  const eligibleCount = stats?.eligibleCount ?? students.filter((s) => s.mealEligibilityStatus === 'eligible').length;
-  const pendingCount = stats?.pendingCount ?? students.filter((s) => s.mealEligibilityStatus === 'pending').length;
-  const eligiblePct = totalStudents > 0 ? Math.round((eligibleCount / totalStudents) * 100) : 0;
+  const eligibleCount =
+    stats?.eligibleCount ??
+    students.filter((s) => s.mealEligibilityStatus === 'eligible').length;
+  const pendingCount =
+    stats?.pendingCount ??
+    students.filter((s) => s.mealEligibilityStatus === 'pending').length;
+  const eligiblePct =
+    totalStudents > 0 ? Math.round((eligibleCount / totalStudents) * 100) : 0;
 
-  const dietaryCount = students.reduce((acc, s) => acc + (s.dietaryTags?.length > 0 ? 1 : 0), 0);
+  const dietaryCount = students.reduce(
+    (acc, s) => acc + (s.dietaryTags?.length > 0 ? 1 : 0),
+    0,
+  );
 
   const filtered = students.filter((s) => {
     if (!query) return true;
@@ -138,15 +172,27 @@ export default function StudentsScreen() {
           {/* Stats row */}
           {!loading && !error && (
             <div className="grid grid-cols-4 gap-4">
-              <StatCard icon={Users} label="Total Students" value={totalStudents.toLocaleString()} />
+              <StatCard
+                icon={Users}
+                label="Total Students"
+                value={totalStudents.toLocaleString()}
+              />
               <StatCard
                 icon={CheckCircle}
                 label="Meal Eligible"
                 value={`${eligiblePct}%`}
                 sub={`${eligibleCount} students`}
               />
-              <StatCard icon={Clock} label="Pending Review" value={pendingCount.toLocaleString()} />
-              <StatCard icon={Utensils} label="Dietary Needs" value={dietaryCount.toLocaleString()} />
+              <StatCard
+                icon={Clock}
+                label="Pending Review"
+                value={pendingCount.toLocaleString()}
+              />
+              <StatCard
+                icon={Utensils}
+                label="Dietary Needs"
+                value={dietaryCount.toLocaleString()}
+              />
             </div>
           )}
 
@@ -155,7 +201,7 @@ export default function StudentsScreen() {
             <button
               type="button"
               onClick={() => setShowImport(true)}
-              className="flex items-center gap-2 rounded-3xl border border-[#e2e8f0] bg-white px-5 py-2.5 text-sm font-medium text-[#334155] hover:bg-stone-50 transition-colors"
+              className="flex items-center gap-2 rounded-3xl border border-[#e2e8f0] bg-white px-5 py-2.5 text-sm font-medium text-[#334155] transition-colors hover:bg-stone-50"
             >
               <Upload className="h-4 w-4" />
               Import CSV
@@ -163,7 +209,7 @@ export default function StudentsScreen() {
             <button
               type="button"
               onClick={() => setStudentModal(null)}
-              className="flex items-center gap-2 rounded-3xl bg-[#006117] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#005414] transition-colors"
+              className="flex items-center gap-2 rounded-3xl bg-[#006117] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#005414]"
             >
               <Plus className="h-4 w-4" />
               Add Student
@@ -179,9 +225,19 @@ export default function StudentsScreen() {
           {/* Table card */}
           <div className="overflow-hidden rounded-3xl border border-[#e2e8f0] bg-white shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]">
             {/* Headers */}
-            <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto] border-b border-[#f1f5f9] bg-[#f8fafc] px-6 py-3 gap-4">
-              {['Student', 'Grade', 'Dietary', 'Eligibility', 'QR Status', 'Actions'].map((h) => (
-                <span key={h} className="text-xs font-bold uppercase tracking-wide text-[#64748b]">
+            <div className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto] gap-4 border-b border-[#f1f5f9] bg-[#f8fafc] px-6 py-3">
+              {[
+                'Student',
+                'Grade',
+                'Dietary',
+                'Eligibility',
+                'QR Status',
+                'Actions',
+              ].map((h) => (
+                <span
+                  key={h}
+                  className="text-xs font-bold tracking-wide text-[#64748b] uppercase"
+                >
                   {h}
                 </span>
               ))}
@@ -191,9 +247,15 @@ export default function StudentsScreen() {
             {loading && (
               <div className="flex flex-col divide-y divide-[#f1f5f9]">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto] items-center gap-4 px-6 py-4">
+                  <div
+                    key={i}
+                    className="grid grid-cols-[1.5fr_1fr_1fr_1fr_1fr_auto] items-center gap-4 px-6 py-4"
+                  >
                     {Array.from({ length: 5 }).map((__, j) => (
-                      <div key={j} className="h-4 animate-pulse rounded-full bg-[#e2e8f0]" />
+                      <div
+                        key={j}
+                        className="h-4 animate-pulse rounded-full bg-[#e2e8f0]"
+                      />
                     ))}
                     <div className="h-4 w-24 animate-pulse rounded-full bg-[#e2e8f0]" />
                   </div>
@@ -205,7 +267,9 @@ export default function StudentsScreen() {
             {!loading && !error && filtered.length === 0 && (
               <div className="py-16 text-center">
                 <p className="typography-body text-[#64748b]">
-                  {query ? 'No students match your search.' : 'No students registered yet.'}
+                  {query
+                    ? 'No students match your search.'
+                    : 'No students registered yet.'}
                 </p>
               </div>
             )}
@@ -215,8 +279,11 @@ export default function StudentsScreen() {
               <div className="flex flex-col divide-y divide-[#f1f5f9]">
                 {filtered.map((student) => {
                   const id = student._id ?? student.id;
-                  const eligibility = ELIGIBILITY_BADGE[student.mealEligibilityStatus] ?? ELIGIBILITY_BADGE.pending;
-                  const qrStatus = QR_BADGE[student.qrStatus] ?? QR_BADGE.disabled;
+                  const eligibility =
+                    ELIGIBILITY_BADGE[student.mealEligibilityStatus] ??
+                    ELIGIBILITY_BADGE.pending;
+                  const qrStatus =
+                    QR_BADGE[student.qrStatus] ?? QR_BADGE.disabled;
 
                   return (
                     <div
@@ -228,7 +295,9 @@ export default function StudentsScreen() {
                         <span className="typography-body font-semibold text-[#0f172a]">
                           {student.firstName} {student.lastName}
                         </span>
-                        <span className="typography-body-sm text-[#94a3b8]">{student.studentId}</span>
+                        <span className="typography-body-sm text-[#94a3b8]">
+                          {student.studentId}
+                        </span>
                       </div>
 
                       {/* Grade */}
@@ -248,7 +317,9 @@ export default function StudentsScreen() {
                             </span>
                           ))
                         ) : (
-                          <span className="typography-body-sm text-[#94a3b8]">None</span>
+                          <span className="typography-body-sm text-[#94a3b8]">
+                            None
+                          </span>
                         )}
                         {(student.dietaryTags?.length ?? 0) > 2 && (
                           <span className="typography-body-sm text-[#94a3b8]">
@@ -317,7 +388,8 @@ export default function StudentsScreen() {
             {!loading && filtered.length > 0 && (
               <div className="border-t border-[#f1f5f9] px-6 py-3">
                 <span className="typography-body-sm text-[#64748b]">
-                  Showing {filtered.length} of {students.length} student{students.length !== 1 ? 's' : ''}
+                  Showing {filtered.length} of {students.length} student
+                  {students.length !== 1 ? 's' : ''}
                 </span>
               </div>
             )}
@@ -331,7 +403,10 @@ export default function StudentsScreen() {
           student={studentModal}
           schoolId={schoolId}
           onClose={() => setStudentModal(undefined)}
-          onSaved={() => { setStudentModal(undefined); refresh(); }}
+          onSaved={() => {
+            setStudentModal(undefined);
+            refresh();
+          }}
         />
       )}
 
@@ -339,22 +414,25 @@ export default function StudentsScreen() {
         <DietaryModal
           student={dietaryStudent}
           onClose={() => setDietaryStudent(null)}
-          onSaved={() => { setDietaryStudent(null); refresh(); }}
+          onSaved={() => {
+            setDietaryStudent(null);
+            refresh();
+          }}
         />
       )}
 
       {qrStudent && (
-        <QrCodeModal
-          student={qrStudent}
-          onClose={() => setQrStudent(null)}
-        />
+        <QrCodeModal student={qrStudent} onClose={() => setQrStudent(null)} />
       )}
 
       {showImport && (
         <CsvImportWizard
           schoolId={schoolId}
           onClose={() => setShowImport(false)}
-          onImported={() => { setShowImport(false); refresh(); }}
+          onImported={() => {
+            setShowImport(false);
+            refresh();
+          }}
         />
       )}
     </>
