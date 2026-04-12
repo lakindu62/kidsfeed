@@ -14,7 +14,12 @@ if (!clerkPublishableKey) {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ClerkProvider publishableKey={clerkPublishableKey} afterSignOutUrl="/">
+    <ClerkProvider
+      publishableKey={clerkPublishableKey}
+      afterSignOutUrl="/"
+      signInForceRedirectUrl="/auth-redirect"
+      signUpForceRedirectUrl="/auth-redirect"
+    >
       <BrowserRouter>
         <App />
         <Toaster richColors position="top-right" />
