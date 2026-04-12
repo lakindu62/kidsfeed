@@ -1,131 +1,45 @@
-import { useState } from 'react';
-import {
-  SignInButton,
-  SignUpButton,
-  UserButton,
-  useAuth,
-  useUser,
-} from '@clerk/clerk-react';
-import { describeApiFetchFailure } from '../lib/describe-api-fetch-failure';
-import { fetchApi } from '../lib/api-client';
-import { useAuthRole } from '../lib/auth/use-auth-role';
-import { resolveApiBaseUrl } from '../lib/resolve-api-base';
+import { SignInButton, SignUpButton } from '@clerk/clerk-react';
+
+const buttonClassName =
+  'inline-flex h-12 items-center justify-center rounded-full px-6 text-sm font-medium transition-transform duration-200 hover:-translate-y-0.5';
 
 const Home = () => {
-  const [data, setData] = useState(null);
-  const [status, setStatus] = useState('Idle');
-  const [error, setError] = useState('');
-  const [sendAuthHeader, setSendAuthHeader] = useState(true);
-
-  const { isLoaded, isSignedIn, getToken } = useAuth();
-  const { user } = useUser();
-  const { role, isRoleResolved } = useAuthRole();
-
-  const API_URL = resolveApiBaseUrl();
-
-  const fetchInventory = async () => {
-    if (!API_URL) {
-      setError('Could not resolve API base URL.');
-      return;
-    }
-
-    setStatus('Loading...');
-    setError('');
-
-    try {
-      const response = await fetchApi({
-        url: `${API_URL}/api/inventory`,
-        getToken: isSignedIn && sendAuthHeader ? getToken : undefined,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-
-      const result = await response.json();
-      setData(result);
-      setStatus('Success');
-    } catch (requestError) {
-      setStatus('Failed');
-      setError(describeApiFetchFailure(requestError, 'Request failed'));
-    }
-  };
-
   return (
-    <main style={{ padding: '2rem', maxWidth: 900, margin: '0 auto' }}>
-      <h1>Kidsfeed Auth Bootstrap</h1>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#dff1de_0%,#f6faf5_45%,#eef3ec_100%)] px-6 py-10">
+      <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-4xl items-center justify-center">
+        <section className="w-full rounded-[32px] border border-white/70 bg-white/75 px-6 py-14 text-center shadow-[0px_24px_60px_rgba(47,51,49,0.12)] backdrop-blur-sm sm:px-10">
+          <p className="typography-body-sm tracking-[0.3em] text-[#005412] uppercase">
+            Kidsfeed
+          </p>
+          <h1 className="mt-4 text-5xl font-semibold tracking-tight text-[#0f5f1f] sm:text-7xl">
+            Welcome to Kidsfeed
+          </h1>
+          <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-[#4f5a4d] sm:text-xl">
+            Sign in to manage meals, inventory, schools, and planning from one
+            place.
+          </p>
 
-      {!isLoaded && <p>Loading Clerk authentication state...</p>}
-
-      {isLoaded && !isSignedIn && (
-        <p>
-          You are signed out. Use Clerk buttons below to open hosted modals.
-        </p>
-      )}
-
-      {isLoaded && isSignedIn && (
-        <p>
-          Signed in. Resolved role: <strong>{role}</strong>
-        </p>
-      )}
-
-      {isLoaded && isSignedIn && (
-        <p>
-          User:{' '}
-          <strong>
-            {user?.fullName ?? user?.username ?? user?.id ?? 'Unknown user'}
-          </strong>{' '}
-          {user?.primaryEmailAddress?.emailAddress
-            ? `(${user.primaryEmailAddress.emailAddress})`
-            : ''}
-        </p>
-      )}
-
-      {isLoaded && isSignedIn && (
-        <p>Role claim resolved: {isRoleResolved ? 'yes' : 'no'}</p>
-      )}
-
-      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-        {!isSignedIn && (
-          <>
+          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <SignInButton mode="modal">
-              <button type="button">Sign in</button>
+              <button
+                type="button"
+                className={`${buttonClassName} min-w-40 bg-[#005412] text-white shadow-[0px_10px_24px_rgba(0,84,18,0.22)] hover:bg-[#00460f]`}
+              >
+                Sign in
+              </button>
             </SignInButton>
+
             <SignUpButton mode="modal">
-              <button type="button">Sign up</button>
+              <button
+                type="button"
+                className={`${buttonClassName} min-w-40 border border-[#cbd7c7] bg-white text-[#0f5f1f] hover:border-[#005412] hover:bg-[#f4faf3]`}
+              >
+                Sign up
+              </button>
             </SignUpButton>
-          </>
-        )}
-
-        {isSignedIn && <UserButton afterSignOutUrl="/" />}
+          </div>
+        </section>
       </div>
-
-      <hr style={{ margin: '1.25rem 0' }} />
-
-      <button type="button" onClick={fetchInventory} disabled={!isLoaded}>
-        Test Backend Call
-      </button>
-
-      <label
-        style={{
-          display: 'flex',
-          gap: '0.5rem',
-          alignItems: 'center',
-          marginTop: '0.75rem',
-        }}
-      >
-        <input
-          type="checkbox"
-          checked={sendAuthHeader}
-          onChange={(event) => setSendAuthHeader(event.target.checked)}
-        />
-        Send Authorization header (Bearer token)
-      </label>
-
-      <p>Status: {status}</p>
-      {error && <p style={{ color: 'crimson' }}>Error: {error}</p>}
-
-      <pre>{JSON.stringify(data, null, 2)}</pre>
     </main>
   );
 };
