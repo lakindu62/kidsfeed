@@ -1,13 +1,20 @@
 import { useAuth } from '@clerk/clerk-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import CardGrid from '@/components/common/CardGrid';
-import FilterBar from '@/components/common/FilterBar';
+import { Input } from '@/components/ui/input';
 import NewSessionFloatingButton from '@/components/common/NewSessionFloatingButton';
 import PaginationControls from '@/components/common/PaginationControls';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import StatusMessage from '@/components/common/StatusMessage';
 import { describeApiFetchFailure } from '@/lib/describe-api-fetch-failure';
 import { resolveApiBaseUrl } from '@/lib/resolve-api-base';
@@ -17,8 +24,7 @@ import { Package } from 'lucide-react';
 import InventoryLayout from '../layouts/InventoryLayout';
 import { fetchInventoryItems } from '../api';
 import {
-  CATEGORY_FILTERS as categoryFilters,
-  buildSearchText,
+  CATEGORY_OPTIONS as categoryOptions,
   formatPackageSummary,
   formatQuantity,
   getExpiryStatusIcon,
@@ -167,6 +173,7 @@ function InventoryItemsPage() {
   const [loadError, setLoadError] = useState('');
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
+  const [activeStatus, setActiveStatus] = useState('all');
   const [viewMode, setViewMode] = useState('grid');
   const [page, setPage] = useState(1);
 
@@ -188,6 +195,11 @@ function InventoryItemsPage() {
         const items = await fetchInventoryItems({
           apiUrl,
           getToken: isSignedIn ? getToken : undefined,
+          searchParams: {
+            category: activeCategory === 'all' ? undefined : activeCategory,
+            status: activeStatus === 'all' ? undefined : activeStatus,
+            search: query.trim() || undefined,
+          },
         });
 
         if (isActive) {
@@ -212,35 +224,20 @@ function InventoryItemsPage() {
     return () => {
       isActive = false;
     };
-  }, [apiUrl, getToken, isSignedIn]);
+  }, [apiUrl, getToken, isSignedIn, activeCategory, activeStatus, query]);
 
   useEffect(() => {
     setPage(1);
-  }, [activeCategory, query, viewMode]);
-
-  const filteredItems = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    return inventoryItems.filter((item) => {
-      const itemCategory = (item?.category || '').toUpperCase();
-      const matchesCategory =
-        activeCategory === 'all' || itemCategory === activeCategory;
-      const matchesQuery =
-        normalizedQuery.length === 0 ||
-        buildSearchText(item).includes(normalizedQuery);
-
-      return matchesCategory && matchesQuery;
-    });
-  }, [activeCategory, inventoryItems, query]);
+  }, [activeCategory, activeStatus, query, viewMode]);
 
   const itemsPerPage = viewMode === 'grid' ? 8 : 5;
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredItems.length / itemsPerPage),
+    Math.ceil(inventoryItems.length / itemsPerPage),
   );
   const safePage = Math.min(page, totalPages);
   const startIndex = (safePage - 1) * itemsPerPage;
-  const visibleItems = filteredItems.slice(
+  const visibleItems = inventoryItems.slice(
     startIndex,
     startIndex + itemsPerPage,
   );
@@ -250,52 +247,116 @@ function InventoryItemsPage() {
     (_, index) => index + 1,
   );
 
-  const countLabel = `Showing ${filteredItems.length === 0 ? 0 : startIndex + 1}-${Math.min(
+  const countLabel = `Showing ${inventoryItems.length === 0 ? 0 : startIndex + 1}-${Math.min(
     startIndex + itemsPerPage,
-    filteredItems.length,
-  )} of ${filteredItems.length} items`;
+    inventoryItems.length,
+  )} of ${inventoryItems.length} items`;
 
   const viewModeOptions = [
     { value: 'grid', label: 'Grid view' },
     { value: 'list', label: 'List view' },
   ];
-
-  const resolvedCategoryFilters = categoryFilters.map((filter) => ({
-    ...filter,
-    active: activeCategory === filter.key,
-  }));
+  const statusOptions = [
+    { value: 'all', label: 'All statuses' },
+    { value: 'ACTIVE', label: 'Active' },
+    { value: 'LOW_STOCK', label: 'Low stock' },
+    { value: 'OUT_OF_STOCK', label: 'Out of stock' },
+    { value: 'EXPIRED', label: 'Expired' },
+  ];
+  const categoryFilterOptions = [
+    { value: 'all', label: 'All categories' },
+    ...categoryOptions,
+  ];
 
   return (
     <InventoryLayout
       activeItemKey="inventory"
       title="Inventory Grid"
       subtitle="Manage school meal ingredients and supplies with backend data."
-      query={query}
-      onQueryChange={(value) => {
-        setQuery(value);
-        setPage(1);
-      }}
-      searchPlaceholder="Search inventory items..."
+      searchPlaceholder=""
     >
       <div className="space-y-6 pb-16">
-        <section className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <FilterBar
-            filters={resolvedCategoryFilters}
-            onToggleFilter={(key) => {
-              setActiveCategory(key);
-              setPage(1);
-            }}
-            selectValue={viewMode}
-            onSelectChange={(value) => {
-              setViewMode(value);
-              setPage(1);
-            }}
-            selectOptions={viewModeOptions}
-            selectLabel="View mode"
-            className="mb-0 rounded-none border-0 bg-transparent p-0 shadow-none"
-          />
+        <section className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-start">
+          <div className="flex w-full flex-wrap items-center justify-start gap-3">
+            <Select
+              value={activeCategory}
+              onValueChange={(value) => {
+                setActiveCategory(value);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger
+                className="typography-body-sm h-11 w-56 rounded-full border border-[#dde3dd] bg-[#f4f4f2] px-4 text-[#4b4f4c]"
+                aria-label="Category filter"
+              >
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categoryFilterOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          <div className="flex items-center gap-3 self-start lg:self-auto">
+            <Select
+              value={activeStatus}
+              onValueChange={(value) => {
+                setActiveStatus(value);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger
+                className="typography-body-sm h-11 w-56 rounded-full border border-[#dde3dd] bg-[#f4f4f2] px-4 text-[#4b4f4c]"
+                aria-label="Status filter"
+              >
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Input
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setPage(1);
+              }}
+              className="typography-body-sm h-11 w-56 rounded-full border border-[#dde3dd] bg-[#f4f4f2] px-4 text-[#4b4f4c] placeholder:text-[#7b8079]"
+              placeholder="Search inventory"
+              aria-label="Search inventory"
+            />
+
+            <Select
+              value={viewMode}
+              onValueChange={(value) => {
+                setViewMode(value);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger
+                className="typography-body-sm h-11 w-56 rounded-full border border-[#dde3dd] bg-[#f4f4f2] px-4 text-[#4b4f4c]"
+                aria-label="View mode"
+              >
+                <SelectValue placeholder="View mode" />
+              </SelectTrigger>
+              <SelectContent>
+                {viewModeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-3 self-start lg:ml-auto lg:self-center">
             <p className="typography-body-sm text-[#7b8079]">{countLabel}</p>
           </div>
         </section>
@@ -307,7 +368,7 @@ function InventoryItemsPage() {
             kind="info"
             message="Loading inventory items from the backend..."
           />
-        ) : filteredItems.length === 0 ? (
+        ) : inventoryItems.length === 0 ? (
           <StatusMessage
             kind="info"
             message="No inventory items matched your current search or filter selection."
