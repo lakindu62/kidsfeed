@@ -5,6 +5,7 @@ import { cn } from '../../../lib/utils';
 import { describeApiFetchFailure } from '../../../lib/describe-api-fetch-failure';
 import { resolveApiBaseUrl } from '../../../lib/resolve-api-base';
 import { downloadMealDistributionReportPdf, fetchMealSessions } from '../api';
+import StatusMessage from '@/components/common/StatusMessage';
 import MealDistributionLayout from '../layouts/MealDistributionLayout';
 import {
   formatMealDistributionSchoolSubtitle,
@@ -114,6 +115,10 @@ export default function MealReportsPage() {
       title="Reports"
       subtitle={formatMealDistributionSchoolSubtitle(schoolName)}
       searchPlaceholder=""
+      breadcrumbItems={[
+        { label: 'Meal Distribution', href: '/meal-distribution' },
+        { label: 'Reports' },
+      ]}
     >
       <section className="mb-6 rounded-[12px] border border-zinc-200/80 bg-white p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-zinc-800">Date range</h2>
@@ -153,9 +158,7 @@ export default function MealReportsPage() {
         </div>
       </section>
 
-      {downloadError ? (
-        <p className="mb-4 text-sm font-medium text-red-600">{downloadError}</p>
-      ) : null}
+      <StatusMessage kind="error" message={downloadError} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <article className="rounded-[12px] border border-zinc-200/80 bg-white p-5 shadow-sm">

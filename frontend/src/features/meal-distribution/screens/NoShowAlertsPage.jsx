@@ -4,6 +4,7 @@ import { CalendarDays, ChevronDown } from 'lucide-react';
 import { describeApiFetchFailure } from '../../../lib/describe-api-fetch-failure';
 import { resolveApiBaseUrl } from '../../../lib/resolve-api-base';
 import { fetchNoShowAlerts } from '../api';
+import StatusMessage from '@/components/common/StatusMessage';
 import MealDistributionLayout from '../layouts/MealDistributionLayout';
 import {
   formatMealDistributionSchoolSubtitle,
@@ -119,6 +120,10 @@ export default function NoShowAlertsPage() {
       query={query}
       onQueryChange={setQuery}
       searchPlaceholder="Search by student ID, meal type, email status..."
+      breadcrumbItems={[
+        { label: 'Meal Distribution', href: '/meal-distribution' },
+        { label: 'No-Show Alerts' },
+      ]}
     >
       <section className="rounded-[12px] bg-[#f0f1f1] p-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -167,14 +172,11 @@ export default function NoShowAlertsPage() {
           </div>
         </div>
 
-        {isLoading && (
-          <p className="mb-4 text-xs font-medium text-zinc-500">
-            Loading alerts...
-          </p>
-        )}
-        {error && (
-          <p className="mb-4 text-xs font-medium text-red-600">{error}</p>
-        )}
+        <StatusMessage
+          kind="info"
+          message={isLoading ? 'Loading alerts...' : ''}
+        />
+        <StatusMessage kind="error" message={error} />
 
         <div className="overflow-x-auto">
           <table className="w-full border-separate border-spacing-y-3">
