@@ -7,6 +7,32 @@ export function getItemId(item) {
 
 export function getCategoryLabel(category) {
   switch ((category || '').toUpperCase()) {
+    case 'VEGETABLES':
+      return 'Vegetables';
+    case 'FRUITS':
+      return 'Fruits';
+    case 'GRAINS':
+      return 'Grains';
+    case 'PACKAGED':
+      return 'Packaged';
+    case 'BISCUITS':
+      return 'Biscuits';
+    case 'MEAT_FISH':
+      return 'Meat & Fish';
+    case 'DAIRY':
+      return 'Dairy';
+    case 'BEVERAGES':
+      return 'Beverages';
+    case 'SPICES_CONDIMENTS':
+      return 'Spices & Condiments';
+    case 'SNACKS':
+      return 'Snacks';
+    case 'BAKING':
+      return 'Baking';
+    case 'FROZEN':
+      return 'Frozen';
+    case 'CANNED':
+      return 'Canned';
     case 'FOOD':
       return 'Food';
     case 'SUPPLIES':
