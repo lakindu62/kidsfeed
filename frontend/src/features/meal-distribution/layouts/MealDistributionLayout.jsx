@@ -10,6 +10,7 @@ export default function MealDistributionLayout({
   activeItemKey = 'dashboard',
   title,
   subtitle,
+  breadcrumbItems,
   query,
   onQueryChange,
   searchPlaceholder = 'Search...',
@@ -41,6 +42,7 @@ export default function MealDistributionLayout({
             query={query}
             onQueryChange={onQueryChange}
             searchPlaceholder={searchPlaceholder}
+            breadcrumbItems={breadcrumbItems}
           />
           {children}
         </main>

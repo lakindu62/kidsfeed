@@ -9,7 +9,10 @@ import {
   fetchNoShowAlerts,
   fetchMealSessions,
 } from '../api';
+import CardGrid from '@/components/common/CardGrid';
+import MetricCard from '@/components/common/MetricCard';
 import NewSessionFloatingButton from '@/components/common/NewSessionFloatingButton';
+import StatusMessage from '@/components/common/StatusMessage';
 import MealDistributionLayout from '../layouts/MealDistributionLayout';
 import {
   formatMealDistributionSchoolSubtitle,
@@ -392,12 +395,68 @@ export default function MealDistributionDashboard() {
     }
   };
 
+  const kpiCards = useMemo(
+    () => [
+      {
+        key: 'sessions',
+        label: 'Sessions',
+        value: kpiSessions,
+        sub: `${kpiCompleted} completed${weeklyKpis.completedPct != null ? ` · ${kpiCompletedPct}%` : ''}`,
+        valueColor: 'text-zinc-900',
+      },
+      {
+        key: 'planned',
+        label: 'Planned headcount',
+        value: kpiPlanned,
+        sub: 'Sum across sessions',
+        valueColor: 'text-zinc-900',
+      },
+      {
+        key: 'served',
+        label: 'Recorded served',
+        value: kpiServed,
+        sub: 'From session "actual served" field',
+        valueColor: 'text-[#14532d]',
+      },
+      {
+        key: 'serve-rate',
+        label: 'Served vs planned',
+        value: weeklyKpis.serveRatePct != null ? `${kpiServeRate}%` : '—',
+        sub: 'Aggregate for the week',
+        valueColor: 'text-zinc-900',
+      },
+      {
+        key: 'no-show',
+        label: 'No-show records',
+        value: weekNoShowCount === null ? '…' : kpiNoShow,
+        sub: 'Same date range as above',
+        valueColor: 'text-zinc-900',
+      },
+    ],
+    [
+      kpiSessions,
+      kpiCompleted,
+      weeklyKpis.completedPct,
+      kpiCompletedPct,
+      kpiPlanned,
+      kpiServed,
+      weeklyKpis.serveRatePct,
+      kpiServeRate,
+      weekNoShowCount,
+      kpiNoShow,
+    ],
+  );
+
   return (
     <MealDistributionLayout
       activeItemKey="dashboard"
       title="Dashboard"
       subtitle={`${formatMealDistributionSchoolSubtitle(schoolName)} · Today's overview`}
       searchPlaceholder="Search sessions or students..."
+      breadcrumbItems={[
+        { label: 'Meal Distribution', href: '/meal-distribution' },
+        { label: 'Dashboard' },
+      ]}
     >
       <section className="rounded-[12px] bg-[#f0f1f1] p-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
@@ -420,74 +479,24 @@ export default function MealDistributionDashboard() {
           </button>
         </div>
 
-        {weekNoShowError && (
-          <p className="mb-4 text-xs font-medium text-amber-700">
-            {weekNoShowError}
-          </p>
-        )}
+        <StatusMessage kind="error" message={weekNoShowError} />
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-0 motion-reduce:animate-none">
-            <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
-              Sessions
-            </p>
-            <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
-              {kpiSessions}
-            </p>
-            <p className="mt-2 text-xs font-medium text-zinc-500">
-              {kpiCompleted} completed
-              {weeklyKpis.completedPct != null ? ` · ${kpiCompletedPct}%` : ''}
-            </p>
-          </article>
-
-          <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[55ms] motion-reduce:animate-none">
-            <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
-              Planned headcount
-            </p>
-            <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
-              {kpiPlanned}
-            </p>
-            <p className="mt-2 text-xs font-medium text-zinc-500">
-              Sum across sessions
-            </p>
-          </article>
-
-          <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[110ms] motion-reduce:animate-none">
-            <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
-              Recorded served
-            </p>
-            <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-[#14532d] tabular-nums">
-              {kpiServed}
-            </p>
-            <p className="mt-2 text-xs font-medium text-zinc-500">
-              From session &quot;actual served&quot; field
-            </p>
-          </article>
-
-          <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[165ms] motion-reduce:animate-none">
-            <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
-              Served vs planned
-            </p>
-            <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
-              {weeklyKpis.serveRatePct != null ? `${kpiServeRate}%` : '—'}
-            </p>
-            <p className="mt-2 text-xs font-medium text-zinc-500">
-              Aggregate for the week
-            </p>
-          </article>
-
-          <article className="animate-md-kpi-card rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)] delay-[220ms] motion-reduce:animate-none">
-            <p className="text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
-              No-show records
-            </p>
-            <p className="mt-2 font-['Plus_Jakarta_Sans','Inter_Variable',sans-serif] text-3xl font-bold text-zinc-900 tabular-nums">
-              {weekNoShowCount === null ? '…' : kpiNoShow}
-            </p>
-            <p className="mt-2 text-xs font-medium text-zinc-500">
-              Same date range as above
-            </p>
-          </article>
-        </div>
+        <CardGrid
+          items={kpiCards}
+          columnsClassName="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+          emptyMessage="No KPI data available."
+          renderItem={(card) => (
+            <MetricCard
+              key={card.key}
+              value={card.value}
+              label={card.label}
+              footer={
+                <p className="typography-body-sm m-0 text-[#666]">{card.sub}</p>
+              }
+              className="min-h-0"
+            />
+          )}
+        />
       </section>
 
       <section className="mt-6 grid gap-8 xl:grid-cols-10">
@@ -509,21 +518,12 @@ export default function MealDistributionDashboard() {
               View All
             </button>
           </div>
-          {isLoadingSessions && (
-            <p className="mb-4 text-xs font-medium text-zinc-500">
-              Loading sessions...
-            </p>
-          )}
-          {sessionsError && (
-            <p className="mb-4 text-xs font-medium text-red-600">
-              {sessionsError}
-            </p>
-          )}
-          {deleteError && (
-            <p className="mb-4 text-xs font-medium text-red-600">
-              {deleteError}
-            </p>
-          )}
+          <StatusMessage
+            kind="info"
+            message={isLoadingSessions ? 'Loading sessions...' : ''}
+          />
+          <StatusMessage kind="error" message={sessionsError} />
+          <StatusMessage kind="error" message={deleteError} />
 
           <div className="overflow-x-auto">
             <table className="w-full border-separate border-spacing-y-3">
@@ -615,16 +615,11 @@ export default function MealDistributionDashboard() {
               No sessions for today
             </span>
           )}
-          {isLoadingSessions && (
-            <p className="mt-2 text-xs font-medium text-zinc-500">
-              Loading session mix...
-            </p>
-          )}
-          {sessionsError && (
-            <p className="mt-2 text-xs font-medium text-red-600">
-              {sessionsError}
-            </p>
-          )}
+          <StatusMessage
+            kind="info"
+            message={isLoadingSessions ? 'Loading session mix...' : ''}
+          />
+          <StatusMessage kind="error" message={sessionsError} />
 
           <div className="mt-8 flex justify-center">
             <div
@@ -674,16 +669,11 @@ export default function MealDistributionDashboard() {
             View All
           </button>
         </div>
-        {isLoadingNoShowLogs && (
-          <p className="mb-4 text-xs font-medium text-zinc-500">
-            Loading no-show alerts...
-          </p>
-        )}
-        {noShowLogsError && (
-          <p className="mb-4 text-xs font-medium text-red-600">
-            {noShowLogsError}
-          </p>
-        )}
+        <StatusMessage
+          kind="info"
+          message={isLoadingNoShowLogs ? 'Loading no-show alerts...' : ''}
+        />
+        <StatusMessage kind="error" message={noShowLogsError} />
 
         <div className="overflow-hidden rounded-[12px] bg-white">
           <table className="w-full">

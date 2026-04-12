@@ -9,6 +9,7 @@
     "test:headed": "playwright test --headed",
     "test:schools": "playwright test e2e/schools.spec.js",
     "test:students": "playwright test e2e/students.spec.js",
+    "test:meal-distribution": "playwright test e2e/meal-distribution.spec.js",
     "report": "playwright show-report"
   },
   "keywords": [],

@@ -4,6 +4,9 @@ import { CalendarDays, ChevronDown } from 'lucide-react';
 import { describeApiFetchFailure } from '../../../lib/describe-api-fetch-failure';
 import { resolveApiBaseUrl } from '../../../lib/resolve-api-base';
 import { fetchStudentMealHistory } from '../api';
+import CardGrid from '@/components/common/CardGrid';
+import MetricCard from '@/components/common/MetricCard';
+import StatusMessage from '@/components/common/StatusMessage';
 import MealDistributionLayout from '../layouts/MealDistributionLayout';
 import {
   formatMealDistributionSchoolSubtitle,
@@ -132,6 +135,10 @@ export default function StudentMealHistoryPage() {
       query={query}
       onQueryChange={setQuery}
       searchPlaceholder="Search in loaded history..."
+      breadcrumbItems={[
+        { label: 'Meal Distribution', href: '/meal-distribution' },
+        { label: 'Student History' },
+      ]}
     >
       <section className="rounded-[12px] bg-[#f0f1f1] p-8">
         <div className="mb-4 grid gap-3 md:grid-cols-5">
@@ -195,29 +202,30 @@ export default function StudentMealHistoryPage() {
           </button>
         </div>
 
-        <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-lg bg-white px-4 py-3 text-sm font-semibold text-zinc-800">
-            Total sessions: {summary.total}
-          </div>
-          <div className="rounded-lg bg-white px-4 py-3 text-sm font-semibold text-green-700">
-            Present: {summary.present}
-          </div>
-          <div className="rounded-lg bg-white px-4 py-3 text-sm font-semibold text-blue-700">
-            Excused: {summary.excused}
-          </div>
-          <div className="rounded-lg bg-white px-4 py-3 text-sm font-semibold text-red-700">
-            No-Show: {summary.noShow}
-          </div>
-        </div>
+        <CardGrid
+          items={[
+            { key: 'total', label: 'Total sessions', value: summary.total },
+            { key: 'present', label: 'Present', value: summary.present },
+            { key: 'excused', label: 'Excused', value: summary.excused },
+            { key: 'no-show', label: 'No-Show', value: summary.noShow },
+          ]}
+          columnsClassName="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+          emptyMessage="No history data available."
+          renderItem={(card) => (
+            <MetricCard
+              key={card.key}
+              value={card.value}
+              label={card.label}
+              className="min-h-0"
+            />
+          )}
+        />
 
-        {isLoading && (
-          <p className="mb-4 text-xs font-medium text-zinc-500">
-            Loading student history...
-          </p>
-        )}
-        {error && (
-          <p className="mb-4 text-xs font-medium text-red-600">{error}</p>
-        )}
+        <StatusMessage
+          kind="info"
+          message={isLoading ? 'Loading student history...' : ''}
+        />
+        <StatusMessage kind="error" message={error} />
 
         <div className="overflow-x-auto">
           <table className="w-full border-separate border-spacing-y-3">
