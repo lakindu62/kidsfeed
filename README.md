@@ -198,7 +198,12 @@ User accounts are created and kept in sync with MongoDB automatically via the `/
 | Role | Description |
 |------|-------------|
 | `admin` | Full system access |
-| `school-management` | School and student management |
+| `school_admin` | School administrator |
+| `school_staff` | School staff member |
+| `menu_manager` | Menu management access |
+| `meal_planner` | Meal planning access |
+| `inventory_manager` | Inventory management access |
+| `unassigned` | No role assigned |
 
 ---
 
