@@ -1,6 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Package } from 'lucide-react';
@@ -41,6 +40,7 @@ function InventoryRowMedia({ item }) {
 
 export default function InventoryListRow({ item, onOpen }) {
   const itemId = getItemId(item);
+  const isOpenable = Boolean(itemId);
   const categoryLabel = getCategoryLabel(item?.category);
   const statusLabel = getStatusLabel(item?.status);
   const expiryStatusLabel = getExpiryStatusLabel(item?.expiryStatus);
@@ -51,8 +51,13 @@ export default function InventoryListRow({ item, onOpen }) {
     packageSummary,
   ].filter(Boolean);
 
-  return (
-    <Card className="overflow-hidden rounded-[22px] border border-[#ecefe8] bg-white shadow-[0px_8px_18px_rgba(47,51,49,0.04)]">
+  const rowBody = (
+    <Card
+      className={cn(
+        'overflow-hidden rounded-[22px] border border-[#ecefe8] bg-white shadow-[0px_8px_18px_rgba(47,51,49,0.04)]',
+        isOpenable ? 'cursor-pointer transition-colors hover:bg-[#fbfcfb]' : '',
+      )}
+    >
       <CardContent className="grid gap-3 p-3 md:grid-cols-[56px_minmax(0,1fr)_auto] md:items-center md:gap-4 md:p-4">
         <div className="flex justify-start md:justify-center">
           <InventoryRowMedia item={item} />
@@ -90,7 +95,7 @@ export default function InventoryListRow({ item, onOpen }) {
           ) : null}
         </div>
 
-        <div className="flex items-center justify-between gap-3 md:flex-col md:items-end md:justify-center md:gap-2">
+        <div className="flex items-center justify-end gap-3 md:flex-col md:items-end md:justify-center md:gap-2">
           <div className="flex flex-col items-end gap-2">
             <Badge
               className={cn(
@@ -113,17 +118,23 @@ export default function InventoryListRow({ item, onOpen }) {
               </Badge>
             ) : null}
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="typography-body-sm h-8 rounded-full px-3"
-            onClick={() => onOpen(itemId)}
-            disabled={!itemId}
-          >
-            View
-          </Button>
         </div>
       </CardContent>
     </Card>
+  );
+
+  if (!isOpenable) {
+    return rowBody;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(itemId)}
+      className="block w-full rounded-[22px] text-left focus-visible:ring-2 focus-visible:ring-[#005412]/40 focus-visible:outline-none"
+      aria-label={`Open ${item?.name || 'inventory item'}`}
+    >
+      {rowBody}
+    </button>
   );
 }

@@ -1,6 +1,6 @@
 export const initialFormState = {
   name: '',
-  category: 'FOOD',
+  category: 'VEGETABLES',
   unit: 'pieces',
   barcode: '',
   description: '',

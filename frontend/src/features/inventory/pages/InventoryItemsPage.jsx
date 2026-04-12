@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import CardGrid from '@/components/common/CardGrid';
 import FilterBar from '@/components/common/FilterBar';
@@ -57,9 +56,17 @@ function InventoryGridCard({ item, onOpen }) {
   const statusLabel = getStatusLabel(item?.status);
   const expiryStatusLabel = getExpiryStatusLabel(item?.expiryStatus);
   const packageSummary = formatPackageSummary(item);
+  const hasExpiryStatus =
+    item?.expiryStatus !== undefined && item?.expiryStatus !== null;
+  const isOpenable = Boolean(itemId);
 
-  return (
-    <Card className="overflow-hidden rounded-[32px] border border-[#eff1ed] bg-white shadow-[0px_20px_40px_0px_rgba(47,51,49,0.06)] transition-transform duration-200 hover:-translate-y-0.5">
+  const cardBody = (
+    <Card
+      className={cn(
+        'overflow-hidden rounded-[32px] border border-[#eff1ed] bg-white shadow-[0px_20px_40px_0px_rgba(47,51,49,0.06)] transition-transform duration-200',
+        isOpenable ? 'cursor-pointer hover:-translate-y-0.5' : '',
+      )}
+    >
       <div className="overflow-hidden rounded-t-[32px] bg-[#f4f5f1]">
         <InventoryMedia item={item} />
       </div>
@@ -97,26 +104,29 @@ function InventoryGridCard({ item, onOpen }) {
           ) : null}
         </div>
 
-        <div className="flex items-center justify-between border-t border-[#f3f4f0] pt-3">
-          <div className="flex flex-col gap-2">
-            <div className="typography-body flex items-center gap-2 text-[#40493d]">
-              <span>{formatQuantity(item)}</span>
-            </div>
-            {item?.expiryStatus !== undefined && item?.expiryStatus !== null ? (
-              <div className="flex flex-wrap gap-2">
-                <div
-                  className={cn(
-                    'typography-body-sm inline-flex items-center gap-1 rounded-full px-2.5 py-1 tracking-widest uppercase',
-                    getExpiryStatusTone(item?.expiryStatus),
-                  )}
-                >
-                  {getExpiryStatusIcon(item?.expiryStatus)}
-                  {expiryStatusLabel}
-                </div>
+        <div className="space-y-2 border-t border-[#f3f4f0] pt-3">
+          <div className="typography-body flex items-center gap-2 text-[#40493d]">
+            <span>{formatQuantity(item)}</span>
+          </div>
+
+          <div
+            className={cn(
+              'flex items-center gap-2',
+              hasExpiryStatus ? 'justify-between' : 'justify-end',
+            )}
+          >
+            {hasExpiryStatus ? (
+              <div
+                className={cn(
+                  'typography-body-sm inline-flex items-center gap-1 rounded-full px-2.5 py-1 tracking-widest uppercase',
+                  getExpiryStatusTone(item?.expiryStatus),
+                )}
+              >
+                {getExpiryStatusIcon(item?.expiryStatus)}
+                {expiryStatusLabel}
               </div>
             ) : null}
-          </div>
-          <div className="flex flex-col items-end gap-2">
+
             <div
               className={cn(
                 'typography-body-sm inline-flex items-center gap-1 rounded-full px-2.5 py-1 tracking-widest uppercase',
@@ -128,19 +138,23 @@ function InventoryGridCard({ item, onOpen }) {
             </div>
           </div>
         </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="w-full rounded-full px-4"
-          onClick={() => onOpen(itemId)}
-          disabled={!itemId}
-        >
-          View item
-        </Button>
       </CardContent>
     </Card>
+  );
+
+  if (!isOpenable) {
+    return cardBody;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(itemId)}
+      className="block w-full rounded-[32px] text-left focus-visible:ring-2 focus-visible:ring-[#005412]/40 focus-visible:outline-none"
+      aria-label={`Open ${item?.name || 'inventory item'}`}
+    >
+      {cardBody}
+    </button>
   );
 }
 
