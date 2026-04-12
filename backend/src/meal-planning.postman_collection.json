@@ -1,0 +1,113 @@
+{
+  "info": {
+    "name": "meal-planning",
+    "description": "Postman collection for meal-planning endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "63f0c96b-f1fa-4ef1-a80d-f377a3290cd7"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" },
+    { "key": "mealPlanId", "value": "" },
+    { "key": "schoolId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Create Meal Plan",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"schoolId\": \"{{schoolId}}\",\n  \"schoolName\": \"Central School\",\n  \"weekStartDate\": \"2026-04-13\",\n  \"weekEndDate\": \"2026-04-17\",\n  \"status\": \"draft\",\n  \"createdBy\": \"postman\",\n  \"meals\": [\n    {\n      \"day\": \"Monday\",\n      \"mealType\": \"breakfast\",\n      \"recipeId\": \"000000000000000000000000\",\n      \"recipeName\": \"Oats\",\n      \"plannedServings\": 120,\n      \"notes\": \"\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/meal-plans",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "meal-plans"]
+        }
+      }
+    },
+    {
+      "name": "Get Meal Plan By Id",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/meal-plans/{{mealPlanId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "meal-plans", "{{mealPlanId}}"]
+        }
+      }
+    },
+    {
+      "name": "Get School Meal Plans",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/meal-plans/school/{{schoolId}}?status=draft",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "meal-plans", "school", "{{schoolId}}"],
+          "query": [
+            { "key": "status", "value": "draft" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Update Meal Plan",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"planned\",\n  \"meals\": [\n    {\n      \"day\": \"Monday\",\n      \"mealType\": \"breakfast\",\n      \"recipeId\": \"000000000000000000000000\",\n      \"recipeName\": \"Oats\",\n      \"plannedServings\": 125,\n      \"notes\": \"updated\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/meal-plans/{{mealPlanId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "meal-plans", "{{mealPlanId}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Meal Plan",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/meal-plans/{{mealPlanId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "meal-plans", "{{mealPlanId}}"]
+        }
+      }
+    },
+    {
+      "name": "Confirm Meal Plan",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/meal-plans/{{mealPlanId}}/confirm",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "meal-plans", "{{mealPlanId}}", "confirm"]
+        }
+      }
+    }
+  ]
+}

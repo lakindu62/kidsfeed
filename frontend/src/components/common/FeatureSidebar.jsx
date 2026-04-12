@@ -1,0 +1,261 @@
+import { cloneElement, isValidElement } from 'react';
+import { Repeat2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { useAuthRole } from '@/lib/auth/use-auth-role';
+import {
+  ADMIN_CONTEXT_SWITCH_OPTIONS,
+  getAdminContextKeyFromPath,
+} from '@/lib/sidebar/admin-context-switches';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { DEFAULT_FOOTER_ACTIONS } from '../../lib/sidebar/configs/defaults';
+
+// const DEFAULT_FOOTER_ACTIONS = [
+//   { key: 'support', label: 'Support', icon: CircleHelp },
+//   { key: 'logout', label: 'Log Out', icon: LogOut },
+// ];
+
+function cx(...classes) {
+  return classes.filter(Boolean).join(' ');
+}
+
+function renderIcon(icon, className) {
+  if (!icon) {
+    return null;
+  }
+
+  if (isValidElement(icon)) {
+    return cloneElement(icon, {
+      className: cx(className, icon.props.className),
+      'aria-hidden': true,
+    });
+  }
+
+  if (typeof icon === 'function') {
+    const Icon = icon;
+    return <Icon className={className} aria-hidden />;
+  }
+
+  return null;
+}
+
+function SidebarLink({ item, isActive, onSelect }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(item)}
+      disabled={item.disabled}
+      aria-current={isActive ? 'page' : undefined}
+      className={cx(
+        'typography-body-sm flex w-full items-center gap-3 rounded-r-full px-6 py-3 text-left transition-colors focus-visible:ring-2 focus-visible:ring-[#166534] focus-visible:outline-none',
+        isActive
+          ? 'border bg-white text-[#116e20] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.05)]'
+          : 'text-[#57534e] hover:bg-white/60',
+        item.disabled && 'cursor-not-allowed opacity-50',
+      )}
+    >
+      {renderIcon(item.icon, 'h-[18px] w-[18px] shrink-0')}
+      <span
+        className={`typography-body-sm truncate ${isActive ? 'text-[#083d11]' : 'text-[#3a3836]'}`}
+      >
+        {item.label}
+      </span>
+    </button>
+  );
+}
+
+function FooterAction({ action, onSelect }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(action)}
+      disabled={action.disabled}
+      className={cx(
+        'typography-body-sm flex h-9 w-full items-center gap-3 rounded-lg px-2 text-left text-stone-500 transition-colors hover:bg-stone-200 focus-visible:ring-2 focus-visible:ring-[#166534] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f5f5f4] focus-visible:outline-none',
+        action.disabled && 'cursor-not-allowed opacity-50',
+      )}
+    >
+      {renderIcon(action.icon, 'h-[18px] w-[18px] shrink-0')}
+      <span>{action.label}</span>
+    </button>
+  );
+}
+
+function AdminContextSwitcher({ onSelect }) {
+  const { pathname } = useLocation();
+  const activeContextKey = getAdminContextKeyFromPath(pathname);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className={cx(
+            'typography-body-sm mb-4 flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-stone-300 bg-white px-4 text-stone-700 transition-colors hover:bg-stone-100 focus-visible:ring-2 focus-visible:ring-[#166534] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f5f5f4] focus-visible:outline-none',
+          )}
+        >
+          <Repeat2 className="h-4 w-4" />
+          <span>Switch context</span>
+        </button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end" className="w-72">
+        <DropdownMenuRadioGroup
+          value={activeContextKey}
+          onValueChange={(nextKey) => {
+            const nextOption = ADMIN_CONTEXT_SWITCH_OPTIONS.find(
+              (option) => option.key === nextKey,
+            );
+
+            if (nextOption) {
+              onSelect?.(nextOption);
+            }
+          }}
+        >
+          {ADMIN_CONTEXT_SWITCH_OPTIONS.map((option) => (
+            <DropdownMenuRadioItem key={option.key} value={option.key}>
+              <span className="flex flex-col items-start gap-0.5">
+                <span>{option.label}</span>
+                <span className="text-muted-foreground text-xs font-normal">
+                  {option.description}
+                </span>
+              </span>
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+export default function FeatureSidebar({
+  featureLabel = '',
+  sections = [],
+  items = [],
+  activeItemKey,
+  onItemSelect,
+  onFooterAction,
+  footerActions = DEFAULT_FOOTER_ACTIONS,
+  primaryCta = null,
+  className,
+}) {
+  const normalizedSections =
+    sections.length > 0 ? sections : [{ key: 'main', items }];
+
+  const visibleSections = normalizedSections
+    .map((section) => ({
+      ...section,
+      items: (section.items || []).filter((item) => item?.visible !== false),
+    }))
+    .filter((section) => section.items.length > 0);
+
+  const visibleFooterActions = (footerActions || []).filter(
+    (action) => action?.visible !== false,
+  );
+
+  const { isLoaded, isSignedIn, role } = useAuthRole();
+  const isAdminUser = isLoaded && isSignedIn && role === 'admin';
+
+  const handleItemSelect = (item) => {
+    if (!item || item.disabled) {
+      return;
+    }
+
+    if (typeof item.onClick === 'function') {
+      item.onClick(item);
+      return;
+    }
+
+    if (typeof onItemSelect === 'function') {
+      onItemSelect(item);
+    }
+  };
+
+  const handleFooterAction = (action) => {
+    if (!action || action.disabled) {
+      return;
+    }
+
+    if (typeof action.onClick === 'function') {
+      action.onClick(action);
+      return;
+    }
+
+    if (typeof onFooterAction === 'function') {
+      onFooterAction(action);
+    }
+  };
+
+  return (
+    <aside
+      className={cx(
+        'sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-r-black/10 bg-[#f5f5f4] py-6 pr-3',
+        className,
+      )}
+    >
+      <div className="px-6 pb-6">
+        <img src="/kids-feed-logo.png" className="h-8" />
+
+        <p className="typography-body-sm mt-2 border-t pt-2 tracking-[0.6px] text-stone-500 uppercase">
+          {featureLabel}
+        </p>
+      </div>
+
+      <nav
+        className="flex flex-1 flex-col gap-1 pt-2"
+        aria-label="Sidebar navigation"
+      >
+        {visibleSections.map((section, index) => (
+          <div
+            key={section.key || `section-${index}`}
+            className={index > 0 ? 'mt-1' : ''}
+          >
+            {section.items.map((item) => (
+              <SidebarLink
+                key={item.key}
+                item={item}
+                isActive={item.key === activeItemKey}
+                onSelect={handleItemSelect}
+              />
+            ))}
+          </div>
+        ))}
+      </nav>
+
+      <div className="border-t border-[#e7e5e480] px-6 pt-6.25">
+        {primaryCta?.visible !== false && primaryCta?.label ? (
+          <button
+            type="button"
+            onClick={() => handleFooterAction(primaryCta)}
+            disabled={primaryCta.disabled}
+            className={cx(
+              'typography-body-sm mb-4 flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#006117] px-4 text-white transition-colors hover:bg-[#005414] focus-visible:ring-2 focus-visible:ring-[#166534] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f5f5f4] focus-visible:outline-none',
+              primaryCta.disabled && 'cursor-not-allowed opacity-50',
+            )}
+          >
+            {renderIcon(primaryCta.icon, 'h-4 w-4')}
+            <span>{primaryCta.label}</span>
+          </button>
+        ) : null}
+
+        {isAdminUser ? (
+          <AdminContextSwitcher onSelect={handleFooterAction} />
+        ) : (
+          visibleFooterActions.map((action, index) => (
+            <div
+              key={action.key || `footer-${index}`}
+              className={index > 0 ? 'mt-1' : ''}
+            >
+              <FooterAction action={action} onSelect={handleFooterAction} />
+            </div>
+          ))
+        )}
+      </div>
+    </aside>
+  );
+}

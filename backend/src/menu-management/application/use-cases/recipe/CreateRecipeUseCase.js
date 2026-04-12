@@ -19,8 +19,10 @@ class CreateRecipeUseCase {
     const recipe = new Recipe({
       name: recipeData.name,
       description: recipeData.description,
+      imageUrl: recipeData.imageUrl,
       ingredients: recipeData.ingredients,
       instructions: recipeData.instructions,
+      nutritionalInfo: recipeData.nutritionalInfo || null,
       dietaryFlags: new DietaryFlags(recipeData.dietaryFlags || {}),
       allergens: recipeData.allergens || [],
       seasonal: recipeData.seasonal || [],

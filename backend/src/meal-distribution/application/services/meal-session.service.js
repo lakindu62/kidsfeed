@@ -2,26 +2,78 @@
 // - Derives plannedHeadcount from the school-management component.
 // - Keeps actualServedCount and wastageCount consistent when sessions or
 //   attendance data change.
-import { toMealSessionResponse } from '../dtos/responses/meal-session-response.dto.js';
+import {
+  toGuardianNotificationResponse,
+  toMealSessionResponse,
+} from '../dtos/responses/meal-session-response.dto.js';
 import { countStudentsBySchool } from '../../../school-management/infrastructure/repositories/student.repository.js';
 
 export class MealSessionService {
-  constructor(mealSessionRepository) {
+  constructor(mealSessionRepository, deps = {}) {
     this.mealSessionRepository = mealSessionRepository;
+    this.completionService = deps.completionService ?? null;
+    this.mealGuardianNotificationRepository =
+      deps.mealGuardianNotificationRepository ?? null;
+    this.mealPlanLookupService = deps.mealPlanLookupService ?? null;
+  }
+
+  async _lookupMealDescription(session) {
+    if (!this.mealPlanLookupService) {
+      return undefined;
+    }
+    try {
+      return await this.mealPlanLookupService.getMealDescription(
+        session.schoolId,
+        session.date,
+        session.mealType
+      );
+    } catch {
+      return undefined;
+    }
   }
 
   async createMealSession(dto) {
+    const sessionDate =
+      dto.date instanceof Date ? dto.date : new Date(dto.date);
+    const mealTypeValue = String(dto.mealType).trim();
+    const schoolIdValue = String(dto.schoolId).trim();
+
+    // Only one session per day for each meal type per school.
+    const dayStartUtc = new Date(
+      Date.UTC(
+        sessionDate.getUTCFullYear(),
+        sessionDate.getUTCMonth(),
+        sessionDate.getUTCDate()
+      )
+    );
+    const nextDayStartUtc = new Date(dayStartUtc);
+    nextDayStartUtc.setUTCDate(nextDayStartUtc.getUTCDate() + 1);
+
+    const existingSession = await this.mealSessionRepository.findOne({
+      schoolId: schoolIdValue,
+      mealType: new RegExp(`^${mealTypeValue}$`, 'i'),
+      date: { $gte: dayStartUtc, $lt: nextDayStartUtc },
+    });
+
+    if (existingSession) {
+      const duplicateError = new Error(
+        `${mealTypeValue} session already exists for this day`
+      );
+      duplicateError.code = 'MEAL_SESSION_DUPLICATE';
+      throw duplicateError;
+    }
+
     // Derive plannedHeadcount from school-management student data
-    const plannedHeadcountValue = await countStudentsBySchool(dto.schoolId);
+    const plannedHeadcountValue = await countStudentsBySchool(schoolIdValue);
     const actualServedCountValue =
       dto.actualServedCount === undefined || dto.actualServedCount === null
         ? 0
         : Number(dto.actualServedCount);
 
     const data = {
-      date: dto.date instanceof Date ? dto.date : new Date(dto.date),
-      mealType: String(dto.mealType).trim(),
-      schoolId: String(dto.schoolId).trim(),
+      date: sessionDate,
+      mealType: mealTypeValue,
+      schoolId: schoolIdValue,
       grade:
         dto.grade === undefined || dto.grade === null
           ? undefined
@@ -43,12 +95,17 @@ export class MealSessionService {
     };
 
     const created = await this.mealSessionRepository.create(data);
-    return toMealSessionResponse(created);
+    const mealDesc = await this._lookupMealDescription(created);
+    return toMealSessionResponse(created, mealDesc);
   }
 
   async getMealSessionById(mealSessionId) {
     const session = await this.mealSessionRepository.findById(mealSessionId);
-    return session ? toMealSessionResponse(session) : null;
+    if (!session) {
+      return null;
+    }
+    const mealDesc = await this._lookupMealDescription(session);
+    return toMealSessionResponse(session, mealDesc);
   }
 
   async listMealSessions(filters = {}) {
@@ -72,7 +129,13 @@ export class MealSessionService {
     }
 
     const sessions = await this.mealSessionRepository.findMany(filter);
-    return sessions.map(toMealSessionResponse);
+    const enriched = await Promise.all(
+      sessions.map(async (s) => {
+        const mealDesc = await this._lookupMealDescription(s);
+        return toMealSessionResponse(s, mealDesc);
+      })
+    );
+    return enriched;
   }
 
   async updateMealSession(mealSessionId, dto) {
@@ -127,11 +190,33 @@ export class MealSessionService {
       mealSessionId,
       updates
     );
-    return toMealSessionResponse(updated);
+
+    const beforeStatus = String(session.status || '').toUpperCase();
+    const afterStatus = String(updated?.status || '').toUpperCase();
+    const movedToCompleted =
+      beforeStatus !== 'COMPLETED' && afterStatus === 'COMPLETED';
+
+    if (movedToCompleted && this.completionService) {
+      await this.completionService.finalizeOnSessionCompleted(updated);
+    }
+
+    const mealDesc = await this._lookupMealDescription(updated);
+    return toMealSessionResponse(updated, mealDesc);
   }
 
   async deleteMealSession(mealSessionId) {
     const deleted = await this.mealSessionRepository.deleteById(mealSessionId);
     return Boolean(deleted);
+  }
+
+  async listGuardianNotificationsForSession(mealSessionId) {
+    if (!this.mealGuardianNotificationRepository) {
+      return [];
+    }
+    const rows =
+      await this.mealGuardianNotificationRepository.findBySessionId(
+        mealSessionId
+      );
+    return rows.map((row) => toGuardianNotificationResponse(row));
   }
 }

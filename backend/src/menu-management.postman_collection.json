@@ -1,0 +1,153 @@
+{
+  "info": {
+    "name": "menu-management",
+    "description": "Postman collection for menu-management endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "b11fa9d4-f6d4-4c20-aebf-52960e0df2f1"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" },
+    { "key": "recipeId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "List Recipes",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes?page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "10" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create Recipe",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Vegetable Rice\",\n  \"description\": \"Simple school lunch recipe\",\n  \"servingSize\": 50,\n  \"ingredients\": [\n    { \"name\": \"Rice\", \"quantity\": 10, \"unit\": \"kg\" },\n    { \"name\": \"Carrot\", \"quantity\": 3, \"unit\": \"kg\" }\n  ],\n  \"instructions\": [\"Wash rice\", \"Cook rice\", \"Mix vegetables\"],\n  \"dietaryFlags\": { \"vegetarian\": true },\n  \"createdBy\": \"postman\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes"]
+        }
+      }
+    },
+    {
+      "name": "Get Recipe By Id",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/{{recipeId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "{{recipeId}}"]
+        }
+      }
+    },
+    {
+      "name": "Update Recipe",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Updated via Postman\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/{{recipeId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "{{recipeId}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Recipe",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/{{recipeId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "{{recipeId}}"]
+        }
+      }
+    },
+    {
+      "name": "Search Recipes By Ingredient",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/search/ingredient?name=rice",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "search", "ingredient"],
+          "query": [
+            { "key": "name", "value": "rice" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Search Recipes By Dietary",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/recipes/search/dietary?vegetarian=true&halal=false",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "recipes", "search", "dietary"],
+          "query": [
+            { "key": "vegetarian", "value": "true" },
+            { "key": "halal", "value": "false" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Calculate Nutrition",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ingredients\": [\n    { \"name\": \"Rice\", \"quantity\": 10, \"unit\": \"kg\" },\n    { \"name\": \"Carrot\", \"quantity\": 3, \"unit\": \"kg\" }\n  ],\n  \"servings\": 50\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/nutrition/calculate",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "nutrition", "calculate"]
+        }
+      }
+    }
+  ]
+}

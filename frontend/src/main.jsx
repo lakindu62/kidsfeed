@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { createRoot } from 'react-dom/client';
 import { ClerkProvider } from '@clerk/clerk-react';
+import { Toaster } from '@/components/ui/sonner';
 import './index.css';
 import App from './App.jsx';
 
@@ -13,9 +14,15 @@ if (!clerkPublishableKey) {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ClerkProvider publishableKey={clerkPublishableKey} afterSignOutUrl="/">
+    <ClerkProvider
+      publishableKey={clerkPublishableKey}
+      afterSignOutUrl="/"
+      signInForceRedirectUrl="/auth-redirect"
+      signUpForceRedirectUrl="/auth-redirect"
+    >
       <BrowserRouter>
         <App />
+        <Toaster richColors position="top-right" />
       </BrowserRouter>
     </ClerkProvider>
   </StrictMode>,

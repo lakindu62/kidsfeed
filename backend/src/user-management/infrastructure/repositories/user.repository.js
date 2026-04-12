@@ -57,6 +57,27 @@ class UserRepository {
   }
 
   /**
+   * Upsert only profile fields by Clerk ID.
+   * This helper exists to make intent explicit for webhook user.updated sync,
+   * where role must never be overwritten for existing users.
+   *
+   * @param {string} clerkId
+   * @param {Object} profileData
+   * @param {Object} setOnInsertData
+   * @returns {Promise<Object>}
+   */
+  async upsertProfileByClerkId(clerkId, profileData, setOnInsertData = {}) {
+    return UserModel.findOneAndUpdate(
+      { clerkId },
+      {
+        $setOnInsert: setOnInsertData,
+        $set: profileData,
+      },
+      { upsert: true, new: true }
+    );
+  }
+
+  /**
    * Delete a user by their external Clerk ID.
    * @param {string} clerkId
    * @returns {Promise<Object|null>}
@@ -66,8 +87,17 @@ class UserRepository {
   }
 
   /**
+   * Delete a user by their internal MongoDB ID.
+   * @param {string} userId
+   * @returns {Promise<Object|null>}
+   */
+  async deleteById(userId) {
+    return UserModel.findByIdAndDelete(userId);
+  }
+
+  /**
    * Find all users with optional filtering.
-   * @param {Object} filter 
+   * @param {Object} filter
    * @returns {Promise<Array>}
    */
   async findAll(filter = {}) {
@@ -76,11 +106,39 @@ class UserRepository {
 
   /**
    * Find all users matching a specific role.
-   * @param {string} role 
+   * @param {string} role
    * @returns {Promise<Array>}
    */
   async findByRole(role) {
     return UserModel.find({ role }).sort({ name: 1 });
+  }
+
+  /**
+   * Update user role by internal MongoDB ID.
+   * @param {string} userId
+   * @param {string} newRole
+   * @returns {Promise<Object|null>}
+   */
+  async updateRoleById(userId, newRole) {
+    return UserModel.findByIdAndUpdate(
+      userId,
+      { $set: { role: newRole } },
+      { new: true }
+    );
+  }
+
+  /**
+   * Update user role by external Clerk ID.
+   * @param {string} clerkId
+   * @param {string} newRole
+   * @returns {Promise<Object|null>}
+   */
+  async updateRoleByClerkId(clerkId, newRole) {
+    return UserModel.findOneAndUpdate(
+      { clerkId },
+      { $set: { role: newRole } },
+      { new: true }
+    );
   }
 }
 

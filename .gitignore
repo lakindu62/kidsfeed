@@ -1,7 +1,7 @@
 # dependencies
 node_modules/
 **/node_modules/
-
+.claude
 # build outputs
 dist/
 build/
@@ -37,6 +37,7 @@ Thumbs.db
 .yarn/install-state.gz
 .vercel
 implementations/
+*.bat
 
 # system/editor
 .vscode/

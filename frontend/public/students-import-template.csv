@@ -1,0 +1,6 @@
+firstName,lastName,studentId,gradeLevel,age,guardianName,guardianPhone,guardianEmail,emergencyContactName,emergencyContactPhone,status
+Emma,Johnson,KF-2024-001,Grade 3,8,Sarah Johnson,555-0101,sarah.johnson@example.com,Robert Johnson,555-0102,active
+Liam,Williams,KF-2024-002,Grade 5,10,Mary Williams,555-0201,mary.williams@example.com,James Williams,555-0202,active
+Olivia,Brown,KF-2024-003,Grade 1,6,Patricia Brown,555-0301,patricia.brown@example.com,Michael Brown,555-0302,active
+Noah,Jones,KF-2024-004,Grade 4,9,Linda Jones,555-0401,linda.jones@example.com,David Jones,555-0402,active
+Ava,Garcia,KF-2024-005,Grade 2,7,Barbara Garcia,555-0501,barbara.garcia@example.com,Richard Garcia,555-0502,active

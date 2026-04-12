@@ -29,6 +29,7 @@ class UpdateRecipeUseCase {
       id: recipeId,
       name: updateData.name ?? existingRecipe.name,
       description: updateData.description ?? existingRecipe.description,
+      imageUrl: updateData.imageUrl ?? existingRecipe.imageUrl,
       ingredients: updateData.ingredients ?? existingRecipe.ingredients,
       instructions: updateData.instructions ?? existingRecipe.instructions,
       dietaryFlags: updateData.dietaryFlags
@@ -38,7 +39,8 @@ class UpdateRecipeUseCase {
       prepTime: updateData.prepTime ?? existingRecipe.prepTime,
       servingSize: updateData.servingSize ?? existingRecipe.servingSize,
       seasonal: updateData.seasonal ?? existingRecipe.seasonal,
-      nutritionalInfo: existingRecipe.nutritionalInfo,
+      nutritionalInfo:
+        updateData.nutritionalInfo ?? existingRecipe.nutritionalInfo,
       isActive: existingRecipe.isActive,
       createdAt: existingRecipe.createdAt,
       updatedAt: new Date(),

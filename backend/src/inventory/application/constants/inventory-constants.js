@@ -19,6 +19,16 @@ export const INVENTORY_STATUS = {
 };
 
 /**
+ * Inventory item expiry-state values
+ */
+export const INVENTORY_EXPIRY_STATUS = {
+  UNAVAILABLE: 'UNAVAILABLE',
+  SAFE: 'SAFE',
+  PARTIALLY_EXPIRED: 'PARTIALLY_EXPIRED',
+  TOTALLY_EXPIRED: 'TOTALLY_EXPIRED',
+};
+
+/**
  * Default units of measurement exported
  */
 export const MEASUREMENT_UNITS = [

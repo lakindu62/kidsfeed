@@ -11,6 +11,23 @@ import { clerkClient } from '@clerk/express';
  */
 class UserService {
   /**
+   * List users for admin flows.
+   * Supports an optional role filter and returns all users when no role is provided.
+   *
+   * @param {{ role?: string }} filters
+   * @returns {Promise<Array>}
+   */
+  async listUsers(filters = {}) {
+    const { role } = filters;
+
+    if (role) {
+      return userRepository.findByRole(role);
+    }
+
+    return userRepository.findAll();
+  }
+
+  /**
    * Upgrades a lightweight mock session user object into a full database user profile.
    * Cross-domain modules should use this when they need secondary fields like 'email' or 'schoolId'.
    *
@@ -45,14 +62,15 @@ class UserService {
       );
     }
 
-    // 1. Update the local MongoDB database via the repository abstraction.
-    // upsertByClerkId serves natively as a safe patch since $set will simply
-    // overwrite the role, and $setOnInsert will be safely ignored for existing users.
-    const updatedUser = await userRepository.upsertByClerkId(
+    // 1. Update the local MongoDB role by Clerk identity.
+    const updatedUser = await userRepository.updateRoleByClerkId(
       clerkId,
-      { role: newRole },
-      {}
+      newRole
     );
+
+    if (!updatedUser) {
+      throw new Error('User not found for provided clerkId');
+    }
 
     // 2. Transmit state change to external provider (Clerk JWT Engine).
     // This immediately forces custom sessionClaims to re-generate with the new Role.
@@ -64,6 +82,97 @@ class UserService {
     });
 
     return updatedUser;
+  }
+
+  /**
+   * Domain logic orchestrating a role change by internal MongoDB user ID.
+   * Safely updates BOTH local role state and Clerk metadata.
+   *
+   * @param {string} userId - The internal MongoDB user _id
+   * @param {string} newRole - The new role to apply
+   * @returns {Promise<Object>} The updated User MongoDB document
+   */
+  async updateUserRoleById(userId, newRole) {
+    if (!userId || !newRole) {
+      throw new Error(
+        'userId and newRole are strictly required to update role'
+      );
+    }
+
+    // 1. Update the local MongoDB role by internal user ID.
+    const updatedUser = await userRepository.updateRoleById(userId, newRole);
+
+    if (!updatedUser) {
+      throw new Error('User not found for provided userId');
+    }
+
+    // 2. Propagate role and mongoId into Clerk metadata for token claims.
+    await clerkClient.users.updateUserMetadata(updatedUser.clerkId, {
+      publicMetadata: {
+        role: newRole,
+        mongoId: updatedUser._id.toString(),
+      },
+    });
+
+    return updatedUser;
+  }
+
+  /**
+   * DANGEROUS: Permanently deletes a user from Clerk and MongoDB.
+   * Use this only from an admin-only frontend flow with a confirmation popup.
+   *
+   * @param {string} userId - The internal MongoDB user _id
+   * @returns {Promise<Object>} The deleted MongoDB user document
+   */
+  async deleteUserById(userId) {
+    if (!userId) {
+      throw new Error('userId is strictly required to delete a user');
+    }
+
+    const existingUser = await userRepository.findById(userId);
+
+    if (!existingUser) {
+      throw new Error('User not found for provided userId');
+    }
+
+    await clerkClient.users.deleteUser(existingUser.clerkId);
+
+    const deletedUser = await userRepository.deleteById(userId);
+
+    if (!deletedUser) {
+      throw new Error('User could not be deleted from local database');
+    }
+
+    return deletedUser;
+  }
+
+  /**
+   * DANGEROUS: Permanently deletes a user from Clerk and MongoDB.
+   * Use this only from an admin-only frontend flow with a confirmation popup.
+   *
+   * @param {string} clerkId - The external Clerk user ID
+   * @returns {Promise<Object>} The deleted MongoDB user document
+   */
+  async deleteUserByClerkId(clerkId) {
+    if (!clerkId) {
+      throw new Error('clerkId is strictly required to delete a user');
+    }
+
+    const existingUser = await userRepository.findByClerkId(clerkId);
+
+    if (!existingUser) {
+      throw new Error('User not found for provided clerkId');
+    }
+
+    await clerkClient.users.deleteUser(clerkId);
+
+    const deletedUser = await userRepository.deleteByClerkId(clerkId);
+
+    if (!deletedUser) {
+      throw new Error('User could not be deleted from local database');
+    }
+
+    return deletedUser;
   }
 }
 
