@@ -7,9 +7,16 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "concurrently \"nodemon src/app.js\" \"ngrok http 3000\"",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --watch",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write ."
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/tests/unit-tests/**/*.test.js"],
+    "transform": {}
   },
   "keywords": [],
   "author": "",
@@ -33,7 +40,9 @@
     "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
+    "jest": "^30.3.0",
     "nodemon": "^3.0.1",
-    "prettier": "^3.8.1"
+    "prettier": "^3.8.1",
+    "vitest": "^4.1.4"
   }
 }

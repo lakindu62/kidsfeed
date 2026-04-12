@@ -4,6 +4,7 @@ const configuredOrigins = (process.env.FRONTEND_ORIGINS || '')
   .filter(Boolean);
 
 if (configuredOrigins.length === 0) {
+  // eslint-disable-next-line no-console
   console.warn(
     '[CORS] WARNING: FRONTEND_ORIGINS is not configured. Only localhost origins are allowed. Set FRONTEND_ORIGINS to a comma-separated list of allowed production/staging URLs.'
   );
