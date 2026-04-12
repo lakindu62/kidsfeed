@@ -136,7 +136,7 @@ export default function FeatureSidebar({
       )}
     >
       <div className="px-6 pb-6">
-        <img src="kids-feed-logo.png" className="h-8" />
+        <img src="/kids-feed-logo.png" className="h-8" />
 
         <p className="mt-2 border-t pt-2 text-xs font-semibold tracking-[0.6px] text-stone-500 uppercase">
           {featureLabel}
